@@ -752,6 +752,94 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .dnc-progress-fill { height: 100%; background: var(--blue); border-radius: 100px; transition: width 0.3s; width: 0%; }
 .dnc-progress-text { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-top: 6px; text-align: center; }
 
+
+/* ── US MAP ── */
+#usMapContainer { max-width:800px; margin:0 auto 16px; }
+.us-map-wrap { position:relative; width:100%; }
+.us-map-wrap svg { width:100%; height:auto; }
+.state-path {
+  fill: #e8e8e8; stroke:#fff; stroke-width:1.5;
+  cursor:default; transition:fill 0.2s;
+}
+.state-path.active {
+  fill: var(--orange); cursor:pointer;
+  filter: drop-shadow(0 2px 4px rgba(244,124,32,0.4));
+}
+.state-path.active:hover { fill: var(--orange-dark); }
+.state-path.selected { fill: var(--blue-dark) !important; }
+.map-label {
+  font-family:'Nunito',sans-serif; font-size:9px;
+  font-weight:900; fill:#fff; pointer-events:none;
+  text-anchor:middle; dominant-baseline:central;
+}
+.map-legend {
+  display:flex; gap:16px; align-items:center;
+  justify-content:center; margin-top:10px; flex-wrap:wrap;
+}
+.map-legend-item { display:flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:700; color:var(--text-muted); }
+.map-legend-dot { width:14px; height:14px; border-radius:3px; }
+
+/* ── MULTI-UTILITY SELECTION ── */
+.util-selected-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background: var(--blue); color:#fff;
+  padding:3px 10px 3px 12px; border-radius:100px;
+  font-size:0.72rem; font-weight:800; margin:4px;
+}
+.util-selected-badge.gas-badge { background: var(--green-dark); }
+.util-remove-btn {
+  background:rgba(255,255,255,0.3); border:none; color:#fff;
+  border-radius:50%; width:16px; height:16px;
+  cursor:pointer; font-size:0.65rem; display:flex;
+  align-items:center; justify-content:center; padding:0;
+  transition:background 0.15s;
+}
+.util-remove-btn:hover { background:rgba(255,255,255,0.5); }
+.selected-utils-bar {
+  padding:10px 12px; background:#f0f7ff;
+  border-bottom:1px solid var(--border);
+  display:none;
+}
+.selected-utils-bar.show { display:block; }
+.util-proceed-btn {
+  width:100%; background:var(--orange); color:#fff;
+  border:none; border-radius:8px; padding:11px;
+  cursor:pointer; font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:0.88rem; margin-top:10px;
+  transition:all 0.2s; display:none;
+}
+.util-proceed-btn.show { display:block; }
+.util-proceed-btn:hover { background:var(--orange-dark); }
+
+/* ── REP ID SELECTOR ── */
+.rep-selector {
+  display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;
+}
+.rep-chip {
+  padding:6px 14px; border-radius:100px;
+  border:2px solid var(--border); background:#fff;
+  cursor:pointer; font-size:0.78rem; font-weight:800;
+  color:var(--text-muted); transition:all 0.15s;
+  font-family:'Nunito',sans-serif;
+}
+.rep-chip:hover { border-color:var(--blue); color:var(--blue); }
+.rep-chip.selected { background:var(--blue); border-color:var(--blue); color:#fff; }
+
+/* ── HOME BUTTON (big, prominent) ── */
+.home-btn-big {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  width:100%; background: linear-gradient(135deg,#E53935,#C62828);
+  color:#fff; border:none; border-radius:12px;
+  padding:16px 24px; margin-top:20px;
+  cursor:pointer; font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:1rem; letter-spacing:0.03em;
+  transition:all 0.2s;
+  box-shadow:0 4px 16px rgba(229,57,53,0.4);
+  text-transform:uppercase;
+}
+.home-btn-big:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(229,57,53,0.5); }
+.home-btn-big .btn-icon { font-size:1.4rem; }
+
 </style>
 </head>
 <body>
@@ -852,14 +940,21 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
     <!-- STEP 1: ESTADO -->
     <div class="panel" id="panel1">
-      <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado para continuar</span></div>
-      <div class="states-grid" id="statesGrid"></div>
+      <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado en el mapa para continuar</span></div>
+      <div id="usMapContainer"></div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
     </div>
 
     <!-- STEP 2: UTILIDAD -->
     <div class="panel" id="panel2">
-      <div class="section-title"><div class="dot" style="background:var(--blue)"></div><h2>Utilidad</h2><span>Toca una utilidad para continuar</span></div>
+      <div class="section-title"><div class="dot" style="background:var(--blue)"></div><h2>Utilidad</h2><span>Selecciona una o más utilidades del cliente</span></div>
+      <div class="selected-utils-bar" id="selectedUtilsBar">
+        <div style="font-size:0.7rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Seleccionadas:</div>
+        <div id="selectedUtilsBadges"></div>
+        <button class="util-proceed-btn" id="utilProceedBtn" onclick="goStep(3)">
+          Continuar con estas utilidades →
+        </button>
+      </div>
       <div class="utilities-grid" id="utilitiesGrid"></div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(1)">← Atrás</button></div>
     </div>
@@ -886,7 +981,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="checklistBody"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;">
           <button class="reset-btn" style="margin:0" onclick="resetChecklist()">↺ Reiniciar Checklist</button>
-          <button class="home-btn" onclick="volverInicio()">🏠 Volver al Inicio</button>
+          <button class="home-btn-big" onclick="volverInicio()"><span class="btn-icon">🏠</span> NUEVA CONSULTA DNC</button>
         </div>
       </div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(3)">← Atrás</button></div>
@@ -1185,48 +1280,48 @@ let db = {
   ],
   utilities: [
     // MA
-    {id:'u_meco',  name:'MECO',      stateId:'st1', type:'electric'},
-    {id:'u_nstar', name:'NSTAR',     stateId:'st1', type:'electric'},
-    {id:'u_wmeco', name:'WMECO',     stateId:'st1', type:'electric'},
+    {id:'u_meco',  name:'Massachusetts Electric Co. (MECO)',      stateId:'st1', type:'electric'},
+    {id:'u_nstar', name:'Eversource (NSTAR)',     stateId:'st1', type:'electric'},
+    {id:'u_wmeco', name:'Western MA Electric (WMECO)',     stateId:'st1', type:'electric'},
     // NJ
-    {id:'u_jcpl',  name:'JCP&L',    stateId:'st2', type:'electric'},
-    {id:'u_psege', name:'PSE&G',     stateId:'st2', type:'electric'},
-    {id:'u_njng',  name:'NJNG',      stateId:'st2', type:'gas'},
+    {id:'u_jcpl',  name:'Jersey Central Power & Light (JCP&L)',    stateId:'st2', type:'electric'},
+    {id:'u_psege', name:'Public Service Electric & Gas (PSE&G)',     stateId:'st2', type:'electric'},
+    {id:'u_njng',  name:'NJ Natural Gas (NJNG)',      stateId:'st2', type:'gas'},
     {id:'u_psegg', name:'PSE&G Gas', stateId:'st2', type:'gas'},
     // PA
-    {id:'u_peco',  name:'PECO',      stateId:'st3', type:'electric'},
-    {id:'u_pple',  name:'PPL',       stateId:'st3', type:'electric'},
-    {id:'u_pnlc',  name:'PNLC',      stateId:'st3', type:'electric'},
-    {id:'u_meted', name:'METED',     stateId:'st3', type:'electric'},
-    {id:'u_duqe',  name:'DUQE',      stateId:'st3', type:'electric'},
-    {id:'u_alleg', name:'ALLEG',     stateId:'st3', type:'electric'},
-    {id:'u_pecog', name:'PECO Gas',  stateId:'st3', type:'gas'},
-    {id:'u_pgw',   name:'PGW',       stateId:'st3', type:'gas'},
-    {id:'u_ugi',   name:'UGI',       stateId:'st3', type:'gas'},
+    {id:'u_peco',  name:'PECO Energy (PECO)',      stateId:'st3', type:'electric'},
+    {id:'u_pple',  name:'PPL Electric Utilities (PPL)',       stateId:'st3', type:'electric'},
+    {id:'u_pnlc',  name:'Penelec (PNLC)',      stateId:'st3', type:'electric'},
+    {id:'u_meted', name:'Metropolitan Edison (MetEd)',     stateId:'st3', type:'electric'},
+    {id:'u_duqe',  name:'Duquesne Light (DUQE)',      stateId:'st3', type:'electric'},
+    {id:'u_alleg', name:'Allegheny Power (ALLEG)',     stateId:'st3', type:'electric'},
+    {id:'u_pecog', name:'PECO Energy Gas',  stateId:'st3', type:'gas'},
+    {id:'u_pgw',   name:'Philadelphia Gas Works (PGW)',       stateId:'st3', type:'gas'},
+    {id:'u_ugi',   name:'UGI Utilities (UGI)',       stateId:'st3', type:'gas'},
     // CA
-    {id:'u_pge',       name:'PG&E',           stateId:'st6', type:'gas'},
+    {id:'u_pge',       name:'Pacific Gas & Electric (PG&E)',           stateId:'st6', type:'gas'},
     // DC
-    {id:'u_pepcodc',   name:'Pepco DC',        stateId:'st4', type:'electric'},
-    {id:'u_washgasdc', name:'Washington Gas',  stateId:'st4', type:'gas'},
+    {id:'u_pepcodc',   name:'Potomac Electric (Pepco DC)',        stateId:'st4', type:'electric'},
+    {id:'u_washgasdc', name:'Washington Gas DC',  stateId:'st4', type:'gas'},
     // IN
-    {id:'u_nipsco',    name:'NIPSCO',          stateId:'st5', type:'gas'},
+    {id:'u_nipsco',    name:'N. Indiana Public Service (NIPSCO)',          stateId:'st5', type:'gas'},
     // VA
-    {id:'u_colgasva',  name:'Columbia Gas VA', stateId:'st7', type:'gas'},
-    {id:'u_washgasva', name:'Wash. Gas VA',    stateId:'st7', type:'gas'},
+    {id:'u_colgasva',  name:'Columbia Gas Virginia', stateId:'st7', type:'gas'},
+    {id:'u_washgasva', name:'Washington Gas Virginia',    stateId:'st7', type:'gas'},
     // DE
-    {id:'u_delmarva',  name:'Delmarva',        stateId:'st8', type:'electric'},
+    {id:'u_delmarva',  name:'Delmarva Power (Delmarva)',        stateId:'st8', type:'electric'},
     // NY
-    {id:'u_coned',     name:'ConEd Zone J',    stateId:'st9', type:'electric'},
+    {id:'u_coned',     name:'Con Edison Zone J (ConEd)',    stateId:'st9', type:'electric'},
     // NJ extra
-    {id:'u_ace',       name:'ACE',             stateId:'st2', type:'electric'},
-    {id:'u_reco',      name:'RECO (Rockland)', stateId:'st2', type:'electric'},
-    {id:'u_etown',     name:'E-Town',          stateId:'st2', type:'gas'},
-    {id:'u_sjg',       name:'SJG',             stateId:'st2', type:'gas'},
+    {id:'u_ace',       name:'Atlantic City Electric (ACE)',             stateId:'st2', type:'electric'},
+    {id:'u_reco',      name:'Rockland Electric (RECO)', stateId:'st2', type:'electric'},
+    {id:'u_etown',     name:'Elizabethtown Gas (E-Town)',          stateId:'st2', type:'gas'},
+    {id:'u_sjg',       name:'South Jersey Gas (SJG)',             stateId:'st2', type:'gas'},
     // PA extra
     {id:'u_westpenn',  name:'West Penn Power', stateId:'st3', type:'electric'},
     {id:'u_penelec',   name:'Penelec',         stateId:'st3', type:'electric'},
-    {id:'u_colgaspa',  name:'Columbia Gas PA', stateId:'st3', type:'gas'},
-    {id:'u_peoples',   name:'Peoples-Equitable',stateId:'st3',type:'gas'},
+    {id:'u_colgaspa',  name:'Columbia Gas Pennsylvania', stateId:'st3', type:'gas'},
+    {id:'u_peoples',   name:'Peoples Natural Gas',stateId:'st3',type:'gas'},
   ],
   suppliers: [
     // NGE — one entry per utility (real data loaded)
@@ -1487,7 +1582,7 @@ function clearLog() { accessLog = []; saveLog(); renderLog(); }
 // ════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════
-let sel = { stateId:null, utilId:null, supId:null };
+let sel = { stateId:null, utilIds:[], supId:null }; // utilIds = array for multi-utility
 let rateFilter = 'all';
 let checkedItems = new Set();
 let currentStep = 0;
@@ -1509,6 +1604,7 @@ function goStep(n) {
   });
   currentStep = n;
   if(n===0) renderDNC();
+  if(n===1) renderUSMap();
   if(n===2) renderUtilities();
   if(n===3) renderSupplierCards();
   if(n===4) renderChecklist();
@@ -1519,7 +1615,12 @@ function updateContext() {
   const bar = document.getElementById('contextBar');
   let html = '';
   if(sel.stateId){const s=db.states.find(x=>x.id===sel.stateId);html+=`<div class="ctx-tag state"><span class="ctx-label">Estado</span><span class="ctx-val">${s.code} — ${s.name}</span></div>`;}
-  if(sel.utilId){const u=db.utilities.find(x=>x.id===sel.utilId);html+=`<div class="ctx-tag util"><span class="ctx-label">Utilidad</span><span class="ctx-val">${u.name}</span></div>`;}
+  if(sel.utilIds && sel.utilIds.length > 0){
+    sel.utilIds.forEach(uid => {
+      const u=db.utilities.find(x=>x.id===uid);
+      if(u) html+=`<div class="ctx-tag util"><span class="ctx-label">Utilidad</span><span class="ctx-val">${u.name}</span></div>`;
+    });
+  } else if(sel.utilId){const u=db.utilities.find(x=>x.id===sel.utilId);if(u)html+=`<div class="ctx-tag util"><span class="ctx-label">Utilidad</span><span class="ctx-val">${u.name}</span></div>`;}
   if(sel.supId){const s=db.suppliers.find(x=>x.id===sel.supId);html+=`<div class="ctx-tag sup"><span class="ctx-label">Supplier</span><span class="ctx-val">${s.name}</span></div>`;}
   bar.innerHTML=html;
 }
@@ -1527,19 +1628,90 @@ function updateContext() {
 // ════════════════════════════════════════════
 // STEP RENDERS
 // ════════════════════════════════════════════
-function renderStates() {
-  const g=document.getElementById('statesGrid');
-  if(!db.states.length){g.innerHTML='<div class="empty-msg"><span class="big">🗺️</span>Sin estados. Admin: agrégalos en el panel.</div>';return;}
-  g.innerHTML=db.states.map(s=>{
-    const cnt=db.utilities.filter(u=>u.stateId===s.id).length;
-    return `<div class="state-card${sel.stateId===s.id?' selected':''}" onclick="selectState('${s.id}')">
-      <div class="state-abbr">${s.code}</div>
-      <div class="state-name">${s.name}</div>
-      <div class="state-util-count">${cnt} utilidad${cnt!==1?'es':''}</div>
-    </div>`;
+
+// ════════════════════════════════════════════
+// US MAP — Active States Only
+// ════════════════════════════════════════════
+const ACTIVE_STATES_MAP = {
+  'st1': { name:'Massachusetts', code:'MA', x:720, y:112, w:52, h:28 },
+  'st2': { name:'New Jersey',    code:'NJ', x:688, y:148, w:36, h:38 },
+  'st3': { name:'Pennsylvania',  code:'PA', x:648, y:128, w:72, h:38 },
+  'st4': { name:'Washington DC', code:'DC', x:672, y:178, w:28, h:22 },
+  'st8': { name:'Delaware',      code:'DE', x:700, y:166, w:24, h:22 },
+  'st9': { name:'New York',      code:'NY', x:680, y:88,  w:76, h:40 },
+  'st7': { name:'Virginia',      code:'VA', x:636, y:182, w:72, h:36 },
+  'st5': { name:'Indiana',       code:'IN', x:528, y:138, w:52, h:48 },
+  'st6': { name:'California',    code:'CA', x:92,  y:148, w:76, h:108 },
+};
+
+function renderUSMap() {
+  const container = document.getElementById('usMapContainer');
+  if(!container) return;
+
+  const svgW = 820, svgH = 360;
+
+  const stateBlocks = Object.entries(ACTIVE_STATES_MAP).map(([id, s]) => {
+    const isSelected = sel.stateId === id;
+    const dbState = db.states.find(st => st.id === id);
+    const utilCount = db.utilities.filter(u => u.stateId === id).length;
+    return `
+      <g class="state-group" onclick="selectState('${id}')" style="cursor:pointer">
+        <rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}"
+          rx="6" ry="6"
+          fill="${isSelected ? 'var(--blue-dark)' : 'var(--orange)'}"
+          stroke="#fff" stroke-width="2"
+          style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));transition:fill 0.2s"
+          onmouseover="this.style.fill='${isSelected ? '#0d47a1' : 'var(--orange-dark)'}'"
+          onmouseout="this.style.fill='${isSelected ? 'var(--blue-dark)' : 'var(--orange)'}'"
+        />
+        <text x="${s.x + s.w/2}" y="${s.y + s.h/2 - 5}"
+          text-anchor="middle" dominant-baseline="central"
+          font-family="Nunito,sans-serif" font-size="11" font-weight="900" fill="white">
+          ${s.code}
+        </text>
+        <text x="${s.x + s.w/2}" y="${s.y + s.h/2 + 8}"
+          text-anchor="middle" dominant-baseline="central"
+          font-family="Nunito,sans-serif" font-size="8" font-weight="700" fill="rgba(255,255,255,0.85)">
+          ${utilCount} util
+        </text>
+      </g>`;
   }).join('');
+
+  // Background US outline (simplified)
+  container.innerHTML = `
+    <div style="background:#f8f9fb;border-radius:14px;padding:20px;border:1px solid var(--border)">
+      <div style="font-size:0.7rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;text-align:center">
+        Toca un estado para seleccionarlo
+      </div>
+      <svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+        <!-- US background shape (simplified) -->
+        <rect x="60" y="60" width="700" height="260" rx="20" fill="#e2e8f0" opacity="0.5"/>
+        <!-- State blocks -->
+        ${stateBlocks}
+        <!-- Compass -->
+        <text x="30" y="330" font-family="Nunito,sans-serif" font-size="10" fill="#aaa" font-weight="700">N↑</text>
+      </svg>
+      <div class="map-legend">
+        <div class="map-legend-item">
+          <div class="map-legend-dot" style="background:var(--orange)"></div>
+          <span>Estado disponible</span>
+        </div>
+        <div class="map-legend-item">
+          <div class="map-legend-dot" style="background:var(--blue-dark)"></div>
+          <span>Seleccionado</span>
+        </div>
+        <div class="map-legend-item">
+          <div class="map-legend-dot" style="background:#e2e8f0"></div>
+          <span>No disponible</span>
+        </div>
+      </div>
+    </div>`;
 }
-function selectState(id){sel.stateId=id;sel.utilId=null;sel.supId=null;updateContext();goStep(2);}
+
+function renderStates() {
+  renderUSMap();
+}
+function selectState(id){sel.stateId=id;sel.utilIds=[];sel.supId=null;updateContext();goStep(2);}
 
 function renderUtilities() {
   const container = document.getElementById('utilitiesGrid');
@@ -1551,10 +1723,14 @@ function renderUtilities() {
   const elec = utils.filter(u => u.type === 'electric' || u.type === 'both');
   const gas  = utils.filter(u => u.type === 'gas'      || u.type === 'both');
 
-  const utilCard = u => `
-    <div class="util-card${sel.utilId===u.id?' selected':''}" onclick="selectUtil('${u.id}')">
+  const utilCard = u => {
+    const isSelected = sel.utilIds.includes(u.id);
+    return `
+    <div class="util-card${isSelected?' selected':''}" onclick="toggleUtil('${u.id}')">
       <div class="util-name">${u.name}</div>
+      ${isSelected ? '<span style="color:var(--blue);font-weight:900;font-size:1rem">✓</span>' : '<span style="color:var(--text-muted);font-size:0.8rem">+ Agregar</span>'}
     </div>`;
+  };
 
   const group = (title, icon, colorClass, items) => items.length ? `
     <div class="util-group">
@@ -1567,19 +1743,57 @@ function renderUtilities() {
       ${group('Electricidad','⚡','elec', elec)}
       ${group('Gas','🔥','gas', gas)}
     </div>`;
+
+  updateSelectedUtilsBar();
 }
-function selectUtil(id){
-  sel.utilId=id;
-  sel.supId=null;
+
+function toggleUtil(id) {
+  const idx = sel.utilIds.indexOf(id);
+  if(idx === -1) sel.utilIds.push(id);
+  else sel.utilIds.splice(idx, 1);
+  // For supplier step, use first selected util (we'll show all)
+  sel.utilId = sel.utilIds[0] || null;
+  renderUtilities();
   updateContext();
-  const firstSup = db.suppliers.find(s => s.utilId === id);
-  openSupId = firstSup ? firstSup.id : null;
-  goStep(3);
 }
+
+function updateSelectedUtilsBar() {
+  const bar    = document.getElementById('selectedUtilsBar');
+  const badges = document.getElementById('selectedUtilsBadges');
+  const btn    = document.getElementById('utilProceedBtn');
+  if(!bar) return;
+
+  if(sel.utilIds.length === 0) {
+    bar.classList.remove('show');
+    btn.classList.remove('show');
+    return;
+  }
+  bar.classList.add('show');
+  btn.classList.add('show');
+
+  badges.innerHTML = sel.utilIds.map(id => {
+    const u = db.utilities.find(x => x.id === id);
+    if(!u) return '';
+    const isGas = u.type === 'gas';
+    return `<span class="util-selected-badge ${isGas?'gas-badge':''}">
+      ${isGas?'🔥':'⚡'} ${u.name}
+      <button class="util-remove-btn" onclick="toggleUtil('${id}')">✕</button>
+    </span>`;
+  }).join('');
+
+  const totalSups = sel.utilIds.reduce((acc, id) => {
+    return acc + db.suppliers.filter(s => s.utilId === id).length;
+  }, 0);
+  btn.textContent = `Ver suppliers (${totalSups}) →`;
+}
+// selectUtil replaced by toggleUtil
 
 function renderSupplierCards() {
   const g = document.getElementById('suppliersGrid');
-  const sups = db.suppliers.filter(s => s.utilId === sel.utilId);
+  // Show suppliers for all selected utilities
+  const sups = sel.utilIds.length > 0
+    ? db.suppliers.filter(s => sel.utilIds.includes(s.utilId))
+    : db.suppliers.filter(s => s.utilId === sel.utilId);
   if(!sups.length) {
     g.innerHTML = '<div class="empty-msg"><span class="big">🏢</span>Sin suppliers para esta utilidad.</div>';
     return;
@@ -1646,7 +1860,7 @@ function selectSupAndGo(id) {
 }
 
 function volverInicio(){
-  sel={stateId:null,utilId:null,supId:null};
+  sel={stateId:null,utilIds:[],supId:null};
   openSupId=null;
   checkedItems.clear();
   dncClearResult();
@@ -1695,32 +1909,88 @@ function renderCheckItems() {
 }
 
 function renderTemplateStep(stepNum, state, util, sup) {
+  // Auto-fill values
+  const stateVal   = state ? state.name + ' (' + state.code + ')' : '';
+  const utilVal    = sel.utilIds.length > 0
+    ? sel.utilIds.map(id => { const u=db.utilities.find(x=>x.id===id); return u?u.name:''; }).join(' / ')
+    : (util ? util.name : '');
+  const phoneVal   = document.getElementById('dncPhone')?.value || '';
+  const supName    = sup ? sup.name : '';
+
+  // Build rate info from selected supplier
+  let rateVal = supName;
+  if(sup) {
+    const rates = db.rates.filter(r => r.supId === sup.id);
+    if(rates.length > 0) {
+      const r = rates[0];
+      rateVal = `${supName} — ${r.price} ${r.uom||''} | Term: ${r.months} mo | ETF: ${r.etf}`;
+    }
+  }
+
+  // REP IDs per supplier
+  const REP_IDS = {
+    'INDRA': ['NLS1064','NLS1065','NLS1066','NLS1062','NLS1060','NLS1063','NLS1068'],
+    'NG&E':  ['BNSC1003'],
+  };
+  const repIds = (sup && REP_IDS[sup.name]) ? REP_IDS[sup.name] : [];
+
+  const repSelector = repIds.length > 0 ? `
+    <div class="tpl-row tpl-full">
+      <label class="tpl-label">REP ID — Selecciona el tuyo</label>
+      <div class="rep-selector" id="repSelectorChips">
+        ${repIds.map(r => `<button class="rep-chip" onclick="selectRepId('${r}')">${r}</button>`).join('')}
+      </div>
+      <input class="tpl-input" id="tpl_repid" placeholder="Selecciona arriba o escribe" style="margin-top:6px">
+    </div>` : `
+    <div class="tpl-row"><label class="tpl-label">REP ID</label>
+      <input class="tpl-input" id="tpl_repid" placeholder="Tu Rep ID"></div>`;
+
   return `<div class="check-item template-step">
     <div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>
     <div class="check-content" style="flex:1">
       <div class="check-step">Paso ${stepNum}</div>
       <div class="check-title">Completar plantilla de venta</div>
-      <div class="check-desc" style="margin-bottom:12px">Llena todos los campos y copia la plantilla cuando esté lista.</div>
+      <div class="check-desc" style="margin-bottom:12px">Los campos marcados se llenaron automáticamente. Completa los que faltan y copia.</div>
       <div class="tpl-grid">
-        <div class="tpl-row"><label class="tpl-label">STATE</label><input class="tpl-input" id="tpl_state" placeholder="ej: PA" value="${state?state.name:''}"></div>
-        <div class="tpl-row"><label class="tpl-label">LANGUAGE</label><input class="tpl-input" id="tpl_lang" placeholder="ej: English"></div>
-        <div class="tpl-row"><label class="tpl-label">PHONE NUMBER</label><input class="tpl-input" id="tpl_phone" placeholder="ej: (555) 123-4567"></div>
-        <div class="tpl-row"><label class="tpl-label">AUTHORIZED</label><input class="tpl-input" id="tpl_auth" placeholder="ej: Yes / No"></div>
-        <div class="tpl-row"><label class="tpl-label">ACC HOLDER</label><input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular"></div>
-        <div class="tpl-row"><label class="tpl-label">ADDRESS</label><input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio"></div>
-        <div class="tpl-row"><label class="tpl-label">CITY</label><input class="tpl-input" id="tpl_city" placeholder="Ciudad"></div>
-        <div class="tpl-row"><label class="tpl-label">ACC INFO</label><input class="tpl-input" id="tpl_acc" placeholder="Número de cuenta"></div>
-        <div class="tpl-row"><label class="tpl-label">UTILITY</label><input class="tpl-input" id="tpl_util" placeholder="ej: PECO" value="${util?util.name:''}"></div>
-        <div class="tpl-row"><label class="tpl-label">DATE OF BIRTH</label><input class="tpl-input" id="tpl_dob" placeholder="MM/DD/YYYY"></div>
-        <div class="tpl-row"><label class="tpl-label">NAME KEY</label><input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre"></div>
-        <div class="tpl-row"><label class="tpl-label">REP ID</label><input class="tpl-input" id="tpl_repid" placeholder="ID del agente" value="${currentUser?currentUser.username:''}"></div>
-        <div class="tpl-row tpl-full"><label class="tpl-label">TARIFA SELECCIONADA</label><input class="tpl-input" id="tpl_tarifa" placeholder="ej: Fixed 12M — 0.1299 $/kWh" value="${sup?sup.name+' — ':'' }"></div>
+        <div class="tpl-row"><label class="tpl-label">STATE</label>
+          <input class="tpl-input" id="tpl_state" value="${stateVal}" placeholder="Estado"></div>
+        <div class="tpl-row"><label class="tpl-label">LANGUAGE</label>
+          <input class="tpl-input" id="tpl_lang" placeholder="ej: English / Spanish"></div>
+        <div class="tpl-row"><label class="tpl-label">PHONE NUMBER</label>
+          <input class="tpl-input" id="tpl_phone" value="${phoneVal}" placeholder="(555) 123-4567"></div>
+        <div class="tpl-row"><label class="tpl-label">AUTHORIZED</label>
+          <input class="tpl-input" id="tpl_auth" placeholder="Yes / No"></div>
+        <div class="tpl-row"><label class="tpl-label">ACC HOLDER</label>
+          <input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular"></div>
+        <div class="tpl-row"><label class="tpl-label">ADDRESS</label>
+          <input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio"></div>
+        <div class="tpl-row"><label class="tpl-label">CITY</label>
+          <input class="tpl-input" id="tpl_city" placeholder="Ciudad"></div>
+        <div class="tpl-row"><label class="tpl-label">ACC INFO</label>
+          <input class="tpl-input" id="tpl_acc" placeholder="Número de cuenta"></div>
+        <div class="tpl-row tpl-full"><label class="tpl-label">UTILITY</label>
+          <input class="tpl-input" id="tpl_util" value="${utilVal}" placeholder="Utilidad"></div>
+        <div class="tpl-row"><label class="tpl-label">DATE OF BIRTH</label>
+          <input class="tpl-input" id="tpl_dob" placeholder="MM/DD/YYYY"></div>
+        <div class="tpl-row"><label class="tpl-label">NAME KEY</label>
+          <input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre"></div>
+        ${repSelector}
+        <div class="tpl-row tpl-full"><label class="tpl-label">TARIFA SELECCIONADA</label>
+          <input class="tpl-input" id="tpl_tarifa" value="${rateVal}" placeholder="Supplier — Rate | Term | ETF"></div>
       </div>
       <button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn">
         <span>📋</span> Copiar Plantilla
       </button>
     </div>
   </div>`;
+}
+
+function selectRepId(repId) {
+  const input = document.getElementById('tpl_repid');
+  if(input) input.value = repId;
+  document.querySelectorAll('.rep-chip').forEach(c => {
+    c.classList.toggle('selected', c.textContent.trim() === repId);
+  });
 }
 
 function restoreTemplateValues() {
