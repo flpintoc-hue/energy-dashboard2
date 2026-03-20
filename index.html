@@ -849,16 +849,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 
 /* ── STATE LAYOUT with mini map ── */
-.state-layout {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 20px;
-  align-items: start;
-}
-@media(max-width:700px) {
-  .state-layout { grid-template-columns: 1fr; }
-  .mini-map-wrap { order: -1; }
-}
+.state-layout { /* no longer used for grid */ }
 
 .mini-map-card {
   background: var(--card);
@@ -922,6 +913,32 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .selected-rate-bar .sr-info { flex: 1; }
 .selected-rate-clear { background: rgba(255,255,255,0.2); border: none; color: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.72rem; font-weight: 800; transition: background 0.15s; white-space: nowrap; }
 .selected-rate-clear:hover { background: rgba(255,255,255,0.35); }
+
+
+/* ── BIG MAP ── */
+.big-map-wrap {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 8px;
+}
+.big-map-title {
+  font-size: 0.78rem; font-weight: 900;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 12px; text-align: center;
+}
+.big-map-svg-container { width: 100%; overflow: visible; }
+.big-map-legend {
+  display: flex; flex-wrap: wrap; gap: 10px 18px;
+  justify-content: center; margin-top: 12px;
+}
+.bml-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); }
+.bml-dot  { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.map-state-group path, .map-state-group circle {
+  transform-box: fill-box;
+}
 
 </style>
 </head>
@@ -1024,61 +1041,128 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
     <!-- STEP 1: ESTADO -->
     <div class="panel" id="panel1">
       <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado para continuar</span></div>
-      <div class="state-layout">
+      <div style="margin-bottom:16px">
         <div class="states-grid" id="statesGrid"></div>
-        <div class="mini-map-wrap">
-          <div class="mini-map-card">
-            <div class="mini-map-title">📍 Estados disponibles</div>
-            <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
-              <!-- Simplified US state outlines - key states colored -->
-              <!-- Background -->
-              <rect width="960" height="600" fill="#f0f4f8" rx="8"/>
-              <!-- Continental US outline approximate -->
-              <path d="M120,80 L820,80 L860,200 L840,380 L760,420 L700,480 L600,500 L500,490 L400,510 L300,480 L200,460 L140,400 L100,300 L80,200 Z" fill="#e2e8f0" stroke="#c8d5e3" stroke-width="1"/>
+      </div>
+      <!-- BIG MAP BELOW CARDS -->
+      <div class="big-map-wrap">
+        <div class="big-map-title">🗺️ Mapa de referencia — Estados disponibles</div>
+        <div class="big-map-svg-container">
+          <svg viewBox="0 0 960 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+            <rect width="960" height="580" fill="#EEF2F7" rx="12"/>
+            <!-- US rough outline -->
+            <path d="M150,80 L830,75 L865,210 L845,390 L770,430 L710,490 L590,505 L490,495 L380,515 L270,488 L175,465 L130,400 L100,300 L110,190 Z" fill="#DDE4EE" stroke="#C5D0DF" stroke-width="1.5"/>
+            <!-- Pacific coast indent -->
+            <path d="M108,190 L155,165 L165,220 L170,300 L168,370 L150,420 L130,400 L100,300 Z" fill="#D4DCE8" stroke="none"/>
 
-              <!-- CA - California (west coast) -->
-              <path d="M95,180 L130,160 L145,200 L150,260 L155,320 L140,370 L120,390 L100,370 L90,320 L85,260 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="120" y="290" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="900" fill="white">CA</text>
+            <!-- CA - Orange -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M108,185 L148,162 L162,205 L168,275 L170,345 L158,395 L138,415 L115,398 L100,350 L98,280 Z"
+                fill="#F47C20" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:135px 295px"
+                onmouseover="zoomState(this,'CA','California')"
+                onmouseout="unzoomState(this)"/>
+              <text x="134" y="300" text-anchor="middle" font-family="Nunito,sans-serif" font-size="14" font-weight="900" fill="white" style="pointer-events:none">CA</text>
+            </g>
 
-              <!-- IN - Indiana (midwest) -->
-              <path d="M490,195 L530,195 L535,250 L530,270 L490,270 L485,250 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="510" y="238" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">IN</text>
+            <!-- IN - Purple -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M488,190 L535,188 L540,255 L534,278 L488,276 L482,255 Z"
+                fill="#9C27B0" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:511px 234px"
+                onmouseover="zoomState(this,'IN','Indiana')"
+                onmouseout="unzoomState(this)"/>
+              <text x="511" y="238" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">IN</text>
+            </g>
 
-              <!-- PA - Pennsylvania -->
-              <path d="M620,165 L720,160 L725,205 L620,210 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="672" y="190" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">PA</text>
+            <!-- NY - Teal -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M635,110 L760,105 L766,155 L730,158 L720,160 L632,165 Z"
+                fill="#00897B" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:700px 137px"
+                onmouseover="zoomState(this,'NY','New York')"
+                onmouseout="unzoomState(this)"/>
+              <text x="700" y="140" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="900" fill="white" style="pointer-events:none">NY</text>
+            </g>
 
-              <!-- NY - New York -->
-              <path d="M640,120 L755,110 L760,158 L720,160 L635,165 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="700" y="142" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">NY</text>
+            <!-- PA - Blue -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M622,162 L722,157 L728,205 L626,210 Z"
+                fill="#1565C0" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:675px 184px"
+                onmouseover="zoomState(this,'PA','Pennsylvania')"
+                onmouseout="unzoomState(this)"/>
+              <text x="675" y="188" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="900" fill="white" style="pointer-events:none">PA</text>
+            </g>
 
-              <!-- MA - Massachusetts -->
-              <path d="M760,115 L820,112 L825,140 L762,143 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="793" y="131" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="900" fill="white">MA</text>
+            <!-- MA - Red -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M764,108 L828,105 L832,138 L766,141 Z"
+                fill="#C62828" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:798px 124px"
+                onmouseover="zoomState(this,'MA','Massachusetts')"
+                onmouseout="unzoomState(this)"/>
+              <text x="798" y="128" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="900" fill="white" style="pointer-events:none">MA</text>
+            </g>
 
-              <!-- NJ - New Jersey -->
-              <path d="M735,205 L760,202 L765,240 L738,242 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="750" y="226" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="900" fill="white">NJ</text>
+            <!-- NJ - Green -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M736,206 L762,202 L768,244 L740,246 Z"
+                fill="#2E7D32" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:754px 224px"
+                onmouseover="zoomState(this,'NJ','New Jersey')"
+                onmouseout="unzoomState(this)"/>
+              <text x="754" y="228" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="900" fill="white" style="pointer-events:none">NJ</text>
+            </g>
 
-              <!-- DE - Delaware -->
-              <path d="M730,242 L748,240 L750,262 L732,263 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="741" y="255" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" font-weight="900" fill="white">DE</text>
+            <!-- DE - Pink -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M732,246 L750,244 L752,268 L734,269 Z"
+                fill="#E91E8C" stroke="white" stroke-width="2"
+                style="transition:all 0.25s;transform-origin:742px 257px"
+                onmouseover="zoomState(this,'DE','Delaware')"
+                onmouseout="unzoomState(this)"/>
+              <text x="742" y="260" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="900" fill="white" style="pointer-events:none">DE</text>
+            </g>
 
-              <!-- DC - Washington DC (dot) -->
-              <circle cx="718" cy="255" r="10" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="718" y="259" text-anchor="middle" font-family="Nunito,sans-serif" font-size="7" font-weight="900" fill="white">DC</text>
+            <!-- DC - Yellow/Gold -->
+            <g class="map-state-group" style="cursor:default">
+              <circle cx="720" cy="260" r="12"
+                fill="#F9A825" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:720px 260px"
+                onmouseover="zoomState(this,'DC','Washington DC')"
+                onmouseout="unzoomState(this)"/>
+              <text x="720" y="264" text-anchor="middle" font-family="Nunito,sans-serif" font-size="7.5" font-weight="900" fill="white" style="pointer-events:none">DC</text>
+            </g>
 
-              <!-- VA - Virginia -->
-              <path d="M630,255 L730,250 L735,285 L700,310 L640,305 L620,285 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
-              <text x="678" y="283" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">VA</text>
+            <!-- VA - Cyan -->
+            <g class="map-state-group" style="cursor:default">
+              <path d="M628,258 L732,252 L738,290 L704,315 L644,310 L620,288 Z"
+                fill="#0097A7" stroke="white" stroke-width="2.5"
+                style="transition:all 0.25s;transform-origin:679px 284px"
+                onmouseover="zoomState(this,'VA','Virginia')"
+                onmouseout="unzoomState(this)"/>
+              <text x="679" y="288" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">VA</text>
+            </g>
 
-              <!-- Legend -->
-              <rect x="20" y="540" width="14" height="14" rx="3" fill="#F47C20"/>
-              <text x="40" y="552" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#666">Estado disponible</text>
-              <rect x="180" y="540" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#c8d5e3" stroke-width="1"/>
-              <text x="200" y="552" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#666">No disponible</text>
-            </svg>
-          </div>
+            <!-- Tooltip -->
+            <g id="mapTooltip" style="display:none;pointer-events:none">
+              <rect id="tooltipBg" x="0" y="0" width="140" height="34" rx="6" fill="#1a1a2e" opacity="0.88"/>
+              <text id="tooltipText" x="70" y="21" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="800" fill="white"></text>
+            </g>
+          </svg>
+        </div>
+        <!-- Color legend -->
+        <div class="big-map-legend">
+          <span class="bml-item"><span class="bml-dot" style="background:#F47C20"></span>CA</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#9C27B0"></span>IN</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#00897B"></span>NY</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#1565C0"></span>PA</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#C62828"></span>MA</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#2E7D32"></span>NJ</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#E91E8C"></span>DE</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#F9A825"></span>DC</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#0097A7"></span>VA</span>
         </div>
       </div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
