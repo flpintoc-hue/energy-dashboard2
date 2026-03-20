@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Supplier Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #F47C20;
+  --orange-dark: #d46a10;
+  --orange-light: #ffa040;
+  --green: #2ECC71;
+  --green-dark: #27ae60;
+  --blue: #2196F3;
+  --blue-dark: #1976D2;
+  --teal: #00BCD4;
+  --red: #E53935;
+  --red-light: #FFEBEE;
+  --yellow: #FFC107;
+  --white: #ffffff;
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #666;
+  --border: #e0e0e0;
+  --shadow: 0 2px 12px rgba(0,0,0,0.09);
+  --shadow-lg: 0 6px 28px rgba(0,0,0,0.14);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ══════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════ */
+#loginScreen {
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  position:relative;
+  overflow:hidden;
+}
+#loginScreen::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image: linear-gradient(rgba(244,124,32,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244,124,32,0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  z-index:0;
+  pointer-events: none;
+}
+
+.login-box {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 40px 36px;
+  width: min(400px, 94vw);
+  position: relative;
+  z-index:1;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: loginIn 0.5s ease;
+}
+@keyframes loginIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+.login-logo {
+  text-align:center;
+  margin-bottom:28px;
+}
+.login-logo .icon { font-size:2.8rem; display:block; margin-bottom:8px; }
+.login-logo h1 {
+  font-size:1.4rem; font-weight:900; color:#fff;
+  letter-spacing:0.04em; text-transform:uppercase;
+}
+.login-logo p { font-size:0.72rem; color:rgba(255,255,255,0.4); margin-top:4px; letter-spacing:0.1em; text-transform:uppercase; }
+
+.login-field { margin-bottom:14px; }
+.login-field label {
+  display:block; font-size:0.65rem; font-weight:800;
+  text-transform:uppercase; letter-spacing:0.1em;
+  color:rgba(255,255,255,0.5); margin-bottom:6px;
+}
+.login-field input {
+  width:100%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius:10px;
+  padding:12px 14px;
+  color:#fff;
+  font-family:'Nunito',sans-serif;
+  font-size:0.88rem;
+  font-weight:600;
+  outline:none;
+  transition:all 0.2s;
+}
+.login-field input:focus { border-color:var(--orange); background:rgba(244,124,32,0.08); }
+.login-field input::placeholder { color:rgba(255,255,255,0.25); }
+
+.login-btn {
+  width:100%; padding:13px;
+  background:var(--orange);
+  border:none; border-radius:10px;
+  color:#fff; font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:0.9rem;
+  letter-spacing:0.05em; text-transform:uppercase;
+  cursor:pointer; margin-top:6px;
+  transition:all 0.2s;
+  box-shadow:0 4px 16px rgba(244,124,32,0.4);
+}
+.login-btn:hover { background:var(--orange-dark); transform:translateY(-1px); }
+
+.login-error {
+  background:rgba(229,57,53,0.15);
+  border:1px solid rgba(229,57,53,0.35);
+  border-radius:8px;
+  padding:10px 14px;
+  color:#ff6b6b;
+  font-size:0.78rem;
+  font-weight:700;
+  margin-bottom:14px;
+  display:none;
+  text-align:center;
+}
+.login-error.show { display:block; animation:shake 0.3s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+.login-hint {
+  text-align:center;
+  margin-top:18px;
+  font-size:0.68rem;
+  color:rgba(255,255,255,0.2);
+  letter-spacing:0.05em;
+}
+
+/* ══════════════════════════════
+   APP (after login)
+══════════════════════════════ */
+#appScreen { display:none; }
+
+/* HEADER */
+.top-header {
+  background:var(--orange);
+  padding:0 24px;
+  height:54px;
+  display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 2px 8px rgba(244,124,32,0.4);
+  position:sticky; top:0; z-index:50;
+}
+.top-header h1 {
+  font-size:1.25rem; font-weight:900; color:#fff;
+  letter-spacing:0.05em; text-transform:uppercase;
+  display:flex; align-items:center; gap:10px;
+}
+.header-right { display:flex; align-items:center; gap:8px; }
+.user-badge {
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.3);
+  border-radius:8px; padding:5px 12px;
+  color:#fff; font-size:0.75rem; font-weight:800;
+  display:flex; align-items:center; gap:6px;
+}
+.user-badge .role-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#fff;
+}
+.user-badge .role-dot.admin { background:var(--yellow); }
+.user-badge .role-dot.agent { background:var(--green); }
+
+.hbtn {
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#fff; padding:6px 14px;
+  border-radius:7px; cursor:pointer;
+  font-family:'Nunito',sans-serif; font-weight:800;
+  font-size:0.75rem; transition:all 0.2s;
+}
+.hbtn:hover { background:rgba(255,255,255,0.32); }
+.hbtn.danger:hover { background:rgba(229,57,53,0.7); border-color:transparent; }
+
+/* STEP NAV */
+.step-nav {
+  background:#1a1a2e; padding:0 24px;
+  display:flex; align-items:center; gap:0; overflow-x:auto;
+}
+.step-item {
+  display:flex; align-items:center;
+  padding:11px 18px; cursor:pointer;
+  border-bottom:3px solid transparent;
+  color:rgba(255,255,255,0.4);
+  font-weight:800; font-size:0.75rem;
+  letter-spacing:0.05em; text-transform:uppercase;
+  white-space:nowrap; transition:all 0.2s;
+}
+.step-item:hover { color:rgba(255,255,255,0.75); }
+.step-item.active { color:var(--orange); border-bottom-color:var(--orange); }
+.step-item.done { color:var(--green); }
+.step-num {
+  width:22px; height:22px; border-radius:50%;
+  background:rgba(255,255,255,0.12);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.68rem; font-weight:900; margin-right:7px;
+  flex-shrink:0; transition:background 0.2s;
+}
+.step-item.active .step-num { background:var(--orange); }
+.step-item.done .step-num { background:var(--green); }
+.step-arrow { color:rgba(255,255,255,0.18); margin:0 2px; font-size:0.7rem; }
+
+/* MAIN */
+.main { padding:20px 24px 60px; max-width:1200px; margin:0 auto; }
+.panel { display:none; animation:fadeIn 0.3s ease; }
+.panel.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* SECTION TITLE */
+.section-title { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+.section-title .dot { width:14px; height:14px; border-radius:3px; background:var(--orange); flex-shrink:0; }
+.section-title h2 { font-size:1.05rem; font-weight:900; text-transform:uppercase; letter-spacing:0.05em; }
+.section-title span { font-size:0.75rem; color:var(--text-muted); font-weight:600; }
+
+/* CONTEXT BAR */
+.context-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; min-height:32px; }
+.ctx-tag {
+  display:flex; align-items:center; gap:6px;
+  background:#fff; border:1.5px solid var(--border);
+  border-radius:6px; padding:4px 10px;
+  font-size:0.72rem; font-weight:700; color:var(--text-muted);
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.ctx-tag .ctx-label { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.06em; margin-right:2px; }
+.ctx-tag.state .ctx-val { color:var(--orange); font-weight:900; }
+.ctx-tag.util .ctx-val { color:var(--blue); font-weight:900; }
+.ctx-tag.sup .ctx-val { color:var(--teal); font-weight:900; }
+.ctx-tag.month .ctx-val { color:var(--green-dark); font-weight:900; }
+
+/* STATES */
+.states-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; margin-bottom:16px; }
+.state-card {
+  background:var(--card); border:2px solid var(--border);
+  border-radius:10px; padding:16px 10px;
+  cursor:pointer; text-align:center;
+  transition:all 0.2s; box-shadow:var(--shadow);
+}
+.state-card:hover { border-color:var(--orange); transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+.state-card.selected { border-color:var(--orange); background:#FFF3E0; box-shadow:0 0 0 3px rgba(244,124,32,0.18),var(--shadow-lg); }
+.state-abbr { font-size:1.8rem; font-weight:900; color:var(--orange); line-height:1; margin-bottom:4px; }
+.state-name { font-size:0.68rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; }
+.state-util-count { margin-top:6px; background:var(--green); color:#fff; border-radius:100px; font-size:0.6rem; font-weight:800; padding:2px 8px; display:inline-block; }
+
+/* UTILITIES GROUPED */
+.util-groups-wrap {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.util-group {
+  flex: 1;
+  min-width: 200px;
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--border);
+}
+
+.util-group-header {
+  padding: 12px 18px;
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.util-group-header.elec {
+  background: #FFF3E0;
+  color: var(--orange);
+  border-bottom: 2px solid #FFE0B2;
+}
+.util-group-header.gas {
+  background: #E8F5E9;
+  color: var(--green-dark);
+  border-bottom: 2px solid #C8E6C9;
+}
+
+.util-group-cards {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.util-card {
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.util-card:hover { border-color: var(--orange); transform: translateX(3px); }
+.util-card.selected { border-color: var(--blue); background: #E3F2FD; }
+.util-card:hover::after { content: '→'; color: var(--orange); font-weight: 900; }
+.util-card.selected::after { content: '✓'; color: var(--blue); font-weight: 900; }
+
+.util-name { font-weight: 800; font-size: 0.95rem; color: var(--text); }
+
+/* ── SUPPLIER SIDE-BY-SIDE CARDS ── */
+.suppliers-parallel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.sup-panel {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s;
+}
+.sup-panel:hover { box-shadow: var(--shadow-lg); }
+.sup-panel.selected { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0,188,212,0.18), var(--shadow-lg); }
+
+.sup-panel-header {
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+/* NG&E = teal, INDRA = deep orange */
+.sup-panel.sup-nge   .sup-panel-header { background: #00BCD4; }
+.sup-panel.sup-nge.selected .sup-panel-header { background: #0097A7; }
+.sup-panel.sup-indra .sup-panel-header { background: #E65100; }
+.sup-panel.sup-indra.selected .sup-panel-header { background: #BF360C; }
+.sup-panel.sup-other .sup-panel-header { background: var(--teal); }
+
+.sup-panel-name {
+  color: #fff; font-weight: 900; font-size: 1.1rem; letter-spacing: 0.02em;
+}
+.sup-panel-util {
+  background: rgba(255,255,255,0.22);
+  color: #fff; font-size: 0.72rem; font-weight: 800;
+  padding: 3px 11px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.35);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.sup-panel-body { padding: 14px 16px; }
+
+.rates-section { padding: 0; }
+
+.rates-type-group { margin-bottom:18px; }
+.rates-type-group:last-child { margin-bottom:0; }
+
+.rates-group-title {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:10px;
+  padding-bottom:6px;
+  border-bottom:2px solid var(--border);
+}
+.rates-group-title .gtag {
+  padding:3px 12px; border-radius:100px;
+  font-size:0.68rem; font-weight:900;
+  text-transform:uppercase; letter-spacing:0.06em;
+}
+.gtag.fixed { background:#E3F2FD; color:var(--blue-dark); }
+.gtag.variable { background:#FFF8E1; color:#E65100; }
+.gtag.electric { background:#FFF3E0; color:var(--orange); margin-left:auto; }
+.gtag.gas { background:#E8F5E9; color:var(--green-dark); margin-left:auto; }
+
+/* ── COMPACT RATE TABLE ── */
+.rate-section-block { margin-bottom:18px; }
+.rate-section-block:last-child { margin-bottom:0; }
+
+.rate-section-title {
+  font-size:0.72rem; font-weight:900; text-transform:uppercase;
+  letter-spacing:0.08em; padding:5px 0 8px;
+  display:flex; align-items:center; gap:6px;
+  margin-bottom:4px;
+}
+.rate-section-title.elec { color:var(--orange); border-bottom:2px solid #FFE0B2; }
+.rate-section-title.gas  { color:var(--green-dark); border-bottom:2px solid #C8E6C9; }
+
+.rate-compact-table { width:100%; border-collapse:collapse; }
+.rate-compact-table thead tr { background:#f5f6f8; }
+.rate-compact-table th {
+  padding:7px 12px; font-size:0.62rem; font-weight:800;
+  text-transform:uppercase; letter-spacing:0.07em;
+  color:var(--text-muted); text-align:left;
+  border-bottom:2px solid var(--border);
+}
+.rate-tr td { padding:10px 12px; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+.rate-tr:last-child td { border-bottom:none; }
+.rate-tr:hover td { background:#f5f9ff; }
+.rate-tr:nth-child(even) td { background:#fafafa; }
+.rate-tr:nth-child(even):hover td { background:#f5f9ff; }
+
+.rate-td-plan { font-weight:700; font-size:0.84rem; color:var(--text); min-width:120px; }
+.rate-td-rate, .rate-td-term, .rate-td-etf { white-space:nowrap; }
+
+.rv-rate  { font-weight:900; font-size:1.05rem; color:var(--blue-dark); }
+.rv-uom   { font-size:0.62rem; color:var(--text-muted); font-weight:600; margin-left:3px; }
+.rv-term  { font-weight:800; font-size:0.82rem; color:var(--blue-dark);
+            background:#E3F2FD; padding:3px 10px; border-radius:100px; display:inline-block; }
+.rv-etf   { font-weight:800; font-size:0.82rem; }
+.rnote    { font-size:0.6rem; font-weight:700; color:var(--orange);
+            background:#FFF3E0; padding:1px 7px; border-radius:100px; margin-left:5px; }
+
+.go-checklist-btn {
+  display:block; width:calc(100% - 32px); margin:0 16px 16px;
+  background:var(--orange); color:#fff; border:none;
+  border-radius:8px; padding:11px 20px;
+  cursor:pointer; font-family:'Nunito',sans-serif;
+  font-weight:900; font-size:0.88rem;
+  text-align:center; letter-spacing:0.03em;
+  transition:all 0.2s;
+  box-shadow:0 3px 10px rgba(244,124,32,0.3);
+}
+.go-checklist-btn:hover { background:var(--orange-dark); transform:translateY(-1px); }
+
+.no-rates-msg {
+  text-align:center; padding:20px;
+  color:var(--text-muted); font-size:0.8rem;
+  font-style:italic;
+}
+
+@media(max-width:600px) {
+  .rate-compact-table th, .rate-compact-table td { padding:7px 8px; font-size:0.75rem; }
+  .rv-rate { font-size:0.9rem; }
+  .sup-card-meta { gap:8px; }
+  .sup-meta-item { display:none; }
+  .sup-meta-item:first-child { display:flex; }
+}
+
+/* RATES */
+.rates-wrapper { background:var(--card); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
+.rates-table-header { background:var(--blue); padding:12px 20px; }
+.rates-table-header span { color:#fff; font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; }
+.rates-filters { padding:12px 20px; display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--border); background:#fafafa; }
+.filter-chip { padding:5px 14px; border-radius:100px; border:2px solid var(--border); background:#fff; cursor:pointer; font-size:0.72rem; font-weight:700; color:var(--text-muted); transition:all 0.15s; }
+.filter-chip:hover { border-color:var(--blue); color:var(--blue); }
+.filter-chip.active { background:var(--blue); border-color:var(--blue); color:#fff; }
+.rates-table { width:100%; border-collapse:collapse; }
+.rates-table th { background:#F5F5F5; padding:10px 16px; text-align:left; font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); border-bottom:2px solid var(--border); }
+.rates-table td { padding:10px 16px; border-bottom:1px solid var(--border); font-size:0.82rem; font-weight:600; }
+.rates-table tr:last-child td { border-bottom:none; }
+.rates-table tr:hover td { background:#f8f9ff; }
+.type-badge { padding:3px 10px; border-radius:100px; font-size:0.62rem; font-weight:800; text-transform:uppercase; }
+.type-badge.electric { background:#FFF3E0; color:var(--orange); }
+.type-badge.gas { background:#E8F5E9; color:var(--green-dark); }
+.price-val { font-weight:900; color:var(--green-dark); font-size:0.9rem; }
+.comm-val { font-weight:900; color:var(--orange); }
+
+/* MONTHS */
+.months-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:16px; }
+.month-card { background:var(--card); border:2px solid var(--border); border-radius:10px; padding:14px 8px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:var(--shadow); }
+.month-card:hover { border-color:var(--green); transform:translateY(-2px); }
+.month-card.selected { border-color:var(--green); background:#E8F5E9; }
+.month-abbr { font-weight:900; font-size:1rem; color:var(--green-dark); }
+.month-name { font-size:0.58rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-top:2px; }
+
+/* CHECKLIST */
+.summary-card { background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%); border-radius:12px; padding:16px 20px; color:#fff; margin-bottom:20px; display:flex; gap:24px; flex-wrap:wrap; align-items:center; box-shadow:0 4px 16px rgba(244,124,32,0.3); }
+.sum-item .sum-label { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; opacity:0.75; margin-bottom:2px; }
+.sum-item .sum-val { font-size:1rem; font-weight:900; }
+.checklist-wrapper { background:var(--card); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; }
+.checklist-header { background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+.checklist-header .title { color:#fff; font-weight:900; font-size:1rem; text-transform:uppercase; letter-spacing:0.05em; }
+.progress-bar-outer { background:rgba(255,255,255,0.25); border-radius:100px; height:8px; width:140px; overflow:hidden; }
+.progress-bar-inner { height:100%; background:#fff; border-radius:100px; transition:width 0.4s ease; }
+.progress-text { color:rgba(255,255,255,0.85); font-size:0.72rem; font-weight:700; margin-top:4px; text-align:right; }
+.check-item { display:flex; align-items:flex-start; gap:14px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; }
+.check-item:last-child { border-bottom:none; }
+.check-item:hover { background:#fafafa; }
+.check-item.checked { background:#F1FFF5; }
+.check-box { width:24px; height:24px; border:2px solid var(--border); border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s; margin-top:1px; }
+.check-item.checked .check-box { background:var(--green); border-color:var(--green); color:#fff; font-size:0.8rem; }
+.check-step { font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--orange); margin-bottom:2px; }
+.check-item.checked .check-step { color:var(--green-dark); }
+.check-title { font-weight:800; font-size:0.88rem; }
+.check-item.checked .check-title { color:var(--text-muted); text-decoration:line-through; }
+.check-desc { font-size:0.74rem; color:var(--text-muted); margin-top:2px; line-height:1.4; }
+.reset-btn { background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 14px; border-radius:6px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:700; transition:all 0.2s; margin:12px 20px; display:block; }
+.reset-btn:hover { border-color:var(--red); color:var(--red); }
+
+/* ── TEMPLATE STEP ── */
+.template-step { align-items: flex-start; cursor: default; }
+.template-step:hover { background: transparent; }
+
+.tpl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+  margin-bottom: 14px;
+}
+.tpl-full { grid-column: 1 / -1; }
+
+.tpl-row { display: flex; flex-direction: column; gap: 3px; }
+
+.tpl-label {
+  font-size: 0.58rem; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.tpl-input {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.tpl-input:focus { border-color: var(--blue); background: #fff; }
+
+.tpl-copy-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--blue);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer; font-family: 'Nunito', sans-serif;
+  font-weight: 800; font-size: 0.85rem;
+  transition: all 0.2s;
+  box-shadow: 0 3px 10px rgba(33,150,243,0.3);
+  margin-top: 4px;
+}
+.tpl-copy-btn:hover { background: var(--blue-dark); transform: translateY(-1px); }
+
+@media(max-width: 600px) {
+  .tpl-grid { grid-template-columns: 1fr; }
+}
+
+/* NAV BTNS */
+.nav-bar { display:flex; justify-content:flex-start; margin-top:18px; gap:10px; }
+.back-btn { background:#fff; color:var(--text-muted); border:2px solid var(--border); border-radius:8px; padding:10px 20px; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.85rem; display:flex; align-items:center; gap:7px; transition:all 0.2s; }
+.back-btn:hover { border-color:var(--orange); color:var(--orange); transform:translateY(-1px); }
+.home-btn { background:var(--orange); color:#fff; border:none; border-radius:8px; padding:12px 28px; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:900; font-size:0.9rem; display:flex; align-items:center; gap:8px; transition:all 0.2s; box-shadow:0 3px 12px rgba(244,124,32,0.35); letter-spacing:0.03em; }
+.home-btn:hover { background:var(--orange-dark); transform:translateY(-1px); box-shadow:0 5px 18px rgba(244,124,32,0.45); }
+
+/* EMPTY */
+.empty-msg { padding:32px; text-align:center; color:var(--text-muted); font-size:0.82rem; background:var(--card); border-radius:10px; border:2px dashed var(--border); }
+.empty-msg .big { font-size:2rem; margin-bottom:8px; display:block; }
+
+/* ══════════════════════════════
+   ADMIN PANEL
+══════════════════════════════ */
+#adminOverlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.5); z-index:100;
+  animation:fadeIn 0.2s;
+}
+#adminOverlay.visible { display:block; }
+
+.admin-drawer {
+  position:absolute; right:0; top:0; bottom:0;
+  width:min(560px,100vw);
+  background:#fff;
+  box-shadow:-6px 0 32px rgba(0,0,0,0.2);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+
+.drawer-header {
+  background:var(--orange); padding:16px 20px;
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.drawer-header h3 { color:#fff; font-weight:900; font-size:0.95rem; text-transform:uppercase; letter-spacing:0.05em; }
+.drawer-close { background:rgba(255,255,255,0.2); border:none; color:#fff; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+.drawer-close:hover { background:rgba(255,255,255,0.4); }
+
+.drawer-tabs { display:flex; background:#f5f5f5; border-bottom:1px solid var(--border); flex-shrink:0; overflow-x:auto; }
+.dtab { padding:10px 14px; cursor:pointer; font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); border-bottom:3px solid transparent; white-space:nowrap; transition:all 0.15s; background:none; border-top:none; border-left:none; border-right:none; font-family:'Nunito',sans-serif; }
+.dtab:hover { color:var(--orange); }
+.dtab.active { color:var(--orange); border-bottom-color:var(--orange); }
+
+.drawer-body { overflow-y:auto; padding:16px 20px; flex:1; }
+.dsection { display:none; }
+.dsection.active { display:block; }
+
+.dform-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.dform-row.single { grid-template-columns:1fr; }
+.dfield label { display:block; font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:5px; }
+.dfield input, .dfield select, .dfield textarea { width:100%; border:1.5px solid var(--border); border-radius:7px; padding:8px 10px; font-family:'Nunito',sans-serif; font-size:0.82rem; font-weight:600; color:var(--text); outline:none; background:#fafafa; transition:border-color 0.2s; }
+.dfield input:focus, .dfield select:focus { border-color:var(--orange); background:#fff; }
+.dfield textarea { resize:vertical; min-height:56px; }
+
+.dadd-btn { background:var(--orange); color:#fff; border:none; border-radius:7px; padding:9px 18px; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.78rem; letter-spacing:0.03em; transition:all 0.2s; margin-bottom:16px; }
+.dadd-btn:hover { background:var(--orange-dark); }
+
+.dsep { height:1px; background:var(--border); margin:14px 0; }
+
+.dtable { width:100%; border-collapse:collapse; margin-bottom:10px; }
+.dtable th { font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); padding:7px 8px; border-bottom:2px solid var(--border); text-align:left; background:#f5f5f5; }
+.dtable td { font-size:0.76rem; font-weight:600; padding:6px 6px; border-bottom:1px solid var(--border); color:var(--text-muted); vertical-align:middle; }
+.dtable td:first-child { color:var(--text); font-weight:700; }
+.dtable input { background:#f0f2f5; border:1px solid var(--border); border-radius:5px; padding:4px 7px; font-size:0.75rem; width:100%; outline:none; font-family:'Nunito'; font-weight:600; }
+.dtable input:focus { border-color:var(--orange); background:#fff; }
+.dtable select { background:#f0f2f5; border:1px solid var(--border); border-radius:5px; padding:4px 7px; font-size:0.74rem; outline:none; font-family:'Nunito'; font-weight:600; width:100%; }
+.ddel { background:none; border:none; color:#ccc; cursor:pointer; font-size:0.85rem; padding:3px 7px; border-radius:4px; transition:all 0.15s; }
+.ddel:hover { background:#FEE; color:var(--red); }
+
+/* AGENTS TABLE */
+.agent-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); gap:8px; }
+.agent-row:last-child { border-bottom:none; }
+.agent-info { flex:1; }
+.agent-uname { font-weight:800; font-size:0.85rem; color:var(--text); }
+.agent-meta { font-size:0.68rem; color:var(--text-muted); margin-top:2px; }
+.agent-status { padding:3px 10px; border-radius:100px; font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; flex-shrink:0; }
+.agent-status.active { background:#E8F5E9; color:var(--green-dark); }
+.agent-status.inactive { background:#FFEBEE; color:var(--red); }
+.agent-actions { display:flex; gap:6px; flex-shrink:0; }
+.abtn { padding:5px 12px; border-radius:6px; border:none; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.7rem; transition:all 0.2s; }
+.abtn.toggle-active { background:#E8F5E9; color:var(--green-dark); }
+.abtn.toggle-active:hover { background:var(--green-dark); color:#fff; }
+.abtn.toggle-inactive { background:#FFEBEE; color:var(--red); }
+.abtn.toggle-inactive:hover { background:var(--red); color:#fff; }
+.abtn.del { background:#f5f5f5; color:var(--text-muted); }
+.abtn.del:hover { background:#FFEBEE; color:var(--red); }
+
+/* ACCESS LOG */
+.log-entry { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+.log-entry:last-child { border-bottom:none; }
+.log-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.log-dot.login { background:var(--green); }
+.log-dot.logout { background:var(--text-muted); }
+.log-dot.denied { background:var(--red); }
+.log-text { flex:1; font-size:0.76rem; font-weight:600; color:var(--text); }
+.log-time { font-size:0.65rem; color:var(--text-muted); font-weight:700; flex-shrink:0; }
+
+/* TOAST */
+.toast { position:fixed; bottom:20px; right:20px; background:var(--text); color:#fff; padding:10px 18px; border-radius:8px; font-size:0.78rem; font-weight:700; transform:translateY(60px); opacity:0; transition:all 0.3s; z-index:300; box-shadow:var(--shadow-lg); }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { background:var(--green-dark); }
+.toast.warn { background:var(--orange); }
+
+@media(max-width:600px) {
+  .months-grid { grid-template-columns:repeat(4,1fr); }
+  .states-grid { grid-template-columns:repeat(3,1fr); }
+}
+
+/* ── DNC VALIDATOR ── */
+.dnc-panel {
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.dnc-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 14px;
+}
+.dnc-header-icon { font-size: 2rem; }
+.dnc-header-text h3 { color: #fff; font-weight: 900; font-size: 1.05rem; letter-spacing: 0.03em; }
+.dnc-header-text p  { color: rgba(255,255,255,0.5); font-size: 0.72rem; margin-top: 3px; }
+
+.dnc-body { padding: 24px; }
+
+.dnc-input-row {
+  display: flex; gap: 10px; margin-bottom: 16px;
+}
+.dnc-input {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  color: var(--text); outline: none;
+  transition: border-color 0.2s;
+  letter-spacing: 0.05em;
+}
+.dnc-input:focus { border-color: var(--blue); }
+
+.dnc-check-btn {
+  background: var(--blue);
+  color: #fff; border: none;
+  border-radius: 10px; padding: 13px 22px;
+  cursor: pointer; font-family: 'Nunito', sans-serif;
+  font-weight: 900; font-size: 0.88rem;
+  transition: all 0.2s; white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(33,150,243,0.3);
+}
+.dnc-check-btn:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.dnc-check-btn:disabled { background: var(--border); color: var(--text-muted); box-shadow: none; transform: none; cursor: default; }
+
+.dnc-result {
+  border-radius: 10px; padding: 14px 18px;
+  display: none; align-items: center; gap: 12px;
+  font-weight: 800; font-size: 0.95rem;
+  margin-bottom: 16px; animation: fadeIn 0.3s ease;
+}
+.dnc-result.show { display: flex; }
+.dnc-result.clear  { background: #E8F5E9; border: 2px solid #A5D6A7; color: #2E7D32; }
+.dnc-result.blocked{ background: #FFEBEE; border: 2px solid #EF9A9A; color: #C62828; }
+.dnc-result.unknown{ background: #FFF8E1; border: 2px solid #FFE082; color: #E65100; }
+.dnc-result-icon { font-size: 1.6rem; flex-shrink: 0; }
+.dnc-result-text {}
+.dnc-result-title { font-size: 1rem; font-weight: 900; }
+.dnc-result-sub   { font-size: 0.75rem; font-weight: 600; opacity: 0.8; margin-top: 2px; }
+
+.dnc-proceed-btn {
+  width: 100%; background: var(--green-dark);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 13px; cursor: pointer;
+  font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 0.9rem;
+  transition: all 0.2s; display: none;
+  box-shadow: 0 3px 10px rgba(39,174,96,0.3);
+}
+.dnc-proceed-btn:hover { background: var(--green); transform: translateY(-1px); }
+.dnc-proceed-btn.show { display: block; animation: fadeIn 0.3s ease; }
+
+/* DNC status bar */
+.dnc-status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f5f6f8; border-radius: 8px; padding: 10px 14px;
+  margin-bottom: 18px; font-size: 0.75rem;
+}
+.dnc-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dnc-status-dot.loaded  { background: var(--green); }
+.dnc-status-dot.empty   { background: var(--yellow); }
+.dnc-status-info { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 700; }
+.dnc-upload-link { color: var(--blue); font-weight: 800; cursor: pointer; text-decoration: underline; font-size: 0.72rem; }
+
+/* Admin DNC upload section */
+.dnc-upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px; padding: 24px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s; background: #fafafa;
+}
+.dnc-upload-zone:hover { border-color: var(--blue); background: #EFF8FF; }
+.dnc-upload-zone .uz-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+.dnc-upload-zone .uz-title { font-weight: 800; font-size: 0.9rem; margin-bottom: 4px; }
+.dnc-upload-zone .uz-sub { font-size: 0.72rem; color: var(--text-muted); }
+.dnc-progress { margin-top: 12px; }
+.dnc-progress-bar { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.dnc-progress-fill { height: 100%; background: var(--blue); border-radius: 100px; transition: width 0.3s; width: 0%; }
+.dnc-progress-text { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-top: 6px; text-align: center; }
+
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+  LOGIN SCREEN
+════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="icon">⚡</span>
+      <h1>Energy Dashboard</h1>
+      <p>Supplier Management System</p>
+    </div>
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="Ingresa tu usuario" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar →</button>
+    <div class="login-hint">admin / admin123 &nbsp;·&nbsp; agente1 / pass123</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+  APP SCREEN
+════════════════════════════════ -->
+<div id="appScreen">
+
+  <div class="top-header">
+    <h1>⚡ Energy Supplier Dashboard</h1>
+    <div class="header-right">
+      <div class="user-badge">
+        <div class="role-dot" id="roleDot"></div>
+        <span id="userLabel">—</span>
+      </div>
+      <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
+      <button class="hbtn danger" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="step-nav" id="stepNav">
+    <div class="step-item active" id="nav0" onclick="goStep(0)"><span class="step-num">1</span>DNC</div>
+    <span class="step-arrow">›</span>
+    <div class="step-item" id="nav1" onclick="goStep(1)"><span class="step-num">2</span>Estado</div>
+    <span class="step-arrow">›</span>
+    <div class="step-item" id="nav2" onclick="goStep(2)"><span class="step-num">3</span>Utilidad</div>
+    <span class="step-arrow">›</span>
+    <div class="step-item" id="nav3" onclick="goStep(3)"><span class="step-num">4</span>Supplier & Rates</div>
+    <span class="step-arrow">›</span>
+    <div class="step-item" id="nav4" onclick="goStep(4)"><span class="step-num">5</span>Checklist</div>
+  </div>
+
+  <div class="main">
+    <div class="context-bar" id="contextBar"></div>
+
+    <!-- STEP 0: DNC -->
+    <div class="panel active" id="panel0">
+      <div class="section-title"><div class="dot" style="background:#1a1a2e"></div><h2>Validar DNC</h2><span>Verifica el número antes de continuar</span></div>
+      <div class="dnc-panel">
+        <div class="dnc-header">
+          <div class="dnc-header-icon">🚫</div>
+          <div class="dnc-header-text">
+            <h3>Do Not Call — Validador</h3>
+            <p>Ingresa el número del cliente para verificar si está en la lista DNC</p>
+          </div>
+        </div>
+        <div class="dnc-body">
+          <div class="dnc-status-bar">
+            <div class="dnc-status-info">
+              <div class="dnc-status-dot" id="dncStatusDot"></div>
+              <span id="dncStatusText">Sin lista cargada</span>
+            </div>
+            <span class="dnc-upload-link" id="dncUploadLink" onclick="openAdmin();dTab('dnc')" style="display:none">↑ Actualizar lista</span>
+          </div>
+          <div class="dnc-input-row">
+            <input class="dnc-input" id="dncPhone" type="tel" placeholder="5551234567" maxlength="10"
+              oninput="dncFormatInput(this)" onkeydown="if(event.key==='Enter')checkDNC()">
+            <button class="dnc-check-btn" onclick="checkDNC()" id="dncCheckBtn">Verificar</button>
+          </div>
+          <div class="dnc-result" id="dncResult">
+            <div class="dnc-result-icon" id="dncResultIcon"></div>
+            <div class="dnc-result-text">
+              <div class="dnc-result-title" id="dncResultTitle"></div>
+              <div class="dnc-result-sub"   id="dncResultSub"></div>
+            </div>
+          </div>
+          <button class="dnc-proceed-btn" id="dncProceedBtn" onclick="goStep(1)">
+            ✓ Número libre — Continuar con la venta →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: ESTADO -->
+    <div class="panel" id="panel1">
+      <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado para continuar</span></div>
+      <div class="states-grid" id="statesGrid"></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
+    </div>
+
+    <!-- STEP 2: UTILIDAD -->
+    <div class="panel" id="panel2">
+      <div class="section-title"><div class="dot" style="background:var(--blue)"></div><h2>Utilidad</h2><span>Toca una utilidad para continuar</span></div>
+      <div class="utilities-grid" id="utilitiesGrid"></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(1)">← Atrás</button></div>
+    </div>
+
+    <!-- STEP 3: SUPPLIER & RATES -->
+    <div class="panel" id="panel3">
+      <div class="section-title"><div class="dot" style="background:var(--teal)"></div><h2>Supplier & Rates</h2><span>Toca un supplier para ver sus rates y continuar al checklist</span></div>
+      <div id="suppliersGrid"></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(2)">← Atrás</button></div>
+    </div>
+
+    <!-- STEP 4: CHECKLIST -->
+    <div class="panel" id="panel4">
+      <div class="section-title"><div class="dot" style="background:var(--orange)"></div><h2>Checklist de Venta</h2></div>
+      <div class="summary-card" id="summaryCard"></div>
+      <div class="checklist-wrapper">
+        <div class="checklist-header">
+          <span class="title">📋 Pasos de la Venta</span>
+          <div>
+            <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+            <div class="progress-text" id="progressText">0 / 0 completados</div>
+          </div>
+        </div>
+        <div id="checklistBody"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;">
+          <button class="reset-btn" style="margin:0" onclick="resetChecklist()">↺ Reiniciar Checklist</button>
+          <button class="home-btn" onclick="volverInicio()">🏠 Volver al Inicio</button>
+        </div>
+      </div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(3)">← Atrás</button></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /appScreen -->
+
+<!-- ════════════════════════════════
+  ADMIN DRAWER
+════════════════════════════════ -->
+<div id="adminOverlay" onclick="closeAdminIfOutside(event)">
+  <div class="admin-drawer">
+    <div class="drawer-header">
+      <h3>⚙ Panel de Administración</h3>
+      <button class="drawer-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="drawer-tabs">
+      <button class="dtab active" onclick="dTab('agents')">👥 Agentes</button>
+      <button class="dtab" onclick="dTab('log')">📋 Accesos</button>
+      <button class="dtab" onclick="dTab('dnc')">🚫 DNC</button>
+      <button class="dtab" onclick="dTab('states')">Estados</button>
+      <button class="dtab" onclick="dTab('utilities')">Utilidades</button>
+      <button class="dtab" onclick="dTab('suppliers')">Suppliers</button>
+      <button class="dtab" onclick="dTab('rates')">Rates</button>
+      <button class="dtab" onclick="dTab('checklist')">Checklist</button>
+    </div>
+    <div class="drawer-body">
+
+      <!-- DNC -->
+      <div class="dsection" id="ds-dnc">
+        <div style="margin-bottom:14px">
+          <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Lista DNC Actual</div>
+          <div id="dncAdminStatus" style="font-size:0.82rem;font-weight:700;color:var(--text-muted);padding:10px 14px;background:#f5f5f5;border-radius:8px;">Calculando...</div>
+        </div>
+        <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Cargar nuevo archivo DNC</div>
+        <div class="dnc-upload-zone" onclick="document.getElementById('dncFileInput').click()">
+          <span class="uz-icon">📂</span>
+          <div class="uz-title">Subir archivo Excel o CSV</div>
+          <div class="uz-sub">Una columna de números de teléfono · Soporta archivos de hasta 200MB+</div>
+          <input type="file" id="dncFileInput" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="handleDNCFileSelect(this)">
+        </div>
+        <div class="dnc-progress" id="dncAdminProgress" style="display:none">
+          <div class="dnc-progress-bar"><div class="dnc-progress-fill" id="dncProgFill"></div></div>
+          <div class="dnc-progress-text" id="dncProgText">Procesando...</div>
+        </div>
+        <div style="margin-top:14px;padding:12px;background:#FFF8E1;border-radius:8px;border-left:3px solid var(--yellow)">
+          <div style="font-size:0.72rem;font-weight:800;color:#E65100;margin-bottom:4px">📌 Importante</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.5">
+            El archivo debe tener los números de teléfono en una sola columna.<br>
+            Los datos se guardan localmente en este navegador (IndexedDB).<br>
+            Si cambias de navegador o dispositivo, deberás subir el archivo de nuevo.
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENTS -->
+      <div class="dsection active" id="ds-agents">
+        <div class="dform-row">
+          <div class="dfield"><label>Usuario</label><input id="na-user" placeholder="ej: agente5" autocomplete="off"></div>
+          <div class="dfield"><label>Contraseña</label><input id="na-pass" type="password" placeholder="Contraseña segura"></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>Nombre completo</label><input id="na-name" placeholder="ej: Juan Pérez"></div>
+        </div>
+        <button class="dadd-btn" onclick="addAgent()">+ Crear Agente</button>
+        <div class="dsep"></div>
+        <div id="agentsList"></div>
+      </div>
+
+      <!-- LOG -->
+      <div class="dsection" id="ds-log">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Historial de Accesos</span>
+          <button onclick="clearLog()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:0.68rem;font-weight:700;color:var(--text-muted)">Limpiar</button>
+        </div>
+        <div id="accessLog"></div>
+      </div>
+
+      <!-- STATES -->
+      <div class="dsection" id="ds-states">
+        <div class="dform-row">
+          <div class="dfield"><label>Nombre</label><input id="ns-name" placeholder="ej: Pennsylvania"></div>
+          <div class="dfield"><label>Código</label><input id="ns-code" placeholder="ej: PA" maxlength="3"></div>
+        </div>
+        <button class="dadd-btn" onclick="addState()">+ Agregar Estado</button>
+        <div class="dsep"></div>
+        <table class="dtable"><thead><tr><th>Estado</th><th>Código</th><th></th></tr></thead><tbody id="dt-states"></tbody></table>
+      </div>
+
+      <!-- UTILITIES -->
+      <div class="dsection" id="ds-utilities">
+        <div class="dform-row">
+          <div class="dfield"><label>Nombre</label><input id="nu-name" placeholder="ej: PECO"></div>
+          <div class="dfield"><label>Estado</label><select id="nu-state"></select></div>
+        </div>
+        <div class="dform-row single">
+          <div class="dfield"><label>Tipo</label>
+            <select id="nu-type"><option value="electric">⚡ Electric</option><option value="gas">🔥 Gas</option><option value="both">⚡🔥 Both</option></select>
+          </div>
+        </div>
+        <button class="dadd-btn" onclick="addUtility()">+ Agregar Utilidad</button>
+        <div class="dsep"></div>
+        <table class="dtable"><thead><tr><th>Utilidad</th><th>Estado</th><th>Tipo</th><th></th></tr></thead><tbody id="dt-utilities"></tbody></table>
+      </div>
+
+      <!-- SUPPLIERS -->
+      <div class="dsection" id="ds-suppliers">
+        <div class="dform-row">
+          <div class="dfield"><label>Nombre</label><input id="nsup-name" placeholder="ej: INDRA"></div>
+          <div class="dfield"><label>Utilidad</label><select id="nsup-util"></select></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>Profit Margin</label><input id="nsup-margin" placeholder="ej: 18%"></div>
+          <div class="dfield"><label>Comisión base</label><input id="nsup-comm" placeholder="ej: $30/sale"></div>
+        </div>
+        <button class="dadd-btn" onclick="addSupplier()">+ Agregar Supplier</button>
+        <div class="dsep"></div>
+        <table class="dtable"><thead><tr><th>Supplier</th><th>Utilidad</th><th>Margin</th><th></th></tr></thead><tbody id="dt-suppliers"></tbody></table>
+      </div>
+
+      <!-- RATES -->
+      <div class="dsection" id="ds-rates">
+        <div class="dform-row">
+          <div class="dfield"><label>Supplier</label><select id="nr-sup"></select></div>
+          <div class="dfield"><label>Utilidad (nombre)</label><input id="nr-plan" placeholder="ej: PECO, PPL, NJNG"></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>Energía</label><select id="nr-etype"><option value="electric">⚡ Electric</option><option value="gas">🔥 Gas</option></select></div>
+          <div class="dfield"><label>Tipo de Rate</label><select id="nr-rtype"><option value="fixed">📌 Fijo</option><option value="variable">📈 Variable</option></select></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>Precio (rate)</label><input id="nr-price" placeholder="ej: $0.089/kWh"></div>
+          <div class="dfield"><label>Comisión</label><input id="nr-comm" placeholder="ej: $20"></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>Meses / Duración</label><input id="nr-months" placeholder="ej: 3, 12, EOY26"></div>
+          <div class="dfield"><label>ETF</label><input id="nr-etf" placeholder="ej: 0.00, 45.00"></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>MSF ($)</label><input id="nr-msf" placeholder="ej: 125"></div>
+          <div class="dfield"><label>UOM (unidad)</label><input id="nr-uom" placeholder="ej: $/kWh, $/CCF, $/Therm"></div>
+        </div>
+        <div class="dform-row">
+          <div class="dfield"><label>Green / Offset</label><input id="nr-green" placeholder="ej: 100% Renew"></div>
+          <div class="dfield"><label>Notas</label><input id="nr-notes" placeholder="ej: *usage tier 1"></div>
+        </div>
+        <button class="dadd-btn" onclick="addRate()">+ Agregar Rate</button>
+        <div class="dsep"></div>
+        <table class="dtable"><thead><tr><th>Plan</th><th>Supplier</th><th>Tipo</th><th>Precio</th><th></th></tr></thead><tbody id="dt-rates"></tbody></table>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="dsection" id="ds-checklist">
+        <div class="dform-row single"><div class="dfield"><label>Título del Paso</label><input id="nc-title" placeholder="ej: Verificar identidad"></div></div>
+        <div class="dform-row single"><div class="dfield"><label>Descripción</label><textarea id="nc-desc" placeholder="Instrucciones para el agente..."></textarea></div></div>
+        <button class="dadd-btn" onclick="addCheckItem()">+ Agregar Paso</button>
+        <div class="dsep"></div>
+        <table class="dtable"><thead><tr><th>#</th><th>Paso</th><th></th></tr></thead><tbody id="dt-checklist"></tbody></table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// PERSISTENT STORAGE (localStorage)
+// ════════════════════════════════════════════
+const KEYS = {
+  users: 'esd_users',
+  db:    'esd_db',
+  log:   'esd_log'
+};
+
+async function loadFromStorage() {
+  try {
+    const u = localStorage.getItem(KEYS.users);
+    const d = localStorage.getItem(KEYS.db);
+    const l = localStorage.getItem(KEYS.log);
+    if (u) users     = JSON.parse(u);
+    if (d) db        = JSON.parse(d);
+    if (l) accessLog = JSON.parse(l);
+  } catch(e) { /* first run, use defaults */ }
+}
+
+async function saveUsers() {
+  try { localStorage.setItem(KEYS.users, JSON.stringify(users)); } catch(e) {}
+}
+async function saveDb() {
+  try { localStorage.setItem(KEYS.db, JSON.stringify(db)); } catch(e) {}
+}
+async function saveLog() {
+  try { localStorage.setItem(KEYS.log, JSON.stringify(accessLog)); } catch(e) {}
+}
+
+// ════════════════════════════════════════════
+// DEFAULT DATA
+// ════════════════════════════════════════════
+let users = [
+  { id:'u_admin', username:'admin', password:'admin123', name:'Administrador', role:'admin', active:true },
+  { id:'u_a1', username:'agente1', password:'pass123', name:'Agente Ejemplo', role:'agent', active:true },
+];
+
+let db = {
+  states: [
+    {id:'st1', name:'Massachusetts', code:'MA'},
+    {id:'st2', name:'New Jersey',    code:'NJ'},
+    {id:'st3', name:'Pennsylvania',  code:'PA'},
+    {id:'st4', name:'Washington DC', code:'DC'},
+    {id:'st5', name:'Indiana',       code:'IN'},
+    {id:'st6', name:'California',    code:'CA'},
+    {id:'st7', name:'Virginia',      code:'VA'},
+    {id:'st8', name:'Delaware',      code:'DE'},
+    {id:'st9', name:'New York',      code:'NY'},
+  ],
+  utilities: [
+    // MA
+    {id:'u_meco',  name:'MECO',      stateId:'st1', type:'electric'},
+    {id:'u_nstar', name:'NSTAR',     stateId:'st1', type:'electric'},
+    {id:'u_wmeco', name:'WMECO',     stateId:'st1', type:'electric'},
+    // NJ
+    {id:'u_jcpl',  name:'JCP&L',    stateId:'st2', type:'electric'},
+    {id:'u_psege', name:'PSE&G',     stateId:'st2', type:'electric'},
+    {id:'u_njng',  name:'NJNG',      stateId:'st2', type:'gas'},
+    {id:'u_psegg', name:'PSE&G Gas', stateId:'st2', type:'gas'},
+    // PA
+    {id:'u_peco',  name:'PECO',      stateId:'st3', type:'electric'},
+    {id:'u_pple',  name:'PPL',       stateId:'st3', type:'electric'},
+    {id:'u_pnlc',  name:'PNLC',      stateId:'st3', type:'electric'},
+    {id:'u_meted', name:'METED',     stateId:'st3', type:'electric'},
+    {id:'u_duqe',  name:'DUQE',      stateId:'st3', type:'electric'},
+    {id:'u_alleg', name:'ALLEG',     stateId:'st3', type:'electric'},
+    {id:'u_pecog', name:'PECO Gas',  stateId:'st3', type:'gas'},
+    {id:'u_pgw',   name:'PGW',       stateId:'st3', type:'gas'},
+    {id:'u_ugi',   name:'UGI',       stateId:'st3', type:'gas'},
+    // CA
+    {id:'u_pge',       name:'PG&E',           stateId:'st6', type:'gas'},
+    // DC
+    {id:'u_pepcodc',   name:'Pepco DC',        stateId:'st4', type:'electric'},
+    {id:'u_washgasdc', name:'Washington Gas',  stateId:'st4', type:'gas'},
+    // IN
+    {id:'u_nipsco',    name:'NIPSCO',          stateId:'st5', type:'gas'},
+    // VA
+    {id:'u_colgasva',  name:'Columbia Gas VA', stateId:'st7', type:'gas'},
+    {id:'u_washgasva', name:'Wash. Gas VA',    stateId:'st7', type:'gas'},
+    // DE
+    {id:'u_delmarva',  name:'Delmarva',        stateId:'st8', type:'electric'},
+    // NY
+    {id:'u_coned',     name:'ConEd Zone J',    stateId:'st9', type:'electric'},
+    // NJ extra
+    {id:'u_ace',       name:'ACE',             stateId:'st2', type:'electric'},
+    {id:'u_reco',      name:'RECO (Rockland)', stateId:'st2', type:'electric'},
+    {id:'u_etown',     name:'E-Town',          stateId:'st2', type:'gas'},
+    {id:'u_sjg',       name:'SJG',             stateId:'st2', type:'gas'},
+    // PA extra
+    {id:'u_westpenn',  name:'West Penn Power', stateId:'st3', type:'electric'},
+    {id:'u_penelec',   name:'Penelec',         stateId:'st3', type:'electric'},
+    {id:'u_colgaspa',  name:'Columbia Gas PA', stateId:'st3', type:'gas'},
+    {id:'u_peoples',   name:'Peoples-Equitable',stateId:'st3',type:'gas'},
+  ],
+  suppliers: [
+    // NGE — one entry per utility (real data loaded)
+    {id:'sp_nge_meco',  name:'NG&E', utilId:'u_meco',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_nstar', name:'NG&E', utilId:'u_nstar', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_wmeco', name:'NG&E', utilId:'u_wmeco', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_jcpl',  name:'NG&E', utilId:'u_jcpl',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_psege', name:'NG&E', utilId:'u_psege', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_njng',  name:'NG&E', utilId:'u_njng',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_psegg', name:'NG&E', utilId:'u_psegg', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_peco',  name:'NG&E', utilId:'u_peco',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_pple',  name:'NG&E', utilId:'u_pple',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_pnlc',  name:'NG&E', utilId:'u_pnlc',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_meted', name:'NG&E', utilId:'u_meted', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_duqe',  name:'NG&E', utilId:'u_duqe',  margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_alleg', name:'NG&E', utilId:'u_alleg', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_pecog', name:'NG&E', utilId:'u_pecog', margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_pgw',   name:'NG&E', utilId:'u_pgw',   margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_ugi',   name:'NG&E', utilId:'u_ugi',   margin:'18%', commission:'$28/sale'},
+    {id:'sp_nge_pge',   name:'NG&E', utilId:'u_pge',   margin:'18%', commission:'$28/sale'},
+    // INDRA
+    {id:'sp_ind_jcpl',    name:'INDRA', utilId:'u_jcpl',      margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_psege',   name:'INDRA', utilId:'u_psege',     margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_ace',     name:'INDRA', utilId:'u_ace',       margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_reco',    name:'INDRA', utilId:'u_reco',      margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_njng',    name:'INDRA', utilId:'u_njng',      margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_psegg',   name:'INDRA', utilId:'u_psegg',     margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_etown',   name:'INDRA', utilId:'u_etown',     margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_sjg',     name:'INDRA', utilId:'u_sjg',       margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_peco',    name:'INDRA', utilId:'u_peco',      margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_pple',    name:'INDRA', utilId:'u_pple',      margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_duqe',    name:'INDRA', utilId:'u_duqe',      margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_meted',   name:'INDRA', utilId:'u_meted',     margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_alleg',   name:'INDRA', utilId:'u_alleg',     margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_westpenn',name:'INDRA', utilId:'u_westpenn',  margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_penelec', name:'INDRA', utilId:'u_penelec',   margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_pecog',   name:'INDRA', utilId:'u_pecog',     margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_pgw',     name:'INDRA', utilId:'u_pgw',       margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_ugi',     name:'INDRA', utilId:'u_ugi',       margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_colgaspa',name:'INDRA', utilId:'u_colgaspa',  margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_peoples', name:'INDRA', utilId:'u_peoples',   margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_pepcodc', name:'INDRA', utilId:'u_pepcodc',   margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_washdc',  name:'INDRA', utilId:'u_washgasdc', margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_nipsco',  name:'INDRA', utilId:'u_nipsco',    margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_colgasva',name:'INDRA', utilId:'u_colgasva',  margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_washva',  name:'INDRA', utilId:'u_washgasva', margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_delmarva',name:'INDRA', utilId:'u_delmarva',  margin:'22%', commission:'$35/sale'},
+    {id:'sp_ind_coned',   name:'INDRA', utilId:'u_coned',     margin:'22%', commission:'$35/sale'},
+  ],
+  rates: [
+    // ── PA · ELECTRIC ─────────────────────────────────────────────────────
+    {id:'r_peco',  supId:'sp_nge_peco',  utility:'PECO',      energyType:'electric', rateType:'fixed', price:'0.1299', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    {id:'r_pple',  supId:'sp_nge_pple',  utility:'PPL',       energyType:'electric', rateType:'fixed', price:'0.1399', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    {id:'r_pnlc',  supId:'sp_nge_pnlc',  utility:'PNLC',      energyType:'electric', rateType:'fixed', price:'0.1799', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    {id:'r_meted', supId:'sp_nge_meted', utility:'METED',     energyType:'electric', rateType:'fixed', price:'0.1399', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    {id:'r_duqe',  supId:'sp_nge_duqe',  utility:'DUQE',      energyType:'electric', rateType:'fixed', price:'0.1599', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    {id:'r_alleg', supId:'sp_nge_alleg', utility:'ALLEG',     energyType:'electric', rateType:'fixed', price:'0.1399', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    // ── MA · ELECTRIC ─────────────────────────────────────────────────────
+    {id:'r_meco',  supId:'sp_nge_meco',  utility:'MECO',      energyType:'electric', rateType:'fixed', price:'0.1899', months:'EOY26', etf:'150',   uom:'$/kWh',   notes:''},
+    {id:'r_nstar', supId:'sp_nge_nstar', utility:'NSTAR',     energyType:'electric', rateType:'fixed', price:'0.1899', months:'EOY26', etf:'150',   uom:'$/kWh',   notes:''},
+    {id:'r_wmeco', supId:'sp_nge_wmeco', utility:'WMECO',     energyType:'electric', rateType:'fixed', price:'0.1899', months:'EOY26', etf:'150',   uom:'$/kWh',   notes:''},
+    // ── NJ · ELECTRIC ─────────────────────────────────────────────────────
+    {id:'r_jcpl',  supId:'sp_nge_jcpl',  utility:'JCP&L',    energyType:'electric', rateType:'fixed', price:'0.1999', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    {id:'r_psege', supId:'sp_nge_psege', utility:'PSE&G',     energyType:'electric', rateType:'fixed', price:'0.2299', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
+    // ── PA · GAS ──────────────────────────────────────────────────────────
+    {id:'r_pecog', supId:'sp_nge_pecog', utility:'PECO Gas',  energyType:'gas',      rateType:'fixed', price:'0.99',   months:'3',     etf:'125',   uom:'$/CCF',   notes:''},
+    {id:'r_pgw',   supId:'sp_nge_pgw',   utility:'PGW',       energyType:'gas',      rateType:'fixed', price:'1.19',   months:'3',     etf:'150',   uom:'$/CCF',   notes:''},
+    {id:'r_ugi',   supId:'sp_nge_ugi',   utility:'UGI',       energyType:'gas',      rateType:'fixed', price:'0.899',  months:'3',     etf:'150',   uom:'$/CCF',   notes:''},
+    // ── NJ · GAS ──────────────────────────────────────────────────────────
+    {id:'r_njng',  supId:'sp_nge_njng',  utility:'NJNG',      energyType:'gas',      rateType:'fixed', price:'1.09',   months:'3',     etf:'125',   uom:'$/Therm', notes:''},
+    {id:'r_psegg', supId:'sp_nge_psegg', utility:'PSE&G Gas', energyType:'gas',      rateType:'fixed', price:'1.09',   months:'3',     etf:'125',   uom:'$/Therm', notes:''},
+    // ── CA · GAS ──────────────────────────────────────────────────────────
+    {id:'r_pge1',  supId:'sp_nge_pge',   utility:'PG&E',      energyType:'gas',      rateType:'fixed', price:'0.00',   months:'12',    etf:'125',   uom:'$/Day',   notes:'Tier 1'},
+    {id:'r_pge2',  supId:'sp_nge_pge',   utility:'PG&E',      energyType:'gas',      rateType:'fixed', price:'0.00',   months:'12',    etf:'125',   uom:'$/Day',   notes:'Tier 2'},
+    // ══ INDRA RATES (Effective 12/22/2025) ══════════
+    // NJ · Electric
+    {id:'ind_jcpl_v',    supId:'sp_ind_jcpl',    utility:'JCP&L',      energyType:'electric', rateType:'variable', price:'0.139',         months:'1',   etf:'No ETF', uom:'$/kWh',   notes:'Variable Intro'},
+    {id:'ind_jcpl_2p',   supId:'sp_ind_jcpl',    utility:'JCP&L',      energyType:'electric', rateType:'fixed',    price:'0.139 → 0.2687',months:'13',  etf:'No ETF', uom:'$/kWh',   notes:'2-Phase Fixed'},
+    {id:'ind_jcpl_6f',   supId:'sp_ind_jcpl',    utility:'JCP&L',      energyType:'electric', rateType:'fixed',    price:'0.2218',         months:'6',   etf:'$10/mo', uom:'$/kWh',   notes:'6M Fixed w/ ETF'},
+    {id:'ind_psege_v',   supId:'sp_ind_psege',   utility:'PSE&G',      energyType:'electric', rateType:'variable', price:'0.179',          months:'1',   etf:'No ETF', uom:'$/kWh',   notes:'Variable Intro'},
+    {id:'ind_psege_2p',  supId:'sp_ind_psege',   utility:'PSE&G',      energyType:'electric', rateType:'fixed',    price:'0.179 → 0.3052', months:'13',  etf:'No ETF', uom:'$/kWh',   notes:'2-Phase Fixed'},
+    {id:'ind_psege_6f',  supId:'sp_ind_psege',   utility:'PSE&G',      energyType:'electric', rateType:'fixed',    price:'0.2563',         months:'6',   etf:'$10/mo', uom:'$/kWh',   notes:'6M Fixed w/ ETF'},
+    {id:'ind_ace_v',     supId:'sp_ind_ace',     utility:'ACE',        energyType:'electric', rateType:'variable', price:'0.174',          months:'1',   etf:'No ETF', uom:'$/kWh',   notes:'Variable Intro'},
+    {id:'ind_ace_2p',    supId:'sp_ind_ace',     utility:'ACE',        energyType:'electric', rateType:'fixed',    price:'0.174 → 0.2779', months:'13',  etf:'No ETF', uom:'$/kWh',   notes:'2-Phase Fixed'},
+    {id:'ind_ace_6f',    supId:'sp_ind_ace',     utility:'ACE',        energyType:'electric', rateType:'fixed',    price:'0.2311',         months:'6',   etf:'$10/mo', uom:'$/kWh',   notes:'6M Fixed w/ ETF'},
+    {id:'ind_reco_v',    supId:'sp_ind_reco',    utility:'RECO',       energyType:'electric', rateType:'variable', price:'0.154',          months:'1',   etf:'No ETF', uom:'$/kWh',   notes:'Variable Intro'},
+    {id:'ind_reco_2p',   supId:'sp_ind_reco',    utility:'RECO',       energyType:'electric', rateType:'fixed',    price:'0.154 → 0.2934', months:'13',  etf:'No ETF', uom:'$/kWh',   notes:'2-Phase Fixed'},
+    {id:'ind_reco_6f',   supId:'sp_ind_reco',    utility:'RECO',       energyType:'electric', rateType:'fixed',    price:'0.2448',         months:'6',   etf:'$10/mo', uom:'$/kWh',   notes:'6M Fixed w/ ETF'},
+    // NJ · Gas
+    {id:'ind_njng_v',    supId:'sp_ind_njng',    utility:'NJNG',       energyType:'gas', rateType:'variable', price:'0.39',          months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_njng_2p',   supId:'sp_ind_njng',    utility:'NJNG',       energyType:'gas', rateType:'fixed',    price:'0.39 → 1.987', months:'13', etf:'No ETF', uom:'$/Therm', notes:'2-Phase Fixed'},
+    {id:'ind_njng_6f',   supId:'sp_ind_njng',    utility:'NJNG',       energyType:'gas', rateType:'fixed',    price:'1.4468',        months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    {id:'ind_njng_12f',  supId:'sp_ind_njng',    utility:'NJNG',       energyType:'gas', rateType:'fixed',    price:'1.5609',        months:'12', etf:'$10/mo', uom:'$/Therm', notes:'12M Fixed w/ ETF'},
+    {id:'ind_psegg_v',   supId:'sp_ind_psegg',   utility:'PSE&G Gas',  energyType:'gas', rateType:'variable', price:'0.29',          months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_psegg_2p',  supId:'sp_ind_psegg',   utility:'PSE&G Gas',  energyType:'gas', rateType:'fixed',    price:'0.29 → 2.095', months:'13', etf:'No ETF', uom:'$/Therm', notes:'2-Phase Fixed'},
+    {id:'ind_psegg_6f',  supId:'sp_ind_psegg',   utility:'PSE&G Gas',  energyType:'gas', rateType:'fixed',    price:'1.5558',        months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    {id:'ind_etown_v',   supId:'sp_ind_etown',   utility:'E-Town',     energyType:'gas', rateType:'variable', price:'0.56',          months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_etown_2p',  supId:'sp_ind_etown',   utility:'E-Town',     energyType:'gas', rateType:'fixed',    price:'0.56 → 2.099', months:'13', etf:'No ETF', uom:'$/Therm', notes:'2-Phase Fixed'},
+    {id:'ind_etown_6f',  supId:'sp_ind_etown',   utility:'E-Town',     energyType:'gas', rateType:'fixed',    price:'1.5614',        months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    {id:'ind_sjg_v',     supId:'sp_ind_sjg',     utility:'SJG',        energyType:'gas', rateType:'variable', price:'0.44',          months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_sjg_2p',    supId:'sp_ind_sjg',     utility:'SJG',        energyType:'gas', rateType:'fixed',    price:'0.44 → 1.968', months:'13', etf:'No ETF', uom:'$/Therm', notes:'2-Phase Fixed'},
+    {id:'ind_sjg_6f',    supId:'sp_ind_sjg',     utility:'SJG',        energyType:'gas', rateType:'fixed',    price:'1.427',         months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    // PA · Electric
+    {id:'ind_peco_v',    supId:'sp_ind_peco',    utility:'PECO',       energyType:'electric', rateType:'variable', price:'0.101',         months:'2',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_peco_2p',   supId:'sp_ind_peco',    utility:'PECO',       energyType:'electric', rateType:'fixed',    price:'0.101 → 0.243', months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_peco_6f',   supId:'sp_ind_peco',    utility:'PECO',       energyType:'electric', rateType:'fixed',    price:'0.1955',        months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    {id:'ind_pple_v',    supId:'sp_ind_pple',    utility:'PPL',        energyType:'electric', rateType:'variable', price:'0.119',         months:'2',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_pple_2p',   supId:'sp_ind_pple',    utility:'PPL',        energyType:'electric', rateType:'fixed',    price:'0.119 → 0.267', months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_pple_6f',   supId:'sp_ind_pple',    utility:'PPL',        energyType:'electric', rateType:'fixed',    price:'0.2199',        months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    {id:'ind_duqe_v',    supId:'sp_ind_duqe',    utility:'DUQE',       energyType:'electric', rateType:'variable', price:'0.129',         months:'2',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_duqe_2p',   supId:'sp_ind_duqe',    utility:'DUQE',       energyType:'electric', rateType:'fixed',    price:'0.129 → 0.257', months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_duqe_6f',   supId:'sp_ind_duqe',    utility:'DUQE',       energyType:'electric', rateType:'fixed',    price:'0.2111',        months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    {id:'ind_meted_v',   supId:'sp_ind_meted',   utility:'MetEd',      energyType:'electric', rateType:'variable', price:'0.119',         months:'2',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_meted_2p',  supId:'sp_ind_meted',   utility:'MetEd',      energyType:'electric', rateType:'fixed',    price:'0.119 → 0.258', months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_meted_6f',  supId:'sp_ind_meted',   utility:'MetEd',      energyType:'electric', rateType:'fixed',    price:'0.2104',        months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    {id:'ind_wpp_v',     supId:'sp_ind_westpenn',utility:'West Penn',  energyType:'electric', rateType:'variable', price:'0.103',         months:'2',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_wpp_2p',    supId:'sp_ind_westpenn',utility:'West Penn',  energyType:'electric', rateType:'fixed',    price:'0.103 → 0.247', months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_wpp_6f',    supId:'sp_ind_westpenn',utility:'West Penn',  energyType:'electric', rateType:'fixed',    price:'0.2004',        months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    {id:'ind_pen_v',     supId:'sp_ind_penelec', utility:'Penelec',    energyType:'electric', rateType:'variable', price:'0.109',         months:'2',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_pen_2p',    supId:'sp_ind_penelec', utility:'Penelec',    energyType:'electric', rateType:'fixed',    price:'0.109 → 0.265', months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_pen_6f',    supId:'sp_ind_penelec', utility:'Penelec',    energyType:'electric', rateType:'fixed',    price:'0.218',         months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    // PA · Gas
+    {id:'ind_pecog_v',   supId:'sp_ind_pecog',   utility:'PECO Gas',   energyType:'gas', rateType:'variable', price:'0.499',        months:'2',  etf:'No ETF', uom:'$/CCF', notes:'Variable Intro'},
+    {id:'ind_pecog_2p',  supId:'sp_ind_pecog',   utility:'PECO Gas',   energyType:'gas', rateType:'fixed',    price:'0.499 → 1.81',months:'13', etf:'No ETF', uom:'$/CCF', notes:'2-Phase Fixed'},
+    {id:'ind_pecog_6f',  supId:'sp_ind_pecog',   utility:'PECO Gas',   energyType:'gas', rateType:'fixed',    price:'1.3545',       months:'6',  etf:'$10/mo', uom:'$/CCF', notes:'6M Fixed w/ ETF'},
+    {id:'ind_pgw_v',     supId:'sp_ind_pgw',     utility:'PGW',        energyType:'gas', rateType:'variable', price:'0.58',         months:'2',  etf:'No ETF', uom:'$/CCF', notes:'Variable Intro'},
+    {id:'ind_pgw_2p',    supId:'sp_ind_pgw',     utility:'PGW',        energyType:'gas', rateType:'fixed',    price:'0.58 → 1.81', months:'13', etf:'No ETF', uom:'$/CCF', notes:'2-Phase Fixed'},
+    {id:'ind_pgw_6f',    supId:'sp_ind_pgw',     utility:'PGW',        energyType:'gas', rateType:'fixed',    price:'1.3717',       months:'6',  etf:'$10/mo', uom:'$/CCF', notes:'6M Fixed w/ ETF'},
+    {id:'ind_ugi_v',     supId:'sp_ind_ugi',     utility:'UGI',        energyType:'gas', rateType:'variable', price:'0.59',         months:'2',  etf:'No ETF', uom:'$/CCF', notes:'Variable Intro'},
+    {id:'ind_ugi_2p',    supId:'sp_ind_ugi',     utility:'UGI',        energyType:'gas', rateType:'fixed',    price:'0.59 → 1.86', months:'13', etf:'No ETF', uom:'$/CCF', notes:'2-Phase Fixed'},
+    {id:'ind_ugi_6f',    supId:'sp_ind_ugi',     utility:'UGI',        energyType:'gas', rateType:'fixed',    price:'1.4487',       months:'6',  etf:'$10/mo', uom:'$/CCF', notes:'6M Fixed w/ ETF'},
+    {id:'ind_colpa_v',   supId:'sp_ind_colgaspa',utility:'Col. Gas PA',energyType:'gas', rateType:'variable', price:'0.289',        months:'2',  etf:'No ETF', uom:'$/CCF', notes:'Variable Intro'},
+    {id:'ind_colpa_2p',  supId:'sp_ind_colgaspa',utility:'Col. Gas PA',energyType:'gas', rateType:'fixed',    price:'0.289 → 1.66',months:'13', etf:'No ETF', uom:'$/CCF', notes:'2-Phase Fixed'},
+    {id:'ind_colpa_6f',  supId:'sp_ind_colgaspa',utility:'Col. Gas PA',energyType:'gas', rateType:'fixed',    price:'1.2928',       months:'6',  etf:'$10/mo', uom:'$/CCF', notes:'6M Fixed w/ ETF'},
+    // DC
+    {id:'ind_pepdc_v',   supId:'sp_ind_pepcodc', utility:'Pepco DC',   energyType:'electric', rateType:'variable', price:'0.144',        months:'1',  etf:'No ETF', uom:'$/kWh',   notes:'Variable Intro'},
+    {id:'ind_pepdc_2p',  supId:'sp_ind_pepcodc', utility:'Pepco DC',   energyType:'electric', rateType:'fixed',    price:'0.144 → 0.297',months:'13',etf:'No ETF', uom:'$/kWh',   notes:'2-Phase Fixed'},
+    {id:'ind_pepdc_6f',  supId:'sp_ind_pepcodc', utility:'Pepco DC',   energyType:'electric', rateType:'fixed',    price:'0.252',        months:'6',  etf:'$10/mo', uom:'$/kWh',   notes:'6M Fixed w/ ETF'},
+    {id:'ind_pepdc_12f', supId:'sp_ind_pepcodc', utility:'Pepco DC',   energyType:'electric', rateType:'fixed',    price:'0.2565',       months:'12', etf:'$10/mo', uom:'$/kWh',   notes:'12M Fixed w/ ETF'},
+    {id:'ind_wgdc_v',    supId:'sp_ind_washdc',  utility:'Wash. Gas',  energyType:'gas', rateType:'variable', price:'0.52',         months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_wgdc_2p',   supId:'sp_ind_washdc',  utility:'Wash. Gas',  energyType:'gas', rateType:'fixed',    price:'0.52 → 1.82', months:'13', etf:'No ETF', uom:'$/Therm', notes:'2-Phase Fixed'},
+    {id:'ind_wgdc_6f',   supId:'sp_ind_washdc',  utility:'Wash. Gas',  energyType:'gas', rateType:'fixed',    price:'1.398',        months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    {id:'ind_wgdc_12f',  supId:'sp_ind_washdc',  utility:'Wash. Gas',  energyType:'gas', rateType:'fixed',    price:'1.4206',       months:'12', etf:'$10/mo', uom:'$/Therm', notes:'12M Fixed w/ ETF'},
+    // IN
+    {id:'ind_nips_12f',  supId:'sp_ind_nipsco',  utility:'NIPSCO',     energyType:'gas', rateType:'fixed',    price:'1.20',         months:'12', etf:'$10/mo', uom:'$/CCF', notes:'12M Fixed w/ ETF'},
+    // VA
+    {id:'ind_colva_v',   supId:'sp_ind_colgasva',utility:'Col. Gas VA',energyType:'gas', rateType:'variable', price:'0.44',         months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_colva_6f',  supId:'sp_ind_colgasva',utility:'Col. Gas VA',energyType:'gas', rateType:'fixed',    price:'1.5637',       months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    {id:'ind_colva_12f', supId:'sp_ind_colgasva',utility:'Col. Gas VA',energyType:'gas', rateType:'fixed',    price:'1.5637',       months:'12', etf:'$10/mo', uom:'$/Therm', notes:'12M Fixed w/ ETF'},
+    {id:'ind_wgva_v',    supId:'sp_ind_washva',  utility:'Wash. Gas VA',energyType:'gas',rateType:'variable', price:'0.48',         months:'1',  etf:'No ETF', uom:'$/Therm', notes:'Variable Intro'},
+    {id:'ind_wgva_6f',   supId:'sp_ind_washva',  utility:'Wash. Gas VA',energyType:'gas',rateType:'fixed',    price:'1.3692',       months:'6',  etf:'$10/mo', uom:'$/Therm', notes:'6M Fixed w/ ETF'},
+    {id:'ind_wgva_12f',  supId:'sp_ind_washva',  utility:'Wash. Gas VA',energyType:'gas',rateType:'fixed',    price:'1.3894',       months:'12', etf:'$10/mo', uom:'$/Therm', notes:'12M Fixed w/ ETF'},
+    // DE
+    {id:'ind_delm_v',    supId:'sp_ind_delmarva',utility:'Delmarva',   energyType:'electric', rateType:'variable', price:'0.1049',       months:'1',  etf:'No ETF', uom:'$/kWh', notes:'Variable Intro'},
+    {id:'ind_delm_2p',   supId:'sp_ind_delmarva',utility:'Delmarva',   energyType:'electric', rateType:'fixed',    price:'0.1049 → 0.246',months:'13',etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+    {id:'ind_delm_6f',   supId:'sp_ind_delmarva',utility:'Delmarva',   energyType:'electric', rateType:'fixed',    price:'0.2027',       months:'6',  etf:'$10/mo', uom:'$/kWh', notes:'6M Fixed w/ ETF'},
+    {id:'ind_delm_12f',  supId:'sp_ind_delmarva',utility:'Delmarva',   energyType:'electric', rateType:'fixed',    price:'0.2064',       months:'12', etf:'$10/mo', uom:'$/kWh', notes:'12M Fixed w/ ETF'},
+    // NY
+    {id:'ind_coned_2p',  supId:'sp_ind_coned',   utility:'ConEd J',    energyType:'electric', rateType:'fixed',    price:'0.104 → 0.288',months:'13', etf:'No ETF', uom:'$/kWh', notes:'2-Phase Fixed'},
+
+  ],
+  checkItems: [
+    {id:'c0',title:'Validar número en el DNC',desc:'Verificar que el número de teléfono del cliente NO esté registrado en la lista Do Not Call (DNC) antes de continuar con la venta.',type:'check'},
+    {id:'c_template',title:'Completar plantilla de venta',desc:'Llenar todos los campos de la plantilla antes de continuar.',type:'template'},
+  ]
+};
+
+let accessLog = [];
+
+// ════════════════════════════════════════════
+// SESSION
+// ════════════════════════════════════════════
+let currentUser = null;
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const user = users.find(x => x.username === u && x.password === p);
+  const err = document.getElementById('loginError');
+
+  if (!user) {
+    err.textContent = 'Usuario o contraseña incorrectos';
+    err.classList.add('show');
+    addLog('denied', `Intento fallido: "${u}"`);
+    setTimeout(() => err.classList.remove('show'), 3000);
+    return;
+  }
+  if (!user.active) {
+    err.textContent = '⛔ Tu acceso ha sido desactivado. Contacta al administrador.';
+    err.classList.add('show');
+    addLog('denied', `Acceso denegado (inactivo): ${u}`);
+    setTimeout(() => err.classList.remove('show'), 4000);
+    return;
+  }
+
+  currentUser = user;
+  addLog('login', `${user.name} (${user.role}) ingresó`);
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+
+  // header
+  document.getElementById('userLabel').textContent = `${user.name} · ${user.role === 'admin' ? 'Admin' : 'Agente'}`;
+  const dot = document.getElementById('roleDot');
+  dot.className = 'role-dot ' + user.role;
+  if (user.role === 'admin') document.getElementById('adminBtn').style.display = '';
+
+  renderStates();
+}
+
+function doLogout() {
+  if (currentUser) addLog('logout', `${currentUser.name} cerró sesión`);
+  currentUser = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('adminBtn').style.display = 'none';
+  sel = { stateId:null, utilId:null, supId:null };
+  openSupId = null;
+  checkedItems.clear();
+  goStep(0);
+  renderStates();
+}
+
+// ════════════════════════════════════════════
+// ACCESS LOG
+// ════════════════════════════════════════════
+function addLog(type, text) {
+  accessLog.unshift({ type, text, time: new Date().toLocaleString('es-CO', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) });
+  if (accessLog.length > 80) accessLog = accessLog.slice(0, 80);
+  saveLog();
+}
+
+function renderLog() {
+  const el = document.getElementById('accessLog');
+  if (!accessLog.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;padding:16px 0;text-align:center">Sin registros aún</div>'; return; }
+  el.innerHTML = accessLog.map(l => `
+    <div class="log-entry">
+      <div class="log-dot ${l.type}"></div>
+      <span class="log-text">${l.text}</span>
+      <span class="log-time">${l.time}</span>
+    </div>`).join('');
+}
+
+function clearLog() { accessLog = []; saveLog(); renderLog(); }
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+let sel = { stateId:null, utilId:null, supId:null };
+let rateFilter = 'all';
+let checkedItems = new Set();
+let currentStep = 0;
+let openSupId = null;
+
+const MONTHS = [
+  {abbr:'ENE',name:'Enero'},{abbr:'FEB',name:'Febrero'},{abbr:'MAR',name:'Marzo'},
+  {abbr:'ABR',name:'Abril'},{abbr:'MAY',name:'Mayo'},{abbr:'JUN',name:'Junio'},
+  {abbr:'JUL',name:'Julio'},{abbr:'AGO',name:'Agosto'},{abbr:'SEP',name:'Septiembre'},
+  {abbr:'OCT',name:'Octubre'},{abbr:'NOV',name:'Noviembre'},{abbr:'DIC',name:'Diciembre'}
+];
+
+function goStep(n) {
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelectorAll('.step-item').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if(i===n) s.classList.add('active');
+    else if(i<n) s.classList.add('done');
+  });
+  currentStep = n;
+  if(n===0) renderDNC();
+  if(n===2) renderUtilities();
+  if(n===3) renderSupplierCards();
+  if(n===4) renderChecklist();
+  updateContext();
+}
+
+function updateContext() {
+  const bar = document.getElementById('contextBar');
+  let html = '';
+  if(sel.stateId){const s=db.states.find(x=>x.id===sel.stateId);html+=`<div class="ctx-tag state"><span class="ctx-label">Estado</span><span class="ctx-val">${s.code} — ${s.name}</span></div>`;}
+  if(sel.utilId){const u=db.utilities.find(x=>x.id===sel.utilId);html+=`<div class="ctx-tag util"><span class="ctx-label">Utilidad</span><span class="ctx-val">${u.name}</span></div>`;}
+  if(sel.supId){const s=db.suppliers.find(x=>x.id===sel.supId);html+=`<div class="ctx-tag sup"><span class="ctx-label">Supplier</span><span class="ctx-val">${s.name}</span></div>`;}
+  bar.innerHTML=html;
+}
+
+// ════════════════════════════════════════════
+// STEP RENDERS
+// ════════════════════════════════════════════
+function renderStates() {
+  const g=document.getElementById('statesGrid');
+  if(!db.states.length){g.innerHTML='<div class="empty-msg"><span class="big">🗺️</span>Sin estados. Admin: agrégalos en el panel.</div>';return;}
+  g.innerHTML=db.states.map(s=>{
+    const cnt=db.utilities.filter(u=>u.stateId===s.id).length;
+    return `<div class="state-card${sel.stateId===s.id?' selected':''}" onclick="selectState('${s.id}')">
+      <div class="state-abbr">${s.code}</div>
+      <div class="state-name">${s.name}</div>
+      <div class="state-util-count">${cnt} utilidad${cnt!==1?'es':''}</div>
+    </div>`;
+  }).join('');
+}
+function selectState(id){sel.stateId=id;sel.utilId=null;sel.supId=null;updateContext();goStep(2);}
+
+function renderUtilities() {
+  const container = document.getElementById('utilitiesGrid');
+  const utils = db.utilities.filter(u => u.stateId === sel.stateId);
+  if(!utils.length) {
+    container.innerHTML = '<div class="empty-msg"><span class="big">🔌</span>Sin utilidades para este estado.</div>';
+    return;
+  }
+  const elec = utils.filter(u => u.type === 'electric' || u.type === 'both');
+  const gas  = utils.filter(u => u.type === 'gas'      || u.type === 'both');
+
+  const utilCard = u => `
+    <div class="util-card${sel.utilId===u.id?' selected':''}" onclick="selectUtil('${u.id}')">
+      <div class="util-name">${u.name}</div>
+    </div>`;
+
+  const group = (title, icon, colorClass, items) => items.length ? `
+    <div class="util-group">
+      <div class="util-group-header ${colorClass}">${icon} ${title}</div>
+      <div class="util-group-cards">${items.map(utilCard).join('')}</div>
+    </div>` : '';
+
+  container.innerHTML = `
+    <div class="util-groups-wrap">
+      ${group('Electricidad','⚡','elec', elec)}
+      ${group('Gas','🔥','gas', gas)}
+    </div>`;
+}
+function selectUtil(id){
+  sel.utilId=id;
+  sel.supId=null;
+  updateContext();
+  const firstSup = db.suppliers.find(s => s.utilId === id);
+  openSupId = firstSup ? firstSup.id : null;
+  goStep(3);
+}
+
+function renderSupplierCards() {
+  const g = document.getElementById('suppliersGrid');
+  const sups = db.suppliers.filter(s => s.utilId === sel.utilId);
+  if(!sups.length) {
+    g.innerHTML = '<div class="empty-msg"><span class="big">🏢</span>Sin suppliers para esta utilidad.</div>';
+    return;
+  }
+
+  const utilName = db.utilities.find(u => u.id === sel.utilId)?.name || '';
+
+  const rateRow = r => {
+    const etfVal = parseFloat(r.etf);
+    const noEtf = (!r.etf || etfVal === 0 || r.etf === '0' || r.etf === '0.00' || r.etf === 'No ETF');
+    const etfDisplay = noEtf ? 'No ETF' : r.etf.startsWith('$') ? r.etf : '$' + r.etf;
+    const etfColor = noEtf ? '#27ae60' : '#C62828';
+    const termLabel = r.months === 'EOY26' ? 'EOY26'
+                    : r.months === 'Mes a mes' ? 'Mensual'
+                    : r.months + ' mo';
+    const uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
+    return `<tr class="rate-tr">
+      <td class="rate-td-plan">${r.notes ? '<span class="rnote">'+r.notes+'</span> ' : ''}${r.price} <span class="rv-uom">${uomShort}</span></td>
+      <td class="rate-td-term"><span class="rv-term">${termLabel}</span></td>
+      <td class="rate-td-etf"><span class="rv-etf" style="color:${etfColor};font-weight:800">${etfDisplay}</span></td>
+    </tr>`;
+  };
+
+  const rateSection = (title, icon, rows, colorClass) => rows.length ? `
+    <div class="rate-section-block">
+      <div class="rate-section-title ${colorClass}">${icon} ${title}</div>
+      <table class="rate-compact-table">
+        <thead><tr><th>Rate</th><th>Term</th><th>ETF</th></tr></thead>
+        <tbody>${rows.map(rateRow).join('')}</tbody>
+      </table>
+    </div>` : '';
+
+  g.innerHTML = '<div class="suppliers-parallel">' + sups.map(sup => {
+    const rates = db.rates.filter(r => r.supId === sup.id);
+    const elecRates = rates.filter(r => r.energyType === 'electric');
+    const gasRates  = rates.filter(r => r.energyType === 'gas');
+    const isSelected = sel.supId === sup.id;
+
+    const ratesHtml = [
+      rateSection('Electric', '⚡', elecRates, 'elec'),
+      rateSection('Gas', '🔥', gasRates, 'gas'),
+    ].join('') || '<div class="no-rates-msg">Sin rates configuradas</div>';
+
+    return `
+    <div class="sup-panel ${isSelected ? 'selected' : ''} ${sup.name==='NG&E'?'sup-nge':sup.name==='INDRA'?'sup-indra':'sup-other'}">
+      <div class="sup-panel-header">
+        <span class="sup-panel-name">${sup.name}</span>
+        <span class="sup-panel-util">${utilName}</span>
+      </div>
+      <div class="sup-panel-body">
+        <div class="rates-section">${ratesHtml}</div>
+        <button class="go-checklist-btn" style="width:100%;margin:12px 0 0" onclick="selectSupAndGo('${sup.id}')">
+          ✓ Ir al Checklist →
+        </button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function selectSupAndGo(id) {
+  sel.supId = id;
+  updateContext();
+  goStep(4);
+}
+
+function volverInicio(){
+  sel={stateId:null,utilId:null,supId:null};
+  openSupId=null;
+  checkedItems.clear();
+  dncClearResult();
+  document.getElementById('dncPhone').value='';
+  goStep(0);
+  renderDNC();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderChecklist() {
+  const state=db.states.find(s=>s.id===sel.stateId);
+  const util=db.utilities.find(u=>u.id===sel.utilId);
+  const sup=db.suppliers.find(s=>s.id===sel.supId);
+  document.getElementById('summaryCard').innerHTML=`
+    <div class="sum-item"><div class="sum-label">Estado</div><div class="sum-val">${state?state.name:'—'}</div></div>
+    <div class="sum-item"><div class="sum-label">Utilidad</div><div class="sum-val">${util?util.name:'—'}</div></div>
+    <div class="sum-item"><div class="sum-label">Supplier</div><div class="sum-val">${sup?sup.name:'—'}</div></div>
+    <div class="sum-item"><div class="sum-label">Agente</div><div class="sum-val">${currentUser?currentUser.name:'—'}</div></div>
+  `;
+  renderCheckItems();
+}
+function renderCheckItems() {
+  const state  = db.states.find(s=>s.id===sel.stateId);
+  const util   = db.utilities.find(u=>u.id===sel.utilId);
+  const sup    = db.suppliers.find(s=>s.id===sel.supId);
+
+  document.getElementById('checklistBody').innerHTML=db.checkItems.map((c,i)=>{
+    if(c.id === 'c_template') {
+      return renderTemplateStep(i+1, state, util, sup);
+    }
+    const done=checkedItems.has(c.id);
+    return `<div class="check-item${done?' checked':''}" onclick="toggleCheck('${c.id}')">
+      <div class="check-box">${done?'✓':''}</div>
+      <div class="check-content">
+        <div class="check-step">Paso ${i+1}</div>
+        <div class="check-title">${c.title}</div>
+        <div class="check-desc">${c.desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const total=db.checkItems.length, done=checkedItems.size, pct=total?Math.round(done/total*100):0;
+  document.getElementById('progressBar').style.width=pct+'%';
+  document.getElementById('progressText').textContent=`${done} / ${total} completados`;
+  // Restore saved template values
+  restoreTemplateValues();
+}
+
+function renderTemplateStep(stepNum, state, util, sup) {
+  return `<div class="check-item template-step">
+    <div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>
+    <div class="check-content" style="flex:1">
+      <div class="check-step">Paso ${stepNum}</div>
+      <div class="check-title">Completar plantilla de venta</div>
+      <div class="check-desc" style="margin-bottom:12px">Llena todos los campos y copia la plantilla cuando esté lista.</div>
+      <div class="tpl-grid">
+        <div class="tpl-row"><label class="tpl-label">STATE</label><input class="tpl-input" id="tpl_state" placeholder="ej: PA" value="${state?state.name:''}"></div>
+        <div class="tpl-row"><label class="tpl-label">LANGUAGE</label><input class="tpl-input" id="tpl_lang" placeholder="ej: English"></div>
+        <div class="tpl-row"><label class="tpl-label">PHONE NUMBER</label><input class="tpl-input" id="tpl_phone" placeholder="ej: (555) 123-4567"></div>
+        <div class="tpl-row"><label class="tpl-label">AUTHORIZED</label><input class="tpl-input" id="tpl_auth" placeholder="ej: Yes / No"></div>
+        <div class="tpl-row"><label class="tpl-label">ACC HOLDER</label><input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular"></div>
+        <div class="tpl-row"><label class="tpl-label">ADDRESS</label><input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio"></div>
+        <div class="tpl-row"><label class="tpl-label">CITY</label><input class="tpl-input" id="tpl_city" placeholder="Ciudad"></div>
+        <div class="tpl-row"><label class="tpl-label">ACC INFO</label><input class="tpl-input" id="tpl_acc" placeholder="Número de cuenta"></div>
+        <div class="tpl-row"><label class="tpl-label">UTILITY</label><input class="tpl-input" id="tpl_util" placeholder="ej: PECO" value="${util?util.name:''}"></div>
+        <div class="tpl-row"><label class="tpl-label">DATE OF BIRTH</label><input class="tpl-input" id="tpl_dob" placeholder="MM/DD/YYYY"></div>
+        <div class="tpl-row"><label class="tpl-label">NAME KEY</label><input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre"></div>
+        <div class="tpl-row"><label class="tpl-label">REP ID</label><input class="tpl-input" id="tpl_repid" placeholder="ID del agente" value="${currentUser?currentUser.username:''}"></div>
+        <div class="tpl-row tpl-full"><label class="tpl-label">TARIFA SELECCIONADA</label><input class="tpl-input" id="tpl_tarifa" placeholder="ej: Fixed 12M — 0.1299 $/kWh" value="${sup?sup.name+' — ':'' }"></div>
+      </div>
+      <button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn">
+        <span>📋</span> Copiar Plantilla
+      </button>
+    </div>
+  </div>`;
+}
+
+function restoreTemplateValues() {
+  // Keep values across re-renders by storing in a global object
+  if(!window._tplData) return;
+  const fields = ['state','lang','phone','auth','holder','address','city','acc','util','dob','namekey','repid','tarifa'];
+  fields.forEach(f => {
+    const el = document.getElementById('tpl_'+f);
+    if(el && window._tplData[f] !== undefined) el.value = window._tplData[f];
+  });
+}
+
+function saveTplField(field) {
+  if(!window._tplData) window._tplData = {};
+  const el = document.getElementById('tpl_'+field);
+  if(el) window._tplData[field] = el.value;
+}
+
+function copyTemplate() {
+  const g = id => (document.getElementById('tpl_'+id)||{value:''}).value || '—';
+  const text = [
+    'STATE: '               + g('state'),
+    'LANGUAGE: '            + g('lang'),
+    'PHONE NUMBER: '        + g('phone'),
+    'AUTHORIZED: '          + g('auth'),
+    'ACC HOLDER: '          + g('holder'),
+    'ADDRESS: '             + g('address'),
+    'CITY: '                + g('city'),
+    'ACC INFO: '            + g('acc'),
+    'UTILITY: '             + g('util'),
+    'Date of birth: '       + g('dob'),
+    'Name key: '            + g('namekey'),
+    'Rep id: '              + g('repid'),
+    'Tarifa seleccionada: ' + g('tarifa'),
+  ].join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('tplCopyBtn');
+    if(btn){ btn.innerHTML='<span>✅</span> ¡Copiado!'; btn.style.background='var(--green-dark)'; }
+    setTimeout(()=>{
+      if(btn){ btn.innerHTML='<span>📋</span> Copiar Plantilla'; btn.style.background=''; }
+    }, 2500);
+    toast('✓ Plantilla copiada al portapapeles','success');
+  }).catch(()=>{ toast('⚠ No se pudo copiar','warn'); });
+}
+
+function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
+function resetChecklist(){checkedItems.clear();renderCheckItems();}
+
+// ════════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════════
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('visible');
+  dTab('agents');
+  renderAgents();
+  refreshAdminTables();
+  refreshSelects();
+}
+function closeAdmin() { document.getElementById('adminOverlay').classList.remove('visible'); }
+function closeAdminIfOutside(e) { if(e.target===document.getElementById('adminOverlay')) closeAdmin(); }
+
+function dTab(tab) {
+  const tabs=['agents','log','dnc','states','utilities','suppliers','rates','checklist'];
+  document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
+  document.querySelectorAll('.dsection').forEach(s=>s.classList.remove('active'));
+  document.getElementById('ds-'+tab).classList.add('active');
+  if(tab==='log') renderLog();
+  if(tab==='agents') renderAgents();
+  if(tab==='dnc') refreshDNCAdminStatus();
+}
+
+// AGENTS
+function renderAgents() {
+  const el=document.getElementById('agentsList');
+  const agents=users.filter(u=>u.role==='agent');
+  if(!agents.length){el.innerHTML='<div style="color:var(--text-muted);font-size:0.8rem;padding:16px 0;text-align:center">Sin agentes creados aún</div>';return;}
+  el.innerHTML=agents.map(a=>`
+    <div class="agent-row">
+      <div class="agent-info">
+        <div class="agent-uname">@${a.username}</div>
+        <div class="agent-meta">${a.name}</div>
+      </div>
+      <span class="agent-status ${a.active?'active':'inactive'}">${a.active?'Activo':'Inactivo'}</span>
+      <div class="agent-actions">
+        <button class="abtn ${a.active?'toggle-inactive':'toggle-active'}" onclick="toggleAgent('${a.id}')">
+          ${a.active?'Desactivar':'Activar'}
+        </button>
+        <button class="abtn del" onclick="deleteAgent('${a.id}')">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+function addAgent() {
+  const username=v('na-user'), password=v('na-pass'), name=v('na-name');
+  if(!username||!password||!name){toast('⚠ Completa todos los campos','warn');return;}
+  if(users.find(u=>u.username===username)){toast('⚠ Ese usuario ya existe','warn');return;}
+  users.push({id:uid(),username,password,name,role:'agent',active:true});
+  saveUsers();
+  cl('na-user');cl('na-pass');cl('na-name');
+  renderAgents();
+  addLog('login',`Admin creó agente: @${username}`);
+  toast('✓ Agente creado','success');
+}
+
+function toggleAgent(id) {
+  const u=users.find(x=>x.id===id);
+  if(!u) return;
+  u.active=!u.active;
+  saveUsers();
+  renderAgents();
+  addLog(u.active?'login':'logout',`Admin ${u.active?'activó':'desactivó'} a @${u.username}`);
+  toast(u.active?'✓ Agente activado':'⚠ Agente desactivado', u.active?'success':'warn');
+}
+
+function deleteAgent(id) {
+  const u=users.find(x=>x.id===id);
+  if(!u) return;
+  users=users.filter(x=>x.id!==id);
+  saveUsers();
+  renderAgents();
+  addLog('logout',`Admin eliminó agente: @${u.username}`);
+  toast('🗑 Agente eliminado');
+}
+
+// REFRESH SELECTS
+function refreshSelects() {
+  document.getElementById('nu-state').innerHTML=db.states.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('nsup-util').innerHTML=db.utilities.map(u=>{
+    const st=db.states.find(s=>s.id===u.stateId);
+    return `<option value="${u.id}">${u.name} (${st?st.code:'?'})</option>`;
+  }).join('');
+  document.getElementById('nr-sup').innerHTML=db.suppliers.map(s=>{
+    const u=db.utilities.find(u=>u.id===s.utilId);
+    return `<option value="${s.id}">${s.name} — ${u?u.name:'?'}</option>`;
+  }).join('');
+}
+
+function refreshAdminTables() {
+  document.querySelector('#dt-states').innerHTML=db.states.map(s=>`
+    <tr>
+      <td><input value="${s.name}" onchange="db.states.find(x=>x.id==='${s.id}').name=this.value;saveDb();renderStates()"></td>
+      <td><input value="${s.code}" maxlength="3" style="width:52px" onchange="db.states.find(x=>x.id==='${s.id}').code=this.value.toUpperCase();saveDb();renderStates()"></td>
+      <td><button class="ddel" onclick="delState('${s.id}')">✕</button></td>
+    </tr>`).join('');
+
+  document.querySelector('#dt-utilities').innerHTML=db.utilities.map(u=>{
+    const st=db.states.find(s=>s.id===u.stateId);
+    return `<tr><td>${u.name}</td><td>${st?st.code:'?'}</td>
+      <td><span class="util-badge ${u.type}" style="font-size:0.58rem">${u.type}</span></td>
+      <td><button class="ddel" onclick="delUtil('${u.id}')">✕</button></td></tr>`;
+  }).join('');
+
+  document.querySelector('#dt-suppliers').innerHTML=db.suppliers.map(s=>{
+    const u=db.utilities.find(u=>u.id===s.utilId);
+    return `<tr><td>${s.name}</td><td>${u?u.name:'?'}</td><td>${s.margin}</td>
+      <td><button class="ddel" onclick="delSup('${s.id}')">✕</button></td></tr>`;
+  }).join('');
+
+  document.querySelector('#dt-rates').innerHTML=db.rates.map(r=>{
+    const s=db.suppliers.find(x=>x.id===r.supId);
+    const rtag = r.rateType==='fixed'?'📌':'📈';
+    const etag = r.energyType==='electric'?'⚡':'🔥';
+    return `<tr>
+      <td>${r.utility||r.plan||'—'}</td>
+      <td>${s?s.name:'?'}</td>
+      <td>${etag} ${rtag}</td>
+      <td><strong>${r.price}</strong> <span style="font-size:0.65rem;color:var(--text-muted)">${r.uom||''}</span></td>
+      <td><button class="ddel" onclick="delRate('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  document.querySelector('#dt-checklist').innerHTML=db.checkItems.map((c,i)=>`
+    <tr><td>${i+1}</td><td>${c.title}</td>
+    <td><button class="ddel" onclick="delCheck('${c.id}')">✕</button></td></tr>`).join('');
+}
+
+// ADD
+function uid(){return '_'+Math.random().toString(36).substr(2,9);}
+
+function addState(){
+  const name=v('ns-name'),code=v('ns-code').toUpperCase();
+  if(!name||!code){toast('⚠ Completa nombre y código','warn');return;}
+  db.states.push({id:uid(),name,code});
+  cl('ns-name');cl('ns-code');
+  saveDb();refreshAdminTables();refreshSelects();renderStates();
+  toast('✓ Estado agregado','success');
+}
+function addUtility(){
+  const name=v('nu-name'),stateId=v('nu-state'),type=v('nu-type');
+  if(!name||!stateId){toast('⚠ Completa todos los campos','warn');return;}
+  db.utilities.push({id:uid(),name,stateId,type});
+  cl('nu-name');
+  saveDb();refreshAdminTables();refreshSelects();renderStates();
+  toast('✓ Utilidad agregada','success');
+}
+function addSupplier(){
+  const name=v('nsup-name'),utilId=v('nsup-util'),margin=v('nsup-margin')||'N/A',commission=v('nsup-comm')||'N/A';
+  if(!name||!utilId){toast('⚠ Completa todos los campos','warn');return;}
+  db.suppliers.push({id:uid(),name,utilId,margin,commission});
+  cl('nsup-name');cl('nsup-margin');cl('nsup-comm');
+  saveDb();refreshAdminTables();refreshSelects();
+  toast('✓ Supplier agregado','success');
+}
+function addRate(){
+  const supId=v('nr-sup'), utility=v('nr-plan'), energyType=v('nr-etype'), rateType=v('nr-rtype'),
+        price=v('nr-price'), commission=v('nr-comm'), months=v('nr-months'), etf=v('nr-etf'),
+        msf=v('nr-msf'), uom=v('nr-uom'), green=v('nr-green'), notes=v('nr-notes');
+  if(!supId||!utility){toast('⚠ Completa Supplier y Utilidad','warn');return;}
+  db.rates.push({id:uid(),supId,utility,energyType,rateType,price,commission,months,etf,msf,uom,green,notes});
+  cl('nr-plan');cl('nr-price');cl('nr-comm');cl('nr-months');cl('nr-etf');cl('nr-msf');cl('nr-uom');cl('nr-green');cl('nr-notes');
+  saveDb();refreshAdminTables();
+  toast('✓ Rate agregada','success');
+}
+function addCheckItem(){
+  const title=v('nc-title'),desc=v('nc-desc');
+  if(!title){toast('⚠ Agrega el título','warn');return;}
+  db.checkItems.push({id:uid(),title,desc});
+  cl('nc-title');cl('nc-desc');
+  saveDb();refreshAdminTables();
+  toast('✓ Paso agregado','success');
+}
+
+// DELETE
+function delState(id){
+  db.states=db.states.filter(s=>s.id!==id);
+  db.utilities=db.utilities.filter(u=>u.stateId!==id);
+  if(sel.stateId===id){sel.stateId=null;sel.utilId=null;sel.supId=null;}
+  saveDb();refreshAdminTables();refreshSelects();renderStates();updateContext();
+  toast('🗑 Estado eliminado');
+}
+function delUtil(id){
+  db.utilities=db.utilities.filter(u=>u.id!==id);
+  db.suppliers=db.suppliers.filter(s=>s.utilId!==id);
+  if(sel.utilId===id){sel.utilId=null;sel.supId=null;}
+  saveDb();refreshAdminTables();refreshSelects();renderStates();updateContext();
+  toast('🗑 Utilidad eliminada');
+}
+function delSup(id){
+  db.suppliers=db.suppliers.filter(s=>s.id!==id);
+  db.rates=db.rates.filter(r=>r.supId!==id);
+  if(sel.supId===id) sel.supId=null;
+  saveDb();refreshAdminTables();refreshSelects();updateContext();
+  toast('🗑 Supplier eliminado');
+}
+function delRate(id){db.rates=db.rates.filter(r=>r.id!==id);saveDb();refreshAdminTables();toast('🗑 Rate eliminada');}
+function delCheck(id){
+  db.checkItems=db.checkItems.filter(c=>c.id!==id);
+  checkedItems.delete(id);
+  saveDb();refreshAdminTables();
+  if(currentStep===5) renderCheckItems();
+  toast('🗑 Paso eliminado');
+}
+
+function v(id){return document.getElementById(id).value.trim();}
+function cl(id){document.getElementById(id).value='';}
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type?' '+type:'')+' show';
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+
+// ════════════════════════════════════════════
+// DNC — IndexedDB LOGIC
+// ════════════════════════════════════════════
+const DNC_DB_NAME  = 'dnc_database';
+const DNC_DB_VER   = 1;
+const DNC_STORE    = 'numbers';
+let   dncDB        = null;
+let   dncCount     = 0;
+
+async function openDNCDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DNC_DB_NAME, DNC_DB_VER);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(DNC_STORE)) {
+        db.createObjectStore(DNC_STORE, { keyPath: 'num' });
+      }
+    };
+    req.onsuccess = e => { dncDB = e.target.result; resolve(dncDB); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function getDNCCount() {
+  if(!dncDB) await openDNCDB();
+  return new Promise(resolve => {
+    const tx  = dncDB.transaction(DNC_STORE, 'readonly');
+    const req = tx.objectStore(DNC_STORE).count();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => resolve(0);
+  });
+}
+
+async function checkNumberInDNC(num) {
+  if(!dncDB) await openDNCDB();
+  const clean = cleanPhone(num);
+  return new Promise(resolve => {
+    const tx  = dncDB.transaction(DNC_STORE, 'readonly');
+    const req = tx.objectStore(DNC_STORE).get(clean);
+    req.onsuccess = () => resolve(!!req.result);
+    req.onerror   = () => resolve(null);
+  });
+}
+
+async function loadDNCFromFile(file, progressCb) {
+  if(!dncDB) await openDNCDB();
+  return new Promise((resolve, reject) => {
+    // Use FileReader with chunks for large files
+    const CHUNK = 5 * 1024 * 1024; // 5MB chunks
+    let offset = 0, total = file.size, leftover = '';
+    let batch = [], batchSize = 5000, loaded = 0;
+
+    const tx_clear = dncDB.transaction(DNC_STORE, 'readwrite');
+    tx_clear.objectStore(DNC_STORE).clear();
+    tx_clear.oncomplete = readNext;
+    tx_clear.onerror    = e => reject(e.target.error);
+
+    function readNext() {
+      if(offset >= total) { flush(true); return; }
+      const slice = file.slice(offset, offset + CHUNK);
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = leftover + e.target.result;
+        const lines = text.split(/[\r\n]+/);
+        leftover = lines.pop(); // save incomplete last line
+        lines.forEach(line => {
+          const num = cleanPhone(line.trim());
+          if(num.length >= 7) batch.push({ num });
+        });
+        offset += CHUNK;
+        progressCb(Math.min(offset / total, 0.95));
+        if(batch.length >= batchSize) flush(false);
+        else readNext();
+      };
+      reader.onerror = () => reject(new Error('Error reading file'));
+      reader.readAsText(slice);
+    }
+
+    function flush(final) {
+      if(!batch.length) { if(final) finish(); return; }
+      const tx = dncDB.transaction(DNC_STORE, 'readwrite');
+      const store = tx.objectStore(DNC_STORE);
+      batch.forEach(item => store.put(item));
+      loaded += batch.length;
+      batch = [];
+      tx.oncomplete = () => { if(final) finish(); else readNext(); };
+      tx.onerror    = e => reject(e.target.error);
+    }
+
+    function finish() {
+      getDNCCount().then(count => { dncCount = count; progressCb(1); resolve(count); });
+    }
+  });
+}
+
+function cleanPhone(raw) {
+  return raw.replace(/[^0-9]/g, '').slice(0, 10);
+}
+
+function dncFormatInput(el) {
+  // Strip non-digits and enforce 10 max
+  const digits = el.value.replace(/[^0-9]/g, '').slice(0, 10);
+  el.value = digits;
+  dncClearResult();
+  // Enable/disable verify button
+  const btn = document.getElementById('dncCheckBtn');
+  if(btn) btn.disabled = digits.length < 7;
+}
+
+async function renderDNC() {
+  if(!dncDB) await openDNCDB();
+  dncCount = await getDNCCount();
+  const dot  = document.getElementById('dncStatusDot');
+  const text = document.getElementById('dncStatusText');
+  const link = document.getElementById('dncUploadLink');
+  if(dncCount > 0) {
+    dot.className  = 'dnc-status-dot loaded';
+    text.textContent = `${dncCount.toLocaleString()} números cargados`;
+    if(link && currentUser?.role === 'admin') link.style.display = 'inline';
+  } else {
+    dot.className  = 'dnc-status-dot empty';
+    text.textContent = 'Sin lista DNC cargada';
+    if(currentUser?.role === 'admin') {
+      text.textContent = 'Sin lista — sube el archivo en ⚙ Admin → DNC';
+      if(link) link.style.display = 'inline';
+    }
+  }
+}
+
+async function checkDNC() {
+  const raw = document.getElementById('dncPhone').value.trim();
+  if(!raw) { toast('⚠ Ingresa un número','warn'); return; }
+  const clean = cleanPhone(raw);
+  if(clean.length < 7) { toast('⚠ Número inválido','warn'); return; }
+
+  const btn = document.getElementById('dncCheckBtn');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+
+  if(dncCount === 0) {
+    showDNCResult('unknown', '⚠️', 'Sin lista DNC cargada',
+      'No se puede verificar. Contacta al administrador para cargar la lista.');
+    btn.disabled = false; btn.textContent = 'Verificar';
+    return;
+  }
+
+  const found = await checkNumberInDNC(raw);
+  btn.disabled = false; btn.textContent = 'Verificar';
+
+  if(found) {
+    showDNCResult('blocked', '🚫', 'NÚMERO EN DNC — NO LLAMAR',
+      'Este número está registrado en la lista Do Not Call. No continuar con la venta.');
+    document.getElementById('dncProceedBtn').classList.remove('show');
+  } else {
+    showDNCResult('clear', '✅', 'Número libre — Puede continuar',
+      `${raw} no está en la lista DNC. Puede proceder con la venta.`);
+    document.getElementById('dncProceedBtn').classList.add('show');
+  }
+}
+
+function showDNCResult(type, icon, title, sub) {
+  const r = document.getElementById('dncResult');
+  r.className = 'dnc-result show ' + type;
+  document.getElementById('dncResultIcon').textContent  = icon;
+  document.getElementById('dncResultTitle').textContent = title;
+  document.getElementById('dncResultSub').textContent   = sub;
+}
+
+function dncClearResult() {
+  const r = document.getElementById('dncResult');
+  if(r) r.className = 'dnc-result';
+  const p = document.getElementById('dncProceedBtn');
+  if(p) p.classList.remove('show');
+}
+
+// ── DNC FILE UPLOAD (Admin) ──────────────────────────
+async function handleDNCUpload(file) {
+  if(!file) return;
+  const prog   = document.getElementById('dncAdminProgress');
+  const fill   = document.getElementById('dncProgFill');
+  const ptxt   = document.getElementById('dncProgText');
+  const status = document.getElementById('dncAdminStatus');
+  if(prog) prog.style.display = 'block';
+
+  try {
+    const count = await loadDNCFromFile(file, pct => {
+      if(fill) fill.style.width = (pct*100).toFixed(0) + '%';
+      if(ptxt) ptxt.textContent = pct < 1
+        ? `Procesando... ${(pct*100).toFixed(0)}%`
+        : 'Finalizando...';
+    });
+    if(ptxt) ptxt.textContent = `✓ ${count.toLocaleString()} números cargados`;
+    if(status) { status.textContent = `✓ ${count.toLocaleString()} números en la lista DNC`; status.style.color = 'var(--green-dark)'; }
+    renderDNC();
+    toast(`✓ DNC cargado: ${count.toLocaleString()} números`, 'success');
+  } catch(err) {
+    if(ptxt) ptxt.textContent = '⚠ Error al procesar el archivo';
+    toast('⚠ Error al cargar el DNC', 'warn');
+    console.error(err);
+  }
+}
+
+async function refreshDNCAdminStatus() {
+  const count = await getDNCCount();
+  dncCount = count;
+  const el = document.getElementById('dncAdminStatus');
+  if(!el) return;
+  if(count > 0) {
+    el.textContent = `✓ ${count.toLocaleString()} números cargados en la lista DNC`;
+    el.style.color = 'var(--green-dark)';
+  } else {
+    el.textContent = 'Sin datos — sube el archivo DNC';
+    el.style.color = 'var(--text-muted)';
+  }
+}
+
+async function handleDNCFileSelect(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const prog = document.getElementById('dncAdminProgress');
+  if(prog) prog.style.display = 'block';
+
+  // For Excel files, we need to read via SheetJS
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'xlsx' || ext === 'xls') {
+    // Read with FileReader as ArrayBuffer then parse with SheetJS
+    const reader = new FileReader();
+    reader.onload = async e => {
+      try {
+        const fill = document.getElementById('dncProgFill');
+        const ptxt = document.getElementById('dncProgText');
+        if(ptxt) ptxt.textContent = 'Leyendo Excel...';
+        if(fill) fill.style.width = '20%';
+
+        // Dynamically load SheetJS if not available
+        if(typeof XLSX === 'undefined') {
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+        }
+        const wb = XLSX.read(e.target.result, {type:'array'});
+
+        if(ptxt) ptxt.textContent = `Procesando ${wb.SheetNames.length} hoja(s)...`;
+        if(fill) fill.style.width = '50%';
+
+        // Collect ALL rows from ALL sheets
+        let allRows = [];
+        for(const sheetName of wb.SheetNames) {
+          const ws = wb.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false});
+          allRows = allRows.concat(rows);
+        }
+
+        if(ptxt) ptxt.textContent = `Procesando ${allRows.length.toLocaleString()} filas en ${wb.SheetNames.length} hoja(s)...`;
+        if(fill) fill.style.width = '55%';
+
+        // Build numbers array
+        if(!dncDB) await openDNCDB();
+        const tx_clear = dncDB.transaction(DNC_STORE, 'readwrite');
+        tx_clear.objectStore(DNC_STORE).clear();
+        await new Promise(r => tx_clear.oncomplete = r);
+
+        let batch = [], count = 0;
+        const BATCH = 5000;
+        for(const row of allRows) {
+          const cell = row[0];
+          if(cell == null) continue;
+          const num = cleanPhone(String(cell));
+          if(num.length >= 7) { batch.push({num}); count++; }
+          if(batch.length >= BATCH) {
+            await writeBatch(batch);
+            batch = [];
+            if(fill) fill.style.width = Math.min(55 + (count/allRows.length)*40, 95) + '%';
+          }
+        }
+        if(batch.length) await writeBatch(batch);
+
+        dncCount = count;
+        if(fill) fill.style.width = '100%';
+        if(ptxt) ptxt.textContent = `✓ ${count.toLocaleString()} números cargados (${wb.SheetNames.length} hoja${wb.SheetNames.length>1?'s':''})`;
+        refreshDNCAdminStatus();
+        renderDNC();
+        toast(`✓ DNC: ${count.toLocaleString()} números en ${wb.SheetNames.length} hoja(s)`, 'success');
+      } catch(err) {
+        console.error(err);
+        toast('⚠ Error al leer el Excel', 'warn');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    // CSV or TXT — use streaming chunk reader
+    await handleDNCUpload(file);
+    refreshDNCAdminStatus();
+  }
+  input.value = '';
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function writeBatch(batch) {
+  return new Promise((resolve, reject) => {
+    const tx = dncDB.transaction(DNC_STORE, 'readwrite');
+    const store = tx.objectStore(DNC_STORE);
+    batch.forEach(item => store.put(item));
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+loadFromStorage().then(() => {
+  openDNCDB().then(() => renderDNC());
+});
+</script>
+</body>
+</html>
