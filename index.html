@@ -1984,7 +1984,7 @@ function toast(msg,type=''){
 // ════════════════════════════════════════════
 // DNC — GOOGLE SHEETS REAL-TIME CHECK
 // ════════════════════════════════════════════
-const DNC_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVjF05PNIoMS-g6HAEVvLe7v2-GAUHgP24Udtu2W5FvfdnB84dtf4Jij4KcUYRfLpntpgqsrjIjPNP/pub?gid=0&single=true&output=csv';
+const DNC_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVjF05PNIoMS-g6HAEVvLe7v2-GAUHgP24Udtu2W5FvfdnB84dtf4Jij4KcUYRfLpntpgqsrjIjPNP/pub?gid=884224000&single=true&output=csv';
 
 // Cache: Set of phone numbers loaded from Sheets
 let dncSet    = null;   // null = not loaded yet
@@ -1997,19 +1997,22 @@ async function loadDNCFromSheets() {
   dncLoading = true;
   dncLoadError = false;
   try {
-    const resp = await fetch(DNC_SHEET_URL + '&t=' + Date.now());
+    const resp = await fetch(DNC_SHEET_URL + '&t=' + Date.now(), {cache:'no-store'});
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
     const text = await resp.text();
     const lines = text.split(/[\r\n]+/).filter(l => l.trim());
     dncSet = new Set();
-    // Skip header row if it contains non-numeric text
+    // Read ALL columns from ALL rows — numbers spread across columns A to AO
     for(const line of lines) {
-      const num = cleanPhone(line.split(',')[0].trim().replace(/"/g,''));
-      if(num.length >= 7) dncSet.add(num);
+      const cols = parseCSVLine(line);
+      for(const col of cols) {
+        const num = cleanPhone(col.trim().replace(/"/g,''));
+        if(num.length >= 7) dncSet.add(num);
+      }
     }
     dncLoaded = true;
     dncCount  = dncSet.size;
-    console.log('DNC loaded:', dncCount, 'numbers');
+    console.log('DNC loaded:', dncCount, 'numbers from', lines.length, 'rows');
   } catch(err) {
     dncLoadError = true;
     console.error('DNC load error:', err);
