@@ -918,27 +918,28 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
       <!-- DNC -->
       <div class="dsection" id="ds-dnc">
-        <div style="margin-bottom:14px">
-          <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Lista DNC Actual</div>
-          <div id="dncAdminStatus" style="font-size:0.82rem;font-weight:700;color:var(--text-muted);padding:10px 14px;background:#f5f5f5;border-radius:8px;">Calculando...</div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Estado de la Lista DNC</div>
+          <div id="dncAdminStatus" style="font-size:0.85rem;font-weight:700;padding:12px 16px;background:#E8F5E9;border-radius:8px;color:var(--green-dark);">Calculando...</div>
         </div>
-        <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Cargar nuevo archivo DNC</div>
-        <div class="dnc-upload-zone" onclick="document.getElementById('dncFileInput').click()">
-          <span class="uz-icon">📂</span>
-          <div class="uz-title">Subir archivo Excel o CSV</div>
-          <div class="uz-sub">Una columna de números de teléfono · Soporta archivos de hasta 200MB+</div>
-          <input type="file" id="dncFileInput" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="handleDNCFileSelect(this)">
-        </div>
-        <div class="dnc-progress" id="dncAdminProgress" style="display:none">
-          <div class="dnc-progress-bar"><div class="dnc-progress-fill" id="dncProgFill"></div></div>
-          <div class="dnc-progress-text" id="dncProgText">Procesando...</div>
+        <button onclick="reloadDNC();refreshDNCAdminStatus()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem;margin-bottom:18px;transition:all 0.2s">
+          ↺ Recargar lista desde Google Sheets
+        </button>
+        <div style="background:#E3F2FD;border-radius:10px;padding:16px;border-left:4px solid var(--blue)">
+          <div style="font-size:0.78rem;font-weight:900;color:var(--blue-dark);margin-bottom:8px">📊 Fuente de datos — Google Sheets</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.7">
+            La lista DNC se carga automáticamente desde Google Sheets cada vez que un agente abre la app.<br><br>
+            <strong style="color:var(--text)">Para actualizar la lista:</strong><br>
+            1. Abre el Google Sheet de DNC<br>
+            2. Agrega o elimina números en la columna A<br>
+            3. Los cambios se reflejan automáticamente en la próxima consulta
+          </div>
         </div>
         <div style="margin-top:14px;padding:12px;background:#FFF8E1;border-radius:8px;border-left:3px solid var(--yellow)">
-          <div style="font-size:0.72rem;font-weight:800;color:#E65100;margin-bottom:4px">📌 Importante</div>
+          <div style="font-size:0.72rem;font-weight:800;color:#E65100;margin-bottom:4px">📌 Formato del Sheet</div>
           <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.5">
-            El archivo debe tener los números de teléfono en una sola columna.<br>
-            Los datos se guardan localmente en este navegador (IndexedDB).<br>
-            Si cambias de navegador o dispositivo, deberás subir el archivo de nuevo.
+            Columna A: números de teléfono (solo dígitos, sin guiones ni espacios)<br>
+            Ejemplo: <strong>5551234567</strong>
           </div>
         </div>
       </div>
@@ -1897,98 +1898,40 @@ function toast(msg,type=''){
 
 
 // ════════════════════════════════════════════
-// DNC — IndexedDB LOGIC
+// DNC — GOOGLE SHEETS REAL-TIME CHECK
 // ════════════════════════════════════════════
-const DNC_DB_NAME  = 'dnc_database';
-const DNC_DB_VER   = 1;
-const DNC_STORE    = 'numbers';
-let   dncDB        = null;
-let   dncCount     = 0;
+const DNC_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVjF05PNIoMS-g6HAEVvLe7v2-GAUHgP24Udtu2W5FvfdnB84dtf4Jij4KcUYRfLpntpgqsrjIjPNP/pub?gid=0&single=true&output=csv';
 
-async function openDNCDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DNC_DB_NAME, DNC_DB_VER);
-    req.onupgradeneeded = e => {
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains(DNC_STORE)) {
-        db.createObjectStore(DNC_STORE, { keyPath: 'num' });
-      }
-    };
-    req.onsuccess = e => { dncDB = e.target.result; resolve(dncDB); };
-    req.onerror   = e => reject(e.target.error);
-  });
-}
+// Cache: Set of phone numbers loaded from Sheets
+let dncSet    = null;   // null = not loaded yet
+let dncLoaded = false;
+let dncLoading = false;
+let dncLoadError = false;
 
-async function getDNCCount() {
-  if(!dncDB) await openDNCDB();
-  return new Promise(resolve => {
-    const tx  = dncDB.transaction(DNC_STORE, 'readonly');
-    const req = tx.objectStore(DNC_STORE).count();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror   = () => resolve(0);
-  });
-}
-
-async function checkNumberInDNC(num) {
-  if(!dncDB) await openDNCDB();
-  const clean = cleanPhone(num);
-  return new Promise(resolve => {
-    const tx  = dncDB.transaction(DNC_STORE, 'readonly');
-    const req = tx.objectStore(DNC_STORE).get(clean);
-    req.onsuccess = () => resolve(!!req.result);
-    req.onerror   = () => resolve(null);
-  });
-}
-
-async function loadDNCFromFile(file, progressCb) {
-  if(!dncDB) await openDNCDB();
-  return new Promise((resolve, reject) => {
-    // Use FileReader with chunks for large files
-    const CHUNK = 5 * 1024 * 1024; // 5MB chunks
-    let offset = 0, total = file.size, leftover = '';
-    let batch = [], batchSize = 5000, loaded = 0;
-
-    const tx_clear = dncDB.transaction(DNC_STORE, 'readwrite');
-    tx_clear.objectStore(DNC_STORE).clear();
-    tx_clear.oncomplete = readNext;
-    tx_clear.onerror    = e => reject(e.target.error);
-
-    function readNext() {
-      if(offset >= total) { flush(true); return; }
-      const slice = file.slice(offset, offset + CHUNK);
-      const reader = new FileReader();
-      reader.onload = e => {
-        const text = leftover + e.target.result;
-        const lines = text.split(/[\r\n]+/);
-        leftover = lines.pop(); // save incomplete last line
-        lines.forEach(line => {
-          const num = cleanPhone(line.trim());
-          if(num.length >= 7) batch.push({ num });
-        });
-        offset += CHUNK;
-        progressCb(Math.min(offset / total, 0.95));
-        if(batch.length >= batchSize) flush(false);
-        else readNext();
-      };
-      reader.onerror = () => reject(new Error('Error reading file'));
-      reader.readAsText(slice);
+async function loadDNCFromSheets() {
+  if(dncLoading) return;
+  dncLoading = true;
+  dncLoadError = false;
+  try {
+    const resp = await fetch(DNC_SHEET_URL + '&t=' + Date.now());
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const text = await resp.text();
+    const lines = text.split(/[\r\n]+/).filter(l => l.trim());
+    dncSet = new Set();
+    // Skip header row if it contains non-numeric text
+    for(const line of lines) {
+      const num = cleanPhone(line.split(',')[0].trim().replace(/"/g,''));
+      if(num.length >= 7) dncSet.add(num);
     }
-
-    function flush(final) {
-      if(!batch.length) { if(final) finish(); return; }
-      const tx = dncDB.transaction(DNC_STORE, 'readwrite');
-      const store = tx.objectStore(DNC_STORE);
-      batch.forEach(item => store.put(item));
-      loaded += batch.length;
-      batch = [];
-      tx.oncomplete = () => { if(final) finish(); else readNext(); };
-      tx.onerror    = e => reject(e.target.error);
-    }
-
-    function finish() {
-      getDNCCount().then(count => { dncCount = count; progressCb(1); resolve(count); });
-    }
-  });
+    dncLoaded = true;
+    dncCount  = dncSet.size;
+    console.log('DNC loaded:', dncCount, 'numbers');
+  } catch(err) {
+    dncLoadError = true;
+    console.error('DNC load error:', err);
+  } finally {
+    dncLoading = false;
+  }
 }
 
 function cleanPhone(raw) {
@@ -1996,32 +1939,37 @@ function cleanPhone(raw) {
 }
 
 function dncFormatInput(el) {
-  // Strip non-digits and enforce 10 max
   const digits = el.value.replace(/[^0-9]/g, '').slice(0, 10);
   el.value = digits;
   dncClearResult();
-  // Enable/disable verify button
   const btn = document.getElementById('dncCheckBtn');
   if(btn) btn.disabled = digits.length < 7;
 }
 
 async function renderDNC() {
-  if(!dncDB) await openDNCDB();
-  dncCount = await getDNCCount();
+  // Trigger load in background if not loaded
+  if(!dncLoaded && !dncLoading) loadDNCFromSheets();
+
   const dot  = document.getElementById('dncStatusDot');
   const text = document.getElementById('dncStatusText');
   const link = document.getElementById('dncUploadLink');
-  if(dncCount > 0) {
-    dot.className  = 'dnc-status-dot loaded';
-    text.textContent = `${dncCount.toLocaleString()} números cargados`;
+
+  if(dncLoading) {
+    if(dot)  dot.className = 'dnc-status-dot empty';
+    if(text) text.textContent = 'Cargando lista DNC...';
+    // Poll until loaded
+    setTimeout(renderDNC, 800);
+    return;
+  }
+  if(dncLoadError) {
+    if(dot)  dot.className = 'dnc-status-dot empty';
+    if(text) text.textContent = '⚠ Error al cargar la lista DNC';
+    return;
+  }
+  if(dncLoaded && dncSet) {
+    if(dot)  dot.className = 'dnc-status-dot loaded';
+    if(text) text.textContent = dncSet.size.toLocaleString() + ' números en lista DNC ✓';
     if(link && currentUser?.role === 'admin') link.style.display = 'inline';
-  } else {
-    dot.className  = 'dnc-status-dot empty';
-    text.textContent = 'Sin lista DNC cargada';
-    if(currentUser?.role === 'admin') {
-      text.textContent = 'Sin lista — sube el archivo en ⚙ Admin → DNC';
-      if(link) link.style.display = 'inline';
-    }
   }
 }
 
@@ -2029,28 +1977,43 @@ async function checkDNC() {
   const raw = document.getElementById('dncPhone').value.trim();
   if(!raw) { toast('⚠ Ingresa un número','warn'); return; }
   const clean = cleanPhone(raw);
-  if(clean.length < 7) { toast('⚠ Número inválido','warn'); return; }
+  if(clean.length < 7) { toast('⚠ Número muy corto','warn'); return; }
 
   const btn = document.getElementById('dncCheckBtn');
-  btn.disabled = true; btn.textContent = 'Verificando...';
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
 
-  if(dncCount === 0) {
-    showDNCResult('unknown', '⚠️', 'Sin lista DNC cargada',
-      'No se puede verificar. Contacta al administrador para cargar la lista.');
-    btn.disabled = false; btn.textContent = 'Verificar';
+  // If not loaded yet, wait
+  if(!dncLoaded) {
+    if(!dncLoading) await loadDNCFromSheets();
+    else {
+      // Wait up to 10s
+      let waited = 0;
+      while(dncLoading && waited < 10000) {
+        await new Promise(r => setTimeout(r, 300));
+        waited += 300;
+      }
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Verificar';
+
+  if(dncLoadError || !dncSet) {
+    showDNCResult('unknown','⚠️','No se pudo verificar',
+      'Error al cargar la lista DNC. Verifica tu conexión e intenta de nuevo.');
     return;
   }
 
-  const found = await checkNumberInDNC(raw);
-  btn.disabled = false; btn.textContent = 'Verificar';
+  const found = dncSet.has(clean);
 
   if(found) {
-    showDNCResult('blocked', '🚫', 'NÚMERO EN DNC — NO LLAMAR',
-      'Este número está registrado en la lista Do Not Call. No continuar con la venta.');
+    showDNCResult('blocked','🚫','NÚMERO EN DNC — NO LLAMAR',
+      clean + ' está registrado en la lista Do Not Call. No continuar con la venta.');
     document.getElementById('dncProceedBtn').classList.remove('show');
   } else {
-    showDNCResult('clear', '✅', 'Número libre — Puede continuar',
-      `${raw} no está en la lista DNC. Puede proceder con la venta.`);
+    showDNCResult('clear','✅','Número libre — Puede continuar',
+      clean + ' no está en la lista DNC. Puede proceder con la venta.');
     document.getElementById('dncProceedBtn').classList.add('show');
   }
 }
@@ -2070,145 +2033,16 @@ function dncClearResult() {
   if(p) p.classList.remove('show');
 }
 
-// ── DNC FILE UPLOAD (Admin) ──────────────────────────
-async function handleDNCUpload(file) {
-  if(!file) return;
-  const prog   = document.getElementById('dncAdminProgress');
-  const fill   = document.getElementById('dncProgFill');
-  const ptxt   = document.getElementById('dncProgText');
-  const status = document.getElementById('dncAdminStatus');
-  if(prog) prog.style.display = 'block';
-
-  try {
-    const count = await loadDNCFromFile(file, pct => {
-      if(fill) fill.style.width = (pct*100).toFixed(0) + '%';
-      if(ptxt) ptxt.textContent = pct < 1
-        ? `Procesando... ${(pct*100).toFixed(0)}%`
-        : 'Finalizando...';
-    });
-    if(ptxt) ptxt.textContent = `✓ ${count.toLocaleString()} números cargados`;
-    if(status) { status.textContent = `✓ ${count.toLocaleString()} números en la lista DNC`; status.style.color = 'var(--green-dark)'; }
-    renderDNC();
-    toast(`✓ DNC cargado: ${count.toLocaleString()} números`, 'success');
-  } catch(err) {
-    if(ptxt) ptxt.textContent = '⚠ Error al procesar el archivo';
-    toast('⚠ Error al cargar el DNC', 'warn');
-    console.error(err);
-  }
-}
-
-async function refreshDNCAdminStatus() {
-  const count = await getDNCCount();
-  dncCount = count;
-  const el = document.getElementById('dncAdminStatus');
-  if(!el) return;
-  if(count > 0) {
-    el.textContent = `✓ ${count.toLocaleString()} números cargados en la lista DNC`;
-    el.style.color = 'var(--green-dark)';
-  } else {
-    el.textContent = 'Sin datos — sube el archivo DNC';
-    el.style.color = 'var(--text-muted)';
-  }
-}
-
-async function handleDNCFileSelect(input) {
-  const file = input.files[0];
-  if(!file) return;
-  const prog = document.getElementById('dncAdminProgress');
-  if(prog) prog.style.display = 'block';
-
-  // For Excel files, we need to read via SheetJS
-  const ext = file.name.split('.').pop().toLowerCase();
-  if(ext === 'xlsx' || ext === 'xls') {
-    // Read with FileReader as ArrayBuffer then parse with SheetJS
-    const reader = new FileReader();
-    reader.onload = async e => {
-      try {
-        const fill = document.getElementById('dncProgFill');
-        const ptxt = document.getElementById('dncProgText');
-        if(ptxt) ptxt.textContent = 'Leyendo Excel...';
-        if(fill) fill.style.width = '20%';
-
-        // Dynamically load SheetJS if not available
-        if(typeof XLSX === 'undefined') {
-          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
-        }
-        const wb = XLSX.read(e.target.result, {type:'array'});
-
-        if(ptxt) ptxt.textContent = `Procesando ${wb.SheetNames.length} hoja(s)...`;
-        if(fill) fill.style.width = '50%';
-
-        // Collect ALL rows from ALL sheets
-        let allRows = [];
-        for(const sheetName of wb.SheetNames) {
-          const ws = wb.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false});
-          allRows = allRows.concat(rows);
-        }
-
-        if(ptxt) ptxt.textContent = `Procesando ${allRows.length.toLocaleString()} filas en ${wb.SheetNames.length} hoja(s)...`;
-        if(fill) fill.style.width = '55%';
-
-        // Build numbers array
-        if(!dncDB) await openDNCDB();
-        const tx_clear = dncDB.transaction(DNC_STORE, 'readwrite');
-        tx_clear.objectStore(DNC_STORE).clear();
-        await new Promise(r => tx_clear.oncomplete = r);
-
-        let batch = [], count = 0;
-        const BATCH = 5000;
-        for(const row of allRows) {
-          const cell = row[0];
-          if(cell == null) continue;
-          const num = cleanPhone(String(cell));
-          if(num.length >= 7) { batch.push({num}); count++; }
-          if(batch.length >= BATCH) {
-            await writeBatch(batch);
-            batch = [];
-            if(fill) fill.style.width = Math.min(55 + (count/allRows.length)*40, 95) + '%';
-          }
-        }
-        if(batch.length) await writeBatch(batch);
-
-        dncCount = count;
-        if(fill) fill.style.width = '100%';
-        if(ptxt) ptxt.textContent = `✓ ${count.toLocaleString()} números cargados (${wb.SheetNames.length} hoja${wb.SheetNames.length>1?'s':''})`;
-        refreshDNCAdminStatus();
-        renderDNC();
-        toast(`✓ DNC: ${count.toLocaleString()} números en ${wb.SheetNames.length} hoja(s)`, 'success');
-      } catch(err) {
-        console.error(err);
-        toast('⚠ Error al leer el Excel', 'warn');
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  } else {
-    // CSV or TXT — use streaming chunk reader
-    await handleDNCUpload(file);
-    refreshDNCAdminStatus();
-  }
-  input.value = '';
-}
-
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-async function writeBatch(batch) {
-  return new Promise((resolve, reject) => {
-    const tx = dncDB.transaction(DNC_STORE, 'readwrite');
-    const store = tx.objectStore(DNC_STORE);
-    batch.forEach(item => store.put(item));
-    tx.oncomplete = resolve;
-    tx.onerror = e => reject(e.target.error);
-  });
+// Reload DNC from Sheets (for admin refresh button)
+async function reloadDNC() {
+  dncLoaded  = false;
+  dncSet     = null;
+  dncLoading = false;
+  renderDNC();
+  toast('↺ Recargando lista DNC...','warn');
 }
 loadFromStorage().then(() => {
-  openDNCDB().then(() => renderDNC());
+  // DNC loads automatically from Google Sheets when agent reaches step 0
 });
 </script>
 </body>
