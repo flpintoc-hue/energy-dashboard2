@@ -661,7 +661,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   border-radius: 14px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
 }
 .dnc-header {
@@ -1018,7 +1018,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
     <!-- STEP 0: DNC -->
     <div class="panel active" id="panel0">
-      <div class="section-title"><div class="dot" style="background:#1a1a2e"></div><h2>Validar DNC</h2><span>Verifica el número antes de continuar</span></div>
       <div class="dnc-panel">
         <div class="dnc-header">
           <div class="dnc-header-icon">🚫</div>
@@ -1858,6 +1857,14 @@ const MONTHS = [
 ];
 
 function goStep(n) {
+  // If going back to DNC, clear everything
+  if(n === 0 && currentStep > 0) {
+    sel = {stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{}};
+    checkedItems.clear();
+    dncClearResult();
+    const dncInput = document.getElementById('dncPhone');
+    if(dncInput) dncInput.value = '';
+  }
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
   document.querySelectorAll('.step-item').forEach((s,i) => {
     s.classList.remove('active','done');
@@ -2190,6 +2197,8 @@ function renderCheckItems() {
   document.getElementById('progressText').textContent=`${done} / ${total} completados`;
   // Restore saved template values
   restoreTemplateValues();
+  // Build dynamic ACC INFO fields
+  setTimeout(buildAccInfoFields, 50);
 }
 
 function renderTemplateStep(stepNum, state, util, sup) {
@@ -2307,11 +2316,8 @@ function renderTemplateStep(stepNum, state, util, sup) {
           <input class="tpl-input" id="tpl_city" placeholder="Ciudad">
         </div>
 
-        <!-- ACC INFO -->
-        <div class="tpl-row">
-          <label class="tpl-label">ACC INFO</label>
-          <input class="tpl-input" id="tpl_acc" placeholder="Número de cuenta">
-        </div>
+        <!-- ACC INFO — dynamic per selected utility -->
+        <div class="tpl-row tpl-full" id="accInfoFields"></div>
 
         <!-- NAME KEY -->
         <div class="tpl-row">
@@ -2357,6 +2363,39 @@ function saveTplField(field) {
   if(el) window._tplData[field] = el.value;
 }
 
+
+function buildAccInfoFields() {
+  const container = document.getElementById('accInfoFields');
+  if(!container) return;
+
+  // Get all selected utilities
+  const selectedUtils = sel.utilIds.length > 0
+    ? sel.utilIds.map(id => db.utilities.find(u => u.id === id)).filter(Boolean)
+    : sel.utilId ? [db.utilities.find(u => u.id === sel.utilId)].filter(Boolean) : [];
+
+  if(selectedUtils.length === 0) {
+    container.innerHTML = `<label class="tpl-label">ACC INFO</label>
+      <input class="tpl-input" id="tpl_acc_0" placeholder="Número de cuenta">`;
+    return;
+  }
+
+  container.innerHTML = selectedUtils.map((util, i) => {
+    const info = getAccInfo(util.name);
+    const typeIcon = util.type === 'gas' ? '🔥' : '⚡';
+    const label = info ? info.label : 'ACC #';
+    const charHint = info && info.chars ? ` (${info.chars} caracteres)` : '';
+    const maxLen = info && info.chars && typeof info.chars === 'number' ? `maxlength="${info.chars}"` : '';
+    const utilShort = util.name.replace(/\(.*?\)/g,'').trim();
+    return `
+      <div style="margin-bottom:10px">
+        <label class="tpl-label">${typeIcon} ${label} — ${utilShort}<span style="color:var(--orange);font-size:0.65rem;margin-left:4px">${charHint}</span></label>
+        <input class="tpl-input" id="tpl_acc_${i}" ${maxLen}
+          placeholder="${label}${charHint}"
+          style="border-color:${util.type==='gas'?'#C8E6C9':'#BBDEFB'}">
+      </div>`;
+  }).join('');
+}
+
 function copyTemplate() {
   const g = id => {
     const el = document.getElementById('tpl_'+id);
@@ -2376,7 +2415,18 @@ function copyTemplate() {
     'ACC HOLDER: '          + g('holder'),
     'ADDRESS: '             + g('address'),
     'CITY: '                + g('city'),
-    'ACC INFO: '            + g('acc'),
+    // Dynamic ACC INFO fields
+    ...(() => {
+      const fields = [];
+      let i = 0;
+      while(document.getElementById('tpl_acc_'+i)) {
+        const el = document.getElementById('tpl_acc_'+i);
+        const label = el.previousElementSibling?.textContent?.replace(/\(.*?\)/g,'').trim() || 'ACC INFO';
+        fields.push(label + ': ' + (el.value || '—'));
+        i++;
+      }
+      return fields.length ? fields : ['ACC INFO: —'];
+    })(),
     'UTILITY: '             + g('util'),
     'Date of birth: '       + g('dob'),
     'Name key: '            + g('namekey'),
@@ -2759,6 +2809,49 @@ async function reloadDNC() {
   renderDNC();
   toast('↺ Recargando lista DNC...','warn');
 }
+
+// ════════════════════════════════════════════
+// ACC INFO MAP — per utility from Excel data
+// ════════════════════════════════════════════
+const ACC_INFO_MAP = {
+  'PSE&G Gas':              { label:'POD ID',                    chars:20 },
+  'PSE&G':                  { label:'POD ID',                    chars:20 },
+  'JCP&L':                  { label:'CUSTOMER #',                chars:20 },
+  'Atlantic City':          { label:'SERVICE #',                 chars:22 },
+  'South Jersey':           { label:'SERVICE AGREEMENT ID',      chars:null },
+  'NJ Natural Gas':         { label:'ACC #',                     chars:12 },
+  'Elizabethtown':          { label:'SERVICE AGREEMENT ID',      chars:10 },
+  'PECO Energy (PECO)':     { label:'CHOICE ID #',               chars:10 },
+  'PECO Energy Gas':        { label:'CHOICE ID',                 chars:10 },
+  'Penelec':                { label:'CUSTOMER #',                chars:20 },
+  'PPL':                    { label:'ACC #',                     chars:10 },
+  'Metropolitan Edison':    { label:'CUSTOMER #',                chars:20 },
+  'West Penn':              { label:'CUSTOMER #',                chars:20 },
+  'Duquesne':               { label:'SUPPLIER AGREEMENT ID',     chars:10 },
+  'UGI':                    { label:'ACC #',                     chars:12 },
+  'Philadelphia Gas':       { label:'ACC # + SERVICE POINT ID',  chars:20 },
+  'Columbia Gas PA':        { label:'ACC #',                     chars:15 },
+  'Columbia Gas Virginia':  { label:'ACC #',                     chars:12 },
+  'Columbia Gas VA':        { label:'ACC #',                     chars:12 },
+  'Eversource':             { label:'ACC # + SERVICE REFERENCE', chars:'11+8' },
+  'MECO':                   { label:'ACC # + SERVICE REFERENCE', chars:'11+8' },
+  'NSTAR':                  { label:'ACC # + SERVICE REFERENCE', chars:'11+8' },
+  'WMECO':                  { label:'ACC # + SERVICE REFERENCE', chars:'11+8' },
+  'Pepco':                  { label:'SERVICE #',                 chars:22 },
+  'Potomac Electric':       { label:'SERVICE #',                 chars:22 },
+  'Washington Gas':         { label:'ACC #',                     chars:12 },
+  'Delmarva':               { label:'SERVICE #',                 chars:22 },
+  'ConEd':                  { label:'ACC #',                     chars:15 },
+  'PG&E':                   { label:'ACC #',                     chars:10 },
+  'NIPSCO':                 { label:'ACC #',                     chars:10 },
+};
+
+function getAccInfo(utilName) {
+  if(!utilName) return null;
+  const key = Object.keys(ACC_INFO_MAP).find(k => utilName.includes(k));
+  return key ? ACC_INFO_MAP[key] : null;
+}
+
 loadFromStorage().then(() => {
   // DNC loads automatically from Google Sheets when agent reaches step 0
 });
