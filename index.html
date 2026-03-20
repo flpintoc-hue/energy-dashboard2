@@ -840,6 +840,48 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .home-btn-big:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(229,57,53,0.5); }
 .home-btn-big .btn-icon { font-size:1.4rem; }
 
+
+/* ── STATE LAYOUT with mini map ── */
+.state-layout {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 20px;
+  align-items: start;
+}
+@media(max-width:700px) {
+  .state-layout { grid-template-columns: 1fr; }
+  .mini-map-wrap { order: -1; }
+}
+
+.mini-map-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 80px;
+}
+.mini-map-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.mini-map-legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
 </style>
 </head>
 <body>
@@ -940,8 +982,11 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
     <!-- STEP 1: ESTADO -->
     <div class="panel" id="panel1">
-      <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado en el mapa para continuar</span></div>
-      <div id="usMapContainer"></div>
+      <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado para continuar</span></div>
+      <div class="state-layout">
+        <div class="states-grid" id="statesGrid"></div>
+        <div class="mini-map-wrap" id="miniMapContainer"></div>
+      </div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
     </div>
 
@@ -1604,7 +1649,7 @@ function goStep(n) {
   });
   currentStep = n;
   if(n===0) renderDNC();
-  if(n===1) renderUSMap();
+  if(n===1) { renderStates(); }
   if(n===2) renderUtilities();
   if(n===3) renderSupplierCards();
   if(n===4) renderChecklist();
@@ -1644,72 +1689,22 @@ const ACTIVE_STATES_MAP = {
   'st6': { name:'California',    code:'CA', x:92,  y:148, w:76, h:108 },
 };
 
-function renderUSMap() {
-  const container = document.getElementById('usMapContainer');
-  if(!container) return;
-
-  const svgW = 820, svgH = 360;
-
-  const stateBlocks = Object.entries(ACTIVE_STATES_MAP).map(([id, s]) => {
-    const isSelected = sel.stateId === id;
-    const dbState = db.states.find(st => st.id === id);
-    const utilCount = db.utilities.filter(u => u.stateId === id).length;
-    return `
-      <g class="state-group" onclick="selectState('${id}')" style="cursor:pointer">
-        <rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}"
-          rx="6" ry="6"
-          fill="${isSelected ? 'var(--blue-dark)' : 'var(--orange)'}"
-          stroke="#fff" stroke-width="2"
-          style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));transition:fill 0.2s"
-          onmouseover="this.style.fill='${isSelected ? '#0d47a1' : 'var(--orange-dark)'}'"
-          onmouseout="this.style.fill='${isSelected ? 'var(--blue-dark)' : 'var(--orange)'}'"
-        />
-        <text x="${s.x + s.w/2}" y="${s.y + s.h/2 - 5}"
-          text-anchor="middle" dominant-baseline="central"
-          font-family="Nunito,sans-serif" font-size="11" font-weight="900" fill="white">
-          ${s.code}
-        </text>
-        <text x="${s.x + s.w/2}" y="${s.y + s.h/2 + 8}"
-          text-anchor="middle" dominant-baseline="central"
-          font-family="Nunito,sans-serif" font-size="8" font-weight="700" fill="rgba(255,255,255,0.85)">
-          ${utilCount} util
-        </text>
-      </g>`;
-  }).join('');
-
-  // Background US outline (simplified)
-  container.innerHTML = `
-    <div style="background:#f8f9fb;border-radius:14px;padding:20px;border:1px solid var(--border)">
-      <div style="font-size:0.7rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;text-align:center">
-        Toca un estado para seleccionarlo
-      </div>
-      <svg viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
-        <!-- US background shape (simplified) -->
-        <rect x="60" y="60" width="700" height="260" rx="20" fill="#e2e8f0" opacity="0.5"/>
-        <!-- State blocks -->
-        ${stateBlocks}
-        <!-- Compass -->
-        <text x="30" y="330" font-family="Nunito,sans-serif" font-size="10" fill="#aaa" font-weight="700">N↑</text>
-      </svg>
-      <div class="map-legend">
-        <div class="map-legend-item">
-          <div class="map-legend-dot" style="background:var(--orange)"></div>
-          <span>Estado disponible</span>
-        </div>
-        <div class="map-legend-item">
-          <div class="map-legend-dot" style="background:var(--blue-dark)"></div>
-          <span>Seleccionado</span>
-        </div>
-        <div class="map-legend-item">
-          <div class="map-legend-dot" style="background:#e2e8f0"></div>
-          <span>No disponible</span>
-        </div>
-      </div>
-    </div>`;
-}
 
 function renderStates() {
-  renderUSMap();
+  const g = document.getElementById('statesGrid');
+  if(!db.states.length) {
+    g.innerHTML = '<div class="empty-msg"><span class="big">🗺️</span>Sin estados.</div>';
+    return;
+  }
+  g.innerHTML = db.states.map(s => {
+    const cnt = db.utilities.filter(u => u.stateId === s.id).length;
+    return `<div class="state-card${sel.stateId===s.id?' selected':''}" onclick="selectState('${s.id}')">
+      <div class="state-abbr">${s.code}</div>
+      <div class="state-name">${s.name}</div>
+      <div class="state-util-count">${cnt} utilidad${cnt!==1?'es':''}</div>
+    </div>`;
+  }).join('');
+  renderMiniMap();
 }
 function selectState(id){sel.stateId=id;sel.utilIds=[];sel.supId=null;updateContext();goStep(2);}
 
