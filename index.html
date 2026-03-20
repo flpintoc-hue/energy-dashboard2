@@ -186,7 +186,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 /* STEP NAV */
 .step-nav {
-  background:#1a1a2e; padding:0 24px;
+  background:#1B5E20; padding:0 24px;
   display:flex; align-items:center; gap:0; overflow-x:auto;
   justify-content:center;
 }
@@ -200,7 +200,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   white-space:nowrap; transition:all 0.2s;
 }
 .step-item:hover { color:rgba(255,255,255,0.75); }
-.step-item.active { color:var(--orange); border-bottom-color:var(--orange); }
+.step-item.active { color:#FFD54F; border-bottom-color:#FFD54F; }
 .step-item.done { color:var(--green); }
 .step-num {
   width:22px; height:22px; border-radius:50%;
@@ -214,7 +214,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .step-arrow { color:rgba(255,255,255,0.18); margin:0 2px; font-size:0.7rem; }
 
 /* MAIN */
-.main { padding:20px 24px 60px; max-width:1200px; margin:0 auto; }
+.main { padding:20px 40px 60px; max-width:1200px; margin:0 auto; }
 .panel { display:none; animation:fadeIn 0.3s ease; }
 .panel.active { display:block; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -343,8 +343,8 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 /* NG&E = teal, INDRA = deep orange */
 .sup-panel.sup-nge   .sup-panel-header { background: #00BCD4; }
 .sup-panel.sup-nge.selected .sup-panel-header { background: #0097A7; }
-.sup-panel.sup-indra .sup-panel-header { background: #E65100; }
-.sup-panel.sup-indra.selected .sup-panel-header { background: #BF360C; }
+.sup-panel.sup-indra .sup-panel-header { background: #E91E8C; }
+.sup-panel.sup-indra.selected .sup-panel-header { background: #C2185B; }
 .sup-panel.sup-other .sup-panel-header { background: var(--teal); }
 
 .sup-panel-name {
@@ -992,7 +992,60 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <div class="section-title"><div class="dot"></div><h2>Selecciona el Estado</h2><span>Toca un estado para continuar</span></div>
       <div class="state-layout">
         <div class="states-grid" id="statesGrid"></div>
-        <div class="mini-map-wrap" id="miniMapContainer"></div>
+        <div class="mini-map-wrap">
+          <div class="mini-map-card">
+            <div class="mini-map-title">📍 Estados disponibles</div>
+            <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+              <!-- Simplified US state outlines - key states colored -->
+              <!-- Background -->
+              <rect width="960" height="600" fill="#f0f4f8" rx="8"/>
+              <!-- Continental US outline approximate -->
+              <path d="M120,80 L820,80 L860,200 L840,380 L760,420 L700,480 L600,500 L500,490 L400,510 L300,480 L200,460 L140,400 L100,300 L80,200 Z" fill="#e2e8f0" stroke="#c8d5e3" stroke-width="1"/>
+
+              <!-- CA - California (west coast) -->
+              <path d="M95,180 L130,160 L145,200 L150,260 L155,320 L140,370 L120,390 L100,370 L90,320 L85,260 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="120" y="290" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="900" fill="white">CA</text>
+
+              <!-- IN - Indiana (midwest) -->
+              <path d="M490,195 L530,195 L535,250 L530,270 L490,270 L485,250 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="510" y="238" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">IN</text>
+
+              <!-- PA - Pennsylvania -->
+              <path d="M620,165 L720,160 L725,205 L620,210 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="672" y="190" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">PA</text>
+
+              <!-- NY - New York -->
+              <path d="M640,120 L755,110 L760,158 L720,160 L635,165 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="700" y="142" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">NY</text>
+
+              <!-- MA - Massachusetts -->
+              <path d="M760,115 L820,112 L825,140 L762,143 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="793" y="131" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="900" fill="white">MA</text>
+
+              <!-- NJ - New Jersey -->
+              <path d="M735,205 L760,202 L765,240 L738,242 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="750" y="226" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="900" fill="white">NJ</text>
+
+              <!-- DE - Delaware -->
+              <path d="M730,242 L748,240 L750,262 L732,263 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="741" y="255" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" font-weight="900" fill="white">DE</text>
+
+              <!-- DC - Washington DC (dot) -->
+              <circle cx="718" cy="255" r="10" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="718" y="259" text-anchor="middle" font-family="Nunito,sans-serif" font-size="7" font-weight="900" fill="white">DC</text>
+
+              <!-- VA - Virginia -->
+              <path d="M630,255 L730,250 L735,285 L700,310 L640,305 L620,285 Z" fill="#F47C20" stroke="white" stroke-width="2"/>
+              <text x="678" y="283" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white">VA</text>
+
+              <!-- Legend -->
+              <rect x="20" y="540" width="14" height="14" rx="3" fill="#F47C20"/>
+              <text x="40" y="552" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#666">Estado disponible</text>
+              <rect x="180" y="540" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#c8d5e3" stroke-width="1"/>
+              <text x="200" y="552" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#666">No disponible</text>
+            </svg>
+          </div>
+        </div>
       </div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
     </div>
