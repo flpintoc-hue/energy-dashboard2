@@ -2110,4 +2110,24 @@ function showDNCResult(type, icon, title, sub) {
   document.getElementById('dncResultSub').textContent   = sub;
 }
 
-function dncCl
+function dncClearResult() {
+  const r = document.getElementById('dncResult');
+  if(r) r.className = 'dnc-result';
+  const p = document.getElementById('dncProceedBtn');
+  if(p) p.classList.remove('show');
+}
+
+// Reload DNC from Sheets (for admin refresh button)
+async function reloadDNC() {
+  dncLoaded  = false;
+  dncSet     = null;
+  dncLoading = false;
+  renderDNC();
+  toast('↺ Recargando lista DNC...','warn');
+}
+loadFromStorage().then(() => {
+  // DNC loads automatically from Google Sheets when agent reaches step 0
+});
+</script>
+</body>
+</html>
