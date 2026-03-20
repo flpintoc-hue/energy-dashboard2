@@ -1100,30 +1100,41 @@ async function loadFromStorage() {
 }
 
 async function loadUsersFromSheets() {
-  const resp = await fetch(USERS_SHEET_URL + '&t=' + Date.now());
-  if(!resp.ok) throw new Error('HTTP ' + resp.status);
-  const text = await resp.text();
-  const lines = text.split(/[\r\n]+/).filter(l => l.trim());
-  if(lines.length < 2) return; // only header or empty
-
-  const parsed = [];
-  for(let i = 1; i < lines.length; i++) {
-    // Parse CSV line (handle quoted fields)
-    const cols = parseCSVLine(lines[i]);
-    if(cols.length < 6) continue;
-    const [id, username, password, name, role, active] = cols;
-    if(!username || !password) continue;
-    parsed.push({
-      id:       id.trim()       || 'u_' + i,
-      username: username.trim(),
-      password: password.trim(),
-      name:     name.trim()     || username.trim(),
-      role:     role.trim()     || 'agent',
-      active:   active.trim().toUpperCase() !== 'FALSE'
+  try {
+    const resp = await fetch(USERS_SHEET_URL + '&t=' + Date.now(), {
+      cache: 'no-store',
+      mode: 'cors'
     });
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const text = await resp.text();
+    const lines = text.split(/[\r\n]+/).filter(l => l.trim());
+    if(lines.length < 2) { console.warn('USERS sheet empty or header only'); return; }
+
+    const parsed = [];
+    for(let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if(cols.length < 5) continue;
+      const [id, username, password, name, role, active='TRUE'] = cols;
+      if(!username || !password) continue;
+      parsed.push({
+        id:       (id||'').trim()       || 'u_' + i,
+        username: username.trim(),
+        password: password.trim(),
+        name:     (name||'').trim()     || username.trim(),
+        role:     (role||'agent').trim().toLowerCase(),
+        active:   (active||'TRUE').trim().toUpperCase() !== 'FALSE'
+      });
+    }
+    if(parsed.length > 0) {
+      users = parsed;
+      console.log('✓ Users loaded:', users.map(u => u.username + '(' + u.role + ')').join(', '));
+    } else {
+      console.warn('No valid users parsed from sheet');
+    }
+  } catch(err) {
+    console.error('loadUsersFromSheets error:', err.message);
+    // Keep default users as fallback so app doesn't break
   }
-  if(parsed.length > 0) users = parsed;
-  console.log('Users loaded from Sheets:', users.length);
 }
 
 function parseCSVLine(line) {
@@ -1391,12 +1402,15 @@ async function doLogin() {
   if(btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
 
   // Always reload users fresh from Sheets on login attempt
-  try { await loadUsersFromSheets(); } catch(e) {}
+  try { await loadUsersFromSheets(); } catch(e) { console.error('Login sheet error:', e); }
 
   if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
 
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
+
+  console.log('Attempting login for:', u, '| Users available:', users.map(x=>x.username).join(', '));
+
   const user = users.find(x => x.username === u && x.password === p);
   const err = document.getElementById('loginError');
 
@@ -2096,24 +2110,4 @@ function showDNCResult(type, icon, title, sub) {
   document.getElementById('dncResultSub').textContent   = sub;
 }
 
-function dncClearResult() {
-  const r = document.getElementById('dncResult');
-  if(r) r.className = 'dnc-result';
-  const p = document.getElementById('dncProceedBtn');
-  if(p) p.classList.remove('show');
-}
-
-// Reload DNC from Sheets (for admin refresh button)
-async function reloadDNC() {
-  dncLoaded  = false;
-  dncSet     = null;
-  dncLoading = false;
-  renderDNC();
-  toast('↺ Recargando lista DNC...','warn');
-}
-loadFromStorage().then(() => {
-  // DNC loads automatically from Google Sheets when agent reaches step 0
-});
-</script>
-</body>
-</html>
+function dncCl
