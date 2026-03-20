@@ -1126,10 +1126,13 @@ async function loadUsersFromSheets() {
       });
     }
     if(parsed.length > 0) {
-      users = parsed;
+      // Merge: sheet users take priority, keep any defaults not in sheet
+      const sheetUsernames = new Set(parsed.map(u => u.username.toLowerCase()));
+      const defaultsNotInSheet = users.filter(u => !sheetUsernames.has(u.username.toLowerCase()));
+      users = [...parsed, ...defaultsNotInSheet];
       console.log('✓ Users loaded:', users.map(u => u.username + '(' + u.role + ')').join(', '));
     } else {
-      console.warn('No valid users parsed from sheet');
+      console.warn('No valid users parsed from sheet — using defaults');
     }
   } catch(err) {
     console.error('loadUsersFromSheets error:', err.message);
@@ -1163,8 +1166,9 @@ async function saveLog() {
 // DEFAULT DATA
 // ════════════════════════════════════════════
 let users = [
-  { id:'u_admin', username:'admin', password:'admin123', name:'Administrador', role:'admin', active:true },
-  { id:'u_a1', username:'agente1', password:'pass123', name:'Agente Ejemplo', role:'agent', active:true },
+  { id:'u_admin', username:'admin',    password:'admin123', name:'Administrador', role:'admin', active:true },
+  { id:'u_a1',    username:'agente1',  password:'pass123',  name:'Agente Ejemplo', role:'agent', active:true },
+  { id:'u_g1',    username:'GIANELLA', password:'GIA123',   name:'Gianella',       role:'agent', active:true },
 ];
 
 let db = {
