@@ -940,6 +940,21 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   transform-box: fill-box;
 }
 
+
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+/* Login security indicators */
+.login-attempts-bar {
+  display:flex; gap:6px; justify-content:center;
+  margin-bottom:10px; height:5px;
+}
+.attempt-dot {
+  width:20px; height:5px; border-radius:100px;
+  background:rgba(255,255,255,0.2);
+  transition:background 0.3s;
+}
+.attempt-dot.used { background:#E53935; }
+
 </style>
 </head>
 <body>
@@ -965,6 +980,15 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
     </div>
     <button class="login-btn" onclick="doLogin()">Ingresar →</button>
     <div class="login-hint">admin / admin123 &nbsp;·&nbsp; agente1 / pass123</div>
+    <div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="font-size:0.62rem;font-weight:800;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">🔒 Seguridad activa</div>
+      <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);line-height:1.5">
+        ✓ Sesión expira tras 15 min de inactividad<br>
+        ✓ Bloqueo tras 5 intentos fallidos (10 min)<br>
+        ✓ HTTPS obligatorio<br>
+        ✓ Inputs sanitizados
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1723,24 +1747,44 @@ async function doLogin() {
   const btn = document.querySelector('.login-btn');
   if(btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
 
+  const rawU = document.getElementById('loginUser').value.trim();
+  const rawP = document.getElementById('loginPass').value;
+  const u = secSanitize(rawU);
+  const p = rawP; // don't trim passwords
+
+  const err = document.getElementById('loginError');
+
+  // ── Check lockout ──
+  const lockedMins = secIsLocked(u);
+  if(lockedMins > 0) {
+    err.textContent = `🔒 Cuenta bloqueada por ${lockedMins} min. Demasiados intentos fallidos.`;
+    err.classList.add('show');
+    if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
+    addLog('denied', `Intento bloqueado: ${u}`);
+    setTimeout(() => err.classList.remove('show'), 5000);
+    return;
+  }
+
   // Always reload users fresh from Sheets on login attempt
   try { await loadUsersFromSheets(); } catch(e) { console.error('Login sheet error:', e); }
 
   if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
 
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-
   console.log('Attempting login for:', u, '| Users available:', users.map(x=>x.username).join(', '));
 
   const user = users.find(x => x.username === u && x.password === p);
-  const err = document.getElementById('loginError');
 
   if (!user) {
-    err.textContent = 'Usuario o contraseña incorrectos';
+    const attempt = secRecordAttempt(u, false);
+    const remaining = secRemainingAttempts(u);
+    if(remaining <= 0) {
+      err.textContent = `🔒 Cuenta bloqueada 10 min por demasiados intentos fallidos.`;
+    } else {
+      err.textContent = `Usuario o contraseña incorrectos. Intentos restantes: ${remaining}`;
+    }
     err.classList.add('show');
-    addLog('denied', `Intento fallido: "${u}"`);
-    setTimeout(() => err.classList.remove('show'), 3000);
+    addLog('denied', `Intento fallido (${SEC.MAX_LOGIN_ATTEMPTS - remaining}/${SEC.MAX_LOGIN_ATTEMPTS}): "${u}"`);
+    setTimeout(() => err.classList.remove('show'), 4000);
     return;
   }
   if (!user.active) {
@@ -1751,8 +1795,10 @@ async function doLogin() {
     return;
   }
 
+  secRecordAttempt(u, true); // clear failed attempts
   currentUser = user;
-  addLog('login', `${user.name} (${user.role}) ingresó`);
+  secStartSession(user);
+  addLog('login', `${user.name} (${user.role}) ingresó desde ${location.hostname}`);
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
 
@@ -1767,6 +1813,7 @@ async function doLogin() {
 
 function doLogout() {
   if (currentUser) addLog('logout', `${currentUser.name} cerró sesión`);
+  secEndSession();
   currentUser = null;
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
@@ -2652,6 +2699,104 @@ async function reloadDNC() {
 loadFromStorage().then(() => {
   // DNC loads automatically from Google Sheets when agent reaches step 0
 });
+
+// ════════════════════════════════════════════
+// SECURITY MODULE
+// ════════════════════════════════════════════
+const SEC = {
+  SESSION_TIMEOUT_MS:  15 * 60 * 1000,
+  WARN_BEFORE_MS:       2 * 60 * 1000,
+  MAX_LOGIN_ATTEMPTS:  5,
+  LOCKOUT_MS:         10 * 60 * 1000,
+  SESSION_KEY:        'esd_session',
+  ATTEMPTS_KEY:       'esd_attempts',
+};
+
+let _sessionTimer = null, _warnTimer = null, _warnBanner = null;
+
+function secResetTimer() {
+  clearTimeout(_sessionTimer);
+  clearTimeout(_warnTimer);
+  hideSessionWarning();
+  _warnTimer = setTimeout(showSessionWarning, SEC.SESSION_TIMEOUT_MS - SEC.WARN_BEFORE_MS);
+  _sessionTimer = setTimeout(secAutoLogout, SEC.SESSION_TIMEOUT_MS);
+}
+
+function secStartSession(user) {
+  const session = { username:user.username, name:user.name, role:user.role,
+    token: Math.random().toString(36).substr(2)+Date.now(),
+    expires: Date.now()+SEC.SESSION_TIMEOUT_MS };
+  localStorage.setItem(SEC.SESSION_KEY, JSON.stringify(session));
+  ['click','keydown','mousemove','touchstart','scroll'].forEach(ev =>
+    document.addEventListener(ev, secResetTimer, {passive:true}));
+  secResetTimer();
+}
+
+function secEndSession() {
+  localStorage.removeItem(SEC.SESSION_KEY);
+  clearTimeout(_sessionTimer); clearTimeout(_warnTimer);
+  hideSessionWarning();
+  ['click','keydown','mousemove','touchstart','scroll'].forEach(ev =>
+    document.removeEventListener(ev, secResetTimer));
+}
+
+function secAutoLogout() {
+  secEndSession();
+  addLog('logout', `Sesión expirada por inactividad: ${currentUser?.name||'?'}`);
+  doLogout();
+  const err = document.getElementById('loginError');
+  if(err) {
+    err.textContent = '⏱️ Sesión cerrada por inactividad. Inicia sesión nuevamente.';
+    err.style.cssText += ';background:rgba(230,81,0,0.15);border-color:rgba(230,81,0,0.4);color:#E65100';
+    err.classList.add('show');
+    setTimeout(() => err.classList.remove('show'), 5000);
+  }
+}
+
+function showSessionWarning() {
+  if(!_warnBanner) {
+    _warnBanner = document.createElement('div');
+    _warnBanner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#E65100,#BF360C);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;font-family:Nunito,sans-serif;font-weight:800;font-size:0.88rem;box-shadow:0 -4px 20px rgba(0,0,0,0.3)';
+    _warnBanner.innerHTML = '<span>⏱️ Tu sesión expirará en 2 minutos por inactividad</span><button onclick="secResetTimer()" style="background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.5);color:#fff;padding:7px 18px;border-radius:8px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:900;font-size:0.82rem">Continuar sesión</button>';
+    document.body.appendChild(_warnBanner);
+  }
+  _warnBanner.style.display = 'flex';
+}
+function hideSessionWarning() { if(_warnBanner) _warnBanner.style.display='none'; }
+
+function secGetAttempts(u) {
+  try { return (JSON.parse(localStorage.getItem(SEC.ATTEMPTS_KEY)||'{}'))[u]||{count:0,lockedUntil:0}; }
+  catch { return {count:0,lockedUntil:0}; }
+}
+function secRecordAttempt(u, success) {
+  try {
+    const data = JSON.parse(localStorage.getItem(SEC.ATTEMPTS_KEY)||'{}');
+    if(success) { delete data[u]; }
+    else {
+      const prev = data[u]||{count:0,lockedUntil:0};
+      prev.count++;
+      if(prev.count >= SEC.MAX_LOGIN_ATTEMPTS) { prev.lockedUntil=Date.now()+SEC.LOCKOUT_MS; prev.count=0; }
+      data[u]=prev;
+    }
+    localStorage.setItem(SEC.ATTEMPTS_KEY, JSON.stringify(data));
+    return data[u]||{count:0,lockedUntil:0};
+  } catch { return {count:0,lockedUntil:0}; }
+}
+function secIsLocked(u) {
+  const a=secGetAttempts(u);
+  return (a.lockedUntil && Date.now()<a.lockedUntil) ? Math.ceil((a.lockedUntil-Date.now())/60000) : 0;
+}
+function secRemainingAttempts(u) {
+  return Math.max(0, SEC.MAX_LOGIN_ATTEMPTS - secGetAttempts(u).count);
+}
+function secSanitize(str) {
+  return String(str).replace(/[<>"'`]/g,'').trim().slice(0,100);
+}
+function secEnforceHTTPS() {
+  if(location.protocol==='http:'&&!['localhost','127.0.0.1'].includes(location.hostname))
+    location.replace('https:'+location.href.slice(5));
+}
+secEnforceHTTPS();
 </script>
 </body>
 </html>
