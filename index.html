@@ -1805,7 +1805,7 @@ function clearLog() { accessLog = []; saveLog(); renderLog(); }
 // ════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════
-let sel = { stateId:null, utilIds:[], supId:null, rateId:null, rateInfo:null }; // utilIds = array for multi-utility
+let sel = { stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{} }; // rateIds: {electric: id, gas: id}
 let rateFilter = 'all';
 let checkedItems = new Set();
 let currentStep = 0;
@@ -1983,8 +1983,8 @@ function renderSupplierCards() {
                     : r.months === 'Mes a mes' ? 'Mensual'
                     : r.months + ' mo';
     const uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
-    const isSelected = sel.rateId === r.id;
-    return `<tr class="rate-tr${isSelected?' rate-selected':''}" onclick="selectRate('${r.id}','${r.supId}')">
+    const isSelected = sel.rateIds[r.energyType] === r.id;
+    return `<tr class="rate-tr${isSelected?' rate-selected':''}" onclick="selectRate('${r.id}','${r.supId}','${r.energyType}')">
       <td style="width:24px;padding:10px 4px 10px 10px">
         <div class="rate-select-indicator">${isSelected?'✓':''}</div>
       </td>
@@ -2053,8 +2053,7 @@ function renderSupplierCards() {
 }
 
 
-function selectRate(rateId, supId) {
-  sel.rateId = rateId;
+function selectRate(rateId, supId, energyType) {
   const r = db.rates.find(x => x.id === rateId);
   if(!r) return;
   const sup = db.suppliers.find(s => s.id === supId);
@@ -2063,26 +2062,36 @@ function selectRate(rateId, supId) {
   const etfVal = parseFloat(r.etf);
   const noEtf = (!r.etf || etfVal === 0 || r.etf === '0' || r.etf === '0.00' || r.etf === 'No ETF');
   const etfDisplay = noEtf ? 'No ETF' : '$' + r.etf;
+  const type = energyType || r.energyType;
 
-  sel.rateInfo = `${supName} — ${r.price} ${uomShort} | Term: ${r.months} mo | ETF: ${etfDisplay}`;
-  if(r.notes) sel.rateInfo = `[${r.notes}] ` + sel.rateInfo;
+  // Toggle: if already selected, deselect
+  if(sel.rateIds[type] === rateId) {
+    delete sel.rateIds[type];
+    delete sel.rateInfos[type];
+  } else {
+    sel.rateIds[type] = rateId;
+    let info = `${supName} — ${r.price} ${uomShort} | Term: ${r.months} mo | ETF: ${etfDisplay}`;
+    if(r.notes) info = `[${r.notes}] ` + info;
+    sel.rateInfos[type] = info;
+  }
 
-  // Update rate bar for this supplier
+  // Update rate bar for this supplier — show all selected
   const barId = supName.replace(/[^a-z0-9]/gi,'_');
   const bar = document.getElementById('rateBar_' + barId);
   const val = document.getElementById('rateBarVal_' + barId);
-  if(bar) bar.classList.add('show');
-  if(val) val.textContent = sel.rateInfo;
+  const allSelected = Object.values(sel.rateInfos);
+  if(bar) bar.classList.toggle('show', allSelected.length > 0);
+  if(val) val.textContent = allSelected.join(' | ');
 
-  // Re-render to update checkmarks
   renderSupplierCards();
-  toast('✓ Tarifa seleccionada', 'success');
+  const typeLabel = type === 'electric' ? '⚡ Electric' : '🔥 Gas';
+  toast(`✓ ${typeLabel} seleccionado`, 'success');
 }
 
 function clearRate(evt, supName) {
   evt.stopPropagation();
-  sel.rateId = null;
-  sel.rateInfo = null;
+  sel.rateIds = {};
+  sel.rateInfos = {};
   const barId = supName.replace(/[^a-z0-9]/gi,'_');
   const bar = document.getElementById('rateBar_' + barId);
   if(bar) bar.classList.remove('show');
@@ -2096,7 +2105,7 @@ function selectSupAndGo(id) {
 }
 
 function volverInicio(){
-  sel={stateId:null,utilIds:[],supId:null,rateId:null,rateInfo:null};
+  sel={stateId:null,utilIds:[],supId:null,rateIds:{},rateInfos:{}};
   openSupId=null;
   checkedItems.clear();
   dncClearResult();
@@ -2154,9 +2163,9 @@ function renderTemplateStep(stepNum, state, util, sup) {
   const supName    = sup ? sup.name : '';
 
   // Build rate info from selected supplier
-  // Use explicitly selected rate if available, else first rate
-  let rateVal = sel.rateInfo || '';
-  if(!rateVal && sup) {
+  // Use explicitly selected rates if available
+  let rateVal = Object.values(sel.rateInfos).join(' / ');
+  if(!rateVal && sup) {  // fallback to first rate
     const rates = db.rates.filter(r => r.supId === sup.id);
     if(rates.length > 0) {
       const r = rates[0];
