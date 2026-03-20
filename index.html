@@ -823,14 +823,15 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;
 }
 .rep-chip {
-  padding:6px 14px; border-radius:100px;
-  border:2px solid var(--border); background:#fff;
-  cursor:pointer; font-size:0.78rem; font-weight:800;
-  color:var(--text-muted); transition:all 0.15s;
+  padding:8px 18px; border-radius:100px;
+  border:2px solid #5CB85C; background:#fff;
+  cursor:pointer; font-size:0.82rem; font-weight:900;
+  color:#2E7D32; transition:all 0.2s;
   font-family:'Nunito',sans-serif;
+  letter-spacing:0.03em;
 }
-.rep-chip:hover { border-color:var(--blue); color:var(--blue); }
-.rep-chip.selected { background:var(--blue); border-color:var(--blue); color:#fff; }
+.rep-chip:hover { background:#E8F5E9; border-color:#2E7D32; transform:translateY(-1px); box-shadow:0 3px 8px rgba(46,125,50,0.2); }
+.rep-chip.selected { background:#4CAF50; border-color:#2E7D32; color:#fff; box-shadow:0 3px 10px rgba(76,175,80,0.4); }
 
 /* ── HOME BUTTON (big, prominent) ── */
 .home-btn-big {
@@ -979,16 +980,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="login-btn" onclick="doLogin()">Ingresar →</button>
-    <div class="login-hint">admin / admin123 &nbsp;·&nbsp; agente1 / pass123</div>
-    <div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
-      <div style="font-size:0.62rem;font-weight:800;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">🔒 Seguridad activa</div>
-      <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);line-height:1.5">
-        ✓ Sesión expira tras 15 min de inactividad<br>
-        ✓ Bloqueo tras 5 intentos fallidos (10 min)<br>
-        ✓ HTTPS obligatorio<br>
-        ✓ Inputs sanitizados
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -2201,18 +2193,16 @@ function renderCheckItems() {
 }
 
 function renderTemplateStep(stepNum, state, util, sup) {
-  // Auto-fill values
-  const stateVal   = state ? state.name + ' (' + state.code + ')' : '';
-  const utilVal    = sel.utilIds.length > 0
+  const stateVal  = state ? state.name + ' (' + state.code + ')' : '';
+  const utilVal   = sel.utilIds.length > 0
     ? sel.utilIds.map(id => { const u=db.utilities.find(x=>x.id===id); return u?u.name:''; }).join(' / ')
     : (util ? util.name : '');
-  const phoneVal   = document.getElementById('dncPhone')?.value || '';
-  const supName    = sup ? sup.name : '';
+  const phoneVal  = document.getElementById('dncPhone')?.value || '';
+  const supName   = sup ? sup.name : '';
 
-  // Build rate info from selected supplier
-  // Use explicitly selected rates if available
+  // Build rate info
   let rateVal = Object.values(sel.rateInfos).join(' / ');
-  if(!rateVal && sup) {  // fallback to first rate
+  if(!rateVal && sup) {
     const rates = db.rates.filter(r => r.supId === sup.id);
     if(rates.length > 0) {
       const r = rates[0];
@@ -2228,49 +2218,122 @@ function renderTemplateStep(stepNum, state, util, sup) {
   };
   const repIds = (sup && REP_IDS[sup.name]) ? REP_IDS[sup.name] : [];
 
+  // States list for dropdown
+  const stateOptions = db.states.map(s =>
+    `<option value="${s.name} (${s.code})" ${stateVal.includes(s.code)?'selected':''}>${s.name} (${s.code})</option>`
+  ).join('');
+
   const repSelector = repIds.length > 0 ? `
     <div class="tpl-row tpl-full">
       <label class="tpl-label">REP ID — Selecciona el tuyo</label>
       <div class="rep-selector" id="repSelectorChips">
         ${repIds.map(r => `<button class="rep-chip" onclick="selectRepId('${r}')">${r}</button>`).join('')}
       </div>
-      <input class="tpl-input" id="tpl_repid" placeholder="Selecciona arriba o escribe" style="margin-top:6px">
+      <input class="tpl-input" id="tpl_repid" placeholder="Selecciona arriba" style="margin-top:6px;display:none" readonly>
     </div>` : `
-    <div class="tpl-row"><label class="tpl-label">REP ID</label>
-      <input class="tpl-input" id="tpl_repid" placeholder="Tu Rep ID"></div>`;
+    <div class="tpl-row">
+      <label class="tpl-label">REP ID</label>
+      <input class="tpl-input" id="tpl_repid" placeholder="Tu Rep ID">
+    </div>`;
 
   return `<div class="check-item template-step">
     <div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>
     <div class="check-content" style="flex:1">
       <div class="check-step">Paso ${stepNum}</div>
       <div class="check-title">Completar plantilla de venta</div>
-      <div class="check-desc" style="margin-bottom:12px">Los campos marcados se llenaron automáticamente. Completa los que faltan y copia.</div>
+      <div class="check-desc" style="margin-bottom:14px">Los campos marcados se llenaron automáticamente. Completa los que faltan.</div>
       <div class="tpl-grid">
-        <div class="tpl-row"><label class="tpl-label">STATE</label>
-          <input class="tpl-input" id="tpl_state" value="${stateVal}" placeholder="Estado"></div>
-        <div class="tpl-row"><label class="tpl-label">LANGUAGE</label>
-          <input class="tpl-input" id="tpl_lang" placeholder="ej: English / Spanish"></div>
-        <div class="tpl-row"><label class="tpl-label">PHONE NUMBER</label>
-          <input class="tpl-input" id="tpl_phone" value="${phoneVal}" placeholder="(555) 123-4567"></div>
-        <div class="tpl-row"><label class="tpl-label">AUTHORIZED</label>
-          <input class="tpl-input" id="tpl_auth" placeholder="Yes / No"></div>
-        <div class="tpl-row"><label class="tpl-label">ACC HOLDER</label>
-          <input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular"></div>
-        <div class="tpl-row"><label class="tpl-label">ADDRESS</label>
-          <input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio"></div>
-        <div class="tpl-row"><label class="tpl-label">CITY</label>
-          <input class="tpl-input" id="tpl_city" placeholder="Ciudad"></div>
-        <div class="tpl-row"><label class="tpl-label">ACC INFO</label>
-          <input class="tpl-input" id="tpl_acc" placeholder="Número de cuenta"></div>
-        <div class="tpl-row tpl-full"><label class="tpl-label">UTILITY</label>
-          <input class="tpl-input" id="tpl_util" value="${utilVal}" placeholder="Utilidad"></div>
-        <div class="tpl-row"><label class="tpl-label">DATE OF BIRTH</label>
-          <input class="tpl-input" id="tpl_dob" placeholder="MM/DD/YYYY"></div>
-        <div class="tpl-row"><label class="tpl-label">NAME KEY</label>
-          <input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre"></div>
+
+        <!-- LANGUAGE — dropdown -->
+        <div class="tpl-row">
+          <label class="tpl-label">LANGUAGE</label>
+          <select class="tpl-input" id="tpl_lang">
+            <option value="">Selecciona...</option>
+            <option value="English">🇺🇸 English</option>
+            <option value="Spanish">🇪🇸 Spanish</option>
+            <option value="Portuguese">🇧🇷 Portuguese</option>
+            <option value="French">🇫🇷 French</option>
+            <option value="Mandarin">🇨🇳 Mandarin</option>
+          </select>
+        </div>
+
+        <!-- AUTHORIZED — dropdown -->
+        <div class="tpl-row">
+          <label class="tpl-label">AUTHORIZED</label>
+          <select class="tpl-input" id="tpl_auth">
+            <option value="">Selecciona...</option>
+            <option value="Yes — Account Holder">✅ Yes — Account Holder</option>
+            <option value="Yes — Authorized User">✅ Yes — Authorized User</option>
+            <option value="No">❌ No</option>
+          </select>
+        </div>
+
+        <!-- STATE — dropdown (changeable) -->
+        <div class="tpl-row">
+          <label class="tpl-label">STATE</label>
+          <select class="tpl-input" id="tpl_state">
+            <option value="">Selecciona...</option>
+            ${stateOptions}
+          </select>
+        </div>
+
+        <!-- DATE OF BIRTH — date picker -->
+        <div class="tpl-row">
+          <label class="tpl-label">DATE OF BIRTH</label>
+          <input class="tpl-input" type="date" id="tpl_dob" max="${new Date().toISOString().split('T')[0]}">
+        </div>
+
+        <!-- PHONE NUMBER — pre-filled -->
+        <div class="tpl-row">
+          <label class="tpl-label">PHONE NUMBER</label>
+          <input class="tpl-input" id="tpl_phone" value="${phoneVal}" placeholder="(555) 123-4567">
+        </div>
+
+        <!-- ACC HOLDER -->
+        <div class="tpl-row">
+          <label class="tpl-label">ACC HOLDER</label>
+          <input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular">
+        </div>
+
+        <!-- ADDRESS -->
+        <div class="tpl-row">
+          <label class="tpl-label">ADDRESS</label>
+          <input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio">
+        </div>
+
+        <!-- CITY -->
+        <div class="tpl-row">
+          <label class="tpl-label">CITY</label>
+          <input class="tpl-input" id="tpl_city" placeholder="Ciudad">
+        </div>
+
+        <!-- ACC INFO -->
+        <div class="tpl-row">
+          <label class="tpl-label">ACC INFO</label>
+          <input class="tpl-input" id="tpl_acc" placeholder="Número de cuenta">
+        </div>
+
+        <!-- NAME KEY -->
+        <div class="tpl-row">
+          <label class="tpl-label">NAME KEY</label>
+          <input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre">
+        </div>
+
+        <!-- UTILITY — pre-filled, editable -->
+        <div class="tpl-row tpl-full">
+          <label class="tpl-label">UTILITY</label>
+          <input class="tpl-input" id="tpl_util" value="${utilVal}" placeholder="Utilidad">
+        </div>
+
+        <!-- REP ID — green chips -->
         ${repSelector}
-        <div class="tpl-row tpl-full"><label class="tpl-label">TARIFA SELECCIONADA</label>
-          <input class="tpl-input" id="tpl_tarifa" value="${rateVal}" placeholder="Supplier — Rate | Term | ETF"></div>
+
+        <!-- TARIFA — pre-filled -->
+        <div class="tpl-row tpl-full">
+          <label class="tpl-label">TARIFA SELECCIONADA</label>
+          <input class="tpl-input" id="tpl_tarifa" value="${rateVal}" placeholder="Supplier — Rate | Term | ETF">
+        </div>
+
       </div>
       <button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn">
         <span>📋</span> Copiar Plantilla
@@ -2278,15 +2341,6 @@ function renderTemplateStep(stepNum, state, util, sup) {
     </div>
   </div>`;
 }
-
-function selectRepId(repId) {
-  const input = document.getElementById('tpl_repid');
-  if(input) input.value = repId;
-  document.querySelectorAll('.rep-chip').forEach(c => {
-    c.classList.toggle('selected', c.textContent.trim() === repId);
-  });
-}
-
 function restoreTemplateValues() {
   // Keep values across re-renders by storing in a global object
   if(!window._tplData) return;
@@ -2304,7 +2358,16 @@ function saveTplField(field) {
 }
 
 function copyTemplate() {
-  const g = id => (document.getElementById('tpl_'+id)||{value:''}).value || '—';
+  const g = id => {
+    const el = document.getElementById('tpl_'+id);
+    if(!el) return '—';
+    if(el.type === 'date' && el.value) {
+      // Format date as MM/DD/YYYY
+      const [y,m,d] = el.value.split('-');
+      return `${m}/${d}/${y}`;
+    }
+    return el.value || '—';
+  };
   const text = [
     'STATE: '               + g('state'),
     'LANGUAGE: '            + g('lang'),
