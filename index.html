@@ -946,15 +946,37 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
       <!-- AGENTS -->
       <div class="dsection active" id="ds-agents">
-        <div class="dform-row">
-          <div class="dfield"><label>Usuario</label><input id="na-user" placeholder="ej: agente5" autocomplete="off"></div>
-          <div class="dfield"><label>Contraseña</label><input id="na-pass" type="password" placeholder="Contraseña segura"></div>
+        <div style="background:#E3F2FD;border-radius:10px;padding:14px 16px;margin-bottom:16px;border-left:4px solid var(--blue)">
+          <div style="font-size:0.78rem;font-weight:900;color:var(--blue-dark);margin-bottom:6px">👥 Usuarios gestionados en Google Sheets</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);line-height:1.6">
+            Para crear o desactivar agentes, edita directamente el Google Sheet en la hoja <strong>USERS</strong>.<br>
+            Los cambios aplican en el próximo inicio de sesión.
+          </div>
+          <a href="https://docs.google.com/spreadsheets" target="_blank"
+             style="display:inline-block;margin-top:10px;background:var(--blue);color:#fff;padding:7px 16px;border-radius:7px;font-size:0.75rem;font-weight:800;text-decoration:none">
+            📊 Abrir Google Sheets →
+          </a>
         </div>
-        <div class="dform-row">
-          <div class="dfield"><label>Nombre completo</label><input id="na-name" placeholder="ej: Juan Pérez"></div>
-        </div>
-        <button class="dadd-btn" onclick="addAgent()">+ Crear Agente</button>
-        <div class="dsep"></div>
+        <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Estructura requerida en hoja USERS:</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.72rem;margin-bottom:16px">
+          <thead><tr style="background:#f5f5f5">
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left">A: id</th>
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left">B: username</th>
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left">C: password</th>
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left">D: name</th>
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left">E: role</th>
+            <th style="padding:6px 8px;border:1px solid var(--border);text-align:left">F: active</th>
+          </tr></thead>
+          <tbody><tr>
+            <td style="padding:6px 8px;border:1px solid var(--border);color:var(--text-muted)">ag1</td>
+            <td style="padding:6px 8px;border:1px solid var(--border);color:var(--text-muted)">agente1</td>
+            <td style="padding:6px 8px;border:1px solid var(--border);color:var(--text-muted)">pass123</td>
+            <td style="padding:6px 8px;border:1px solid var(--border);color:var(--text-muted)">Juan Pérez</td>
+            <td style="padding:6px 8px;border:1px solid var(--border);color:var(--text-muted)">agent</td>
+            <td style="padding:6px 8px;border:1px solid var(--border);color:var(--text-muted)">TRUE</td>
+          </tr></tbody>
+        </table>
+        <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Usuarios activos ahora:</div>
         <div id="agentsList"></div>
       </div>
 
@@ -1057,28 +1079,68 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 <script>
 // ════════════════════════════════════════════
-// PERSISTENT STORAGE (localStorage)
+// PERSISTENT STORAGE
+// users → Google Sheets (shared across devices)
+// db + log → localStorage (per device)
 // ════════════════════════════════════════════
-const KEYS = {
-  users: 'esd_users',
-  db:    'esd_db',
-  log:   'esd_log'
-};
+const USERS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVjF05PNIoMS-g6HAEVvLe7v2-GAUHgP24Udtu2W5FvfdnB84dtf4Jij4KcUYRfLpntpgqsrjIjPNP/pub?gid=1373368653&single=true&output=csv';
+const KEYS = { db:'esd_db', log:'esd_log' };
 
 async function loadFromStorage() {
   try {
-    const u = localStorage.getItem(KEYS.users);
+    // Load users from Google Sheets
+    await loadUsersFromSheets();
+  } catch(e) { console.warn('Users sheet error:', e); }
+  try {
     const d = localStorage.getItem(KEYS.db);
     const l = localStorage.getItem(KEYS.log);
-    if (u) users     = JSON.parse(u);
     if (d) db        = JSON.parse(d);
     if (l) accessLog = JSON.parse(l);
-  } catch(e) { /* first run, use defaults */ }
+  } catch(e) {}
 }
 
-async function saveUsers() {
-  try { localStorage.setItem(KEYS.users, JSON.stringify(users)); } catch(e) {}
+async function loadUsersFromSheets() {
+  const resp = await fetch(USERS_SHEET_URL + '&t=' + Date.now());
+  if(!resp.ok) throw new Error('HTTP ' + resp.status);
+  const text = await resp.text();
+  const lines = text.split(/[\r\n]+/).filter(l => l.trim());
+  if(lines.length < 2) return; // only header or empty
+
+  const parsed = [];
+  for(let i = 1; i < lines.length; i++) {
+    // Parse CSV line (handle quoted fields)
+    const cols = parseCSVLine(lines[i]);
+    if(cols.length < 6) continue;
+    const [id, username, password, name, role, active] = cols;
+    if(!username || !password) continue;
+    parsed.push({
+      id:       id.trim()       || 'u_' + i,
+      username: username.trim(),
+      password: password.trim(),
+      name:     name.trim()     || username.trim(),
+      role:     role.trim()     || 'agent',
+      active:   active.trim().toUpperCase() !== 'FALSE'
+    });
+  }
+  if(parsed.length > 0) users = parsed;
+  console.log('Users loaded from Sheets:', users.length);
 }
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for(let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if(c === '"') { inQ = !inQ; continue; }
+    if(c === ',' && !inQ) { result.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// Users are managed in Google Sheets — these are no-ops client side
+async function saveUsers() { /* managed in Google Sheets */ }
 async function saveDb() {
   try { localStorage.setItem(KEYS.db, JSON.stringify(db)); } catch(e) {}
 }
@@ -1324,7 +1386,15 @@ let accessLog = [];
 // ════════════════════════════════════════════
 let currentUser = null;
 
-function doLogin() {
+async function doLogin() {
+  const btn = document.querySelector('.login-btn');
+  if(btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+
+  // Always reload users fresh from Sheets on login attempt
+  try { await loadUsersFromSheets(); } catch(e) {}
+
+  if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
+
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   const user = users.find(x => x.username === u && x.password === p);
