@@ -889,6 +889,40 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   flex-wrap: wrap;
 }
 
+
+/* ── SELECTABLE RATE ROWS ── */
+.rate-tr { cursor: pointer; transition: background 0.15s; }
+.rate-tr:hover td { background: #EEF6FF !important; }
+.rate-tr.rate-selected td { background: #E3F2FD !important; }
+.rate-tr.rate-selected { outline: 2px solid var(--blue); outline-offset: -2px; }
+
+.rate-select-indicator {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; transition: all 0.15s; flex-shrink: 0;
+  background: #fff;
+}
+.rate-tr.rate-selected .rate-select-indicator {
+  background: var(--blue); border-color: var(--blue); color: #fff;
+}
+
+.selected-rate-bar {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+  border-radius: 8px; padding: 10px 14px;
+  margin: 10px 0 0;
+  display: none;
+  align-items: center; gap: 10px;
+  animation: fadeIn 0.3s ease;
+}
+.selected-rate-bar.show { display: flex; }
+.selected-rate-bar .sr-label { font-size: 0.65rem; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
+.selected-rate-bar .sr-val  { font-size: 0.85rem; font-weight: 900; color: #fff; }
+.selected-rate-bar .sr-info { flex: 1; }
+.selected-rate-clear { background: rgba(255,255,255,0.2); border: none; color: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.72rem; font-weight: 800; transition: background 0.15s; white-space: nowrap; }
+.selected-rate-clear:hover { background: rgba(255,255,255,0.35); }
+
 </style>
 </head>
 <body>
@@ -1687,7 +1721,7 @@ function clearLog() { accessLog = []; saveLog(); renderLog(); }
 // ════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════
-let sel = { stateId:null, utilIds:[], supId:null }; // utilIds = array for multi-utility
+let sel = { stateId:null, utilIds:[], supId:null, rateId:null, rateInfo:null }; // utilIds = array for multi-utility
 let rateFilter = 'all';
 let checkedItems = new Set();
 let currentStep = 0;
@@ -1865,7 +1899,11 @@ function renderSupplierCards() {
                     : r.months === 'Mes a mes' ? 'Mensual'
                     : r.months + ' mo';
     const uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
-    return `<tr class="rate-tr">
+    const isSelected = sel.rateId === r.id;
+    return `<tr class="rate-tr${isSelected?' rate-selected':''}" onclick="selectRate('${r.id}','${r.supId}')">
+      <td style="width:24px;padding:10px 4px 10px 10px">
+        <div class="rate-select-indicator">${isSelected?'✓':''}</div>
+      </td>
       <td class="rate-td-plan">${r.notes ? '<span class="rnote">'+r.notes+'</span> ' : ''}${r.price} <span class="rv-uom">${uomShort}</span></td>
       <td class="rate-td-term"><span class="rv-term">${termLabel}</span></td>
       <td class="rate-td-etf"><span class="rv-etf" style="color:${etfColor};font-weight:800">${etfDisplay}</span></td>
@@ -1876,7 +1914,7 @@ function renderSupplierCards() {
     <div class="rate-section-block">
       <div class="rate-section-title ${colorClass}">${icon} ${title}</div>
       <table class="rate-compact-table">
-        <thead><tr><th>Rate</th><th>Term</th><th>ETF</th></tr></thead>
+        <thead><tr><th style='width:24px'></th><th>Rate</th><th>Term</th><th>ETF</th></tr></thead>
         <tbody>${rows.map(rateRow).join('')}</tbody>
       </table>
     </div>` : '';
@@ -1915,12 +1953,56 @@ function renderSupplierCards() {
       </div>
       <div class="sup-panel-body">
         <div class="rates-section">${ratesHtml}</div>
-        <button class="go-checklist-btn" style="width:100%;margin:12px 0 0" onclick="selectSupAndGo('${firstSupId}')">
+        <div class="selected-rate-bar" id="rateBar_${name.replace(/[^a-z0-9]/gi,'_')}">
+          <div class="sr-info">
+            <div class="sr-label">Tarifa seleccionada</div>
+            <div class="sr-val" id="rateBarVal_${name.replace(/[^a-z0-9]/gi,'_')}">—</div>
+          </div>
+          <button class="selected-rate-clear" onclick="clearRate(event,'${name}')">✕ Cambiar</button>
+        </div>
+        <button class="go-checklist-btn" style="width:100%;margin:10px 0 0" onclick="selectSupAndGo('${firstSupId}')">
           ✓ Seleccionar ${name} e ir al Checklist →
         </button>
       </div>
     </div>`;
   }).join('') + '</div>';
+}
+
+
+function selectRate(rateId, supId) {
+  sel.rateId = rateId;
+  const r = db.rates.find(x => x.id === rateId);
+  if(!r) return;
+  const sup = db.suppliers.find(s => s.id === supId);
+  const supName = sup ? sup.name : '';
+  const uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
+  const etfVal = parseFloat(r.etf);
+  const noEtf = (!r.etf || etfVal === 0 || r.etf === '0' || r.etf === '0.00' || r.etf === 'No ETF');
+  const etfDisplay = noEtf ? 'No ETF' : '$' + r.etf;
+
+  sel.rateInfo = `${supName} — ${r.price} ${uomShort} | Term: ${r.months} mo | ETF: ${etfDisplay}`;
+  if(r.notes) sel.rateInfo = `[${r.notes}] ` + sel.rateInfo;
+
+  // Update rate bar for this supplier
+  const barId = supName.replace(/[^a-z0-9]/gi,'_');
+  const bar = document.getElementById('rateBar_' + barId);
+  const val = document.getElementById('rateBarVal_' + barId);
+  if(bar) bar.classList.add('show');
+  if(val) val.textContent = sel.rateInfo;
+
+  // Re-render to update checkmarks
+  renderSupplierCards();
+  toast('✓ Tarifa seleccionada', 'success');
+}
+
+function clearRate(evt, supName) {
+  evt.stopPropagation();
+  sel.rateId = null;
+  sel.rateInfo = null;
+  const barId = supName.replace(/[^a-z0-9]/gi,'_');
+  const bar = document.getElementById('rateBar_' + barId);
+  if(bar) bar.classList.remove('show');
+  renderSupplierCards();
 }
 
 function selectSupAndGo(id) {
@@ -1930,7 +2012,7 @@ function selectSupAndGo(id) {
 }
 
 function volverInicio(){
-  sel={stateId:null,utilIds:[],supId:null};
+  sel={stateId:null,utilIds:[],supId:null,rateId:null,rateInfo:null};
   openSupId=null;
   checkedItems.clear();
   dncClearResult();
@@ -1988,12 +2070,14 @@ function renderTemplateStep(stepNum, state, util, sup) {
   const supName    = sup ? sup.name : '';
 
   // Build rate info from selected supplier
-  let rateVal = supName;
-  if(sup) {
+  // Use explicitly selected rate if available, else first rate
+  let rateVal = sel.rateInfo || '';
+  if(!rateVal && sup) {
     const rates = db.rates.filter(r => r.supId === sup.id);
     if(rates.length > 0) {
       const r = rates[0];
-      rateVal = `${supName} — ${r.price} ${r.uom||''} | Term: ${r.months} mo | ETF: ${r.etf}`;
+      const uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
+      rateVal = `${supName} — ${r.price} ${uomShort} | Term: ${r.months} mo | ETF: ${r.etf}`;
     }
   }
 
