@@ -1822,7 +1822,6 @@ function doLogout() {
     addLog('logout', `${currentUser.name} cerró sesión`);
     releaseSession(currentUser.username, currentUser.sessionToken);
     stopHeartbeat();
-    closeRemoteSession(currentUser.username);
   }
   secEndSession();
   currentUser = null;
@@ -1831,11 +1830,13 @@ function doLogout() {
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('adminBtn').style.display = 'none';
-  sel = { stateId:null, utilId:null, supId:null };
+  sel = { stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{} };
   openSupId = null;
   checkedItems.clear();
-  goStep(0);
-  renderStates();
+  dncClearResult();
+  const dncPhone = document.getElementById('dncPhone');
+  if(dncPhone) dncPhone.value = '';
+  currentStep = 0;
 }
 
 // ════════════════════════════════════════════
@@ -2965,7 +2966,10 @@ function secEndSession() {
 }
 
 function secAutoLogout() {
-  if(currentUser) closeRemoteSession(currentUser.username);
+  if(currentUser) {
+    releaseSession(currentUser.username, currentUser.sessionToken);
+    stopHeartbeat();
+  }
   secEndSession();
   addLog('logout', `Sesión expirada por inactividad: ${currentUser?.name||'?'}`);
   doLogout();
