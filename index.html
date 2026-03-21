@@ -1803,6 +1803,7 @@ async function doLogin() {
 
   currentUser = { ...user, sessionToken };
   secStartSession(currentUser);
+  startHeartbeat(u, sessionToken);
   addLog('login', `${user.name} (${user.role}) ingresó`);
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
@@ -1819,6 +1820,8 @@ async function doLogin() {
 function doLogout() {
   if (currentUser) {
     addLog('logout', `${currentUser.name} cerró sesión`);
+    releaseSession(currentUser.username, currentUser.sessionToken);
+    stopHeartbeat();
     closeRemoteSession(currentUser.username);
   }
   secEndSession();
@@ -2840,10 +2843,10 @@ async function checkAndRegisterSession(username, token) {
       body: JSON.stringify({ action:'login', username, token }),
     });
     const data = await resp.json();
-    return data; // { blocked: true/false, since: '...' }
+    return data;
   } catch(err) {
     console.warn('Session check failed (allowing login):', err);
-    return { blocked: false }; // fail open — don't block if service is down
+    return { blocked: false };
   }
 }
 
@@ -2856,6 +2859,23 @@ async function releaseSession(username, token) {
   } catch(err) {
     console.warn('Session release failed:', err);
   }
+}
+
+// Heartbeat — update session timestamp every 5 min
+let _heartbeatTimer = null;
+function startHeartbeat(username, token) {
+  stopHeartbeat();
+  _heartbeatTimer = setInterval(async () => {
+    try {
+      await fetch(SESSIONS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action:'heartbeat', username, token }),
+      });
+    } catch(e) {}
+  }, 5 * 60 * 1000);
+}
+function stopHeartbeat() {
+  if(_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
 }
 
 // ════════════════════════════════════════════
