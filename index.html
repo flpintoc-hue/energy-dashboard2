@@ -1416,7 +1416,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 // users → Google Sheets (shared across devices)
 // db + log → localStorage (per device)
 // ════════════════════════════════════════════
-const USERS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVjF05PNIoMS-g6HAEVvLe7v2-GAUHgP24Udtu2W5FvfdnB84dtf4Jij4KcUYRfLpntpgqsrjIjPNP/pub?gid=230614118&single=true&output=csv';
+// USERS_SHEET_URL removed — auth now via Apps Script (server-side)
 const KEYS = { db:'esd_db', log:'esd_log' };
 
 async function loadFromStorage() {
@@ -1433,44 +1433,8 @@ async function loadFromStorage() {
 }
 
 async function loadUsersFromSheets() {
-  try {
-    const resp = await fetch(USERS_SHEET_URL + '&t=' + Date.now(), {
-      cache: 'no-store',
-      mode: 'cors'
-    });
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    const text = await resp.text();
-    const lines = text.split(/[\r\n]+/).filter(l => l.trim());
-    if(lines.length < 2) { console.warn('USERS sheet empty or header only'); return; }
-
-    const parsed = [];
-    for(let i = 1; i < lines.length; i++) {
-      const cols = parseCSVLine(lines[i]);
-      if(cols.length < 5) continue;
-      const [id, username, password, name, role, active='TRUE'] = cols;
-      if(!username || !password) continue;
-      parsed.push({
-        id:       (id||'').trim()       || 'u_' + i,
-        username: username.trim(),
-        password: password.trim(),
-        name:     (name||'').trim()     || username.trim(),
-        role:     (role||'agent').trim().toLowerCase(),
-        active:   (active||'TRUE').trim().toUpperCase() !== 'FALSE'
-      });
-    }
-    if(parsed.length > 0) {
-      // Merge: sheet users take priority, keep any defaults not in sheet
-      const sheetUsernames = new Set(parsed.map(u => u.username.toLowerCase()));
-      const defaultsNotInSheet = users.filter(u => !sheetUsernames.has(u.username.toLowerCase()));
-      users = [...parsed, ...defaultsNotInSheet];
-      console.log('✓ Users loaded:', users.map(u => u.username + '(' + u.role + ')').join(', '));
-    } else {
-      console.warn('No valid users parsed from sheet — using defaults');
-    }
-  } catch(err) {
-    console.error('loadUsersFromSheets error:', err.message);
-    // Keep default users as fallback so app doesn't break
-  }
+  // Users are verified server-side via Apps Script — never downloaded to browser
+  console.log('Auth handled server-side');
 }
 
 function parseCSVLine(line) {
@@ -1498,11 +1462,8 @@ async function saveLog() {
 // ════════════════════════════════════════════
 // DEFAULT DATA
 // ════════════════════════════════════════════
-let users = [
-  { id:'u_admin', username:'admin',    password:'admin123', name:'Administrador', role:'admin', active:true },
-  { id:'u_a1',    username:'agente1',  password:'pass123',  name:'Agente Ejemplo', role:'agent', active:true },
-  { id:'u_g1',    username:'GIANELLA', password:'GIA123',   name:'Gianella',       role:'agent', active:true },
-];
+// Users authenticated server-side — no passwords stored in browser
+let users = [];
 
 let db = {
   states: [
@@ -1761,28 +1722,42 @@ async function doLogin() {
 
   if(btn) { btn.textContent = 'Verificando sesión...'; }
 
-  console.log('Attempting login for:', u, '| Users available:', users.map(x=>x.username).join(', '));
+  // ── Server-side authentication via Apps Script ──
+  let authResult;
+  try {
+    const authResp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'authenticate', username: u, password: p }),
+    });
+    authResult = await authResp.json();
+  } catch(e) {
+    // Fallback to local users if script is unreachable
+    authResult = null;
+  }
 
-  const user = users.find(x => x.username === u && x.password === p);
+  let user = null;
+  if(authResult && authResult.success) {
+    user = { username: u, name: authResult.name, role: authResult.role, id: authResult.id, active: true };
+  } else if(!authResult) {
+    // Script unreachable — fallback to hardcoded defaults only
+    user = users.find(x => x.username === u && x.password === p);
+  }
 
   if (!user) {
+    const reason = authResult?.reason;
     const attempt = secRecordAttempt(u, false);
     const remaining = secRemainingAttempts(u);
-    if(remaining <= 0) {
-      err.textContent = `🔒 Cuenta bloqueada 10 min por demasiados intentos fallidos.`;
+    if(reason === 'inactive') {
+      err.textContent = '⛔ Tu acceso ha sido desactivado. Contacta al administrador.';
+    } else if(remaining <= 0) {
+      err.textContent = '🔒 Cuenta bloqueada 10 min por demasiados intentos fallidos.';
     } else {
       err.textContent = `Usuario o contraseña incorrectos. Intentos restantes: ${remaining}`;
     }
     err.classList.add('show');
-    addLog('denied', `Intento fallido (${SEC.MAX_LOGIN_ATTEMPTS - remaining}/${SEC.MAX_LOGIN_ATTEMPTS}): "${u}"`);
+    addLog('denied', `Intento fallido: "${u}"`);
     setTimeout(() => err.classList.remove('show'), 4000);
-    return;
-  }
-  if (!user.active) {
-    err.textContent = '⛔ Tu acceso ha sido desactivado. Contacta al administrador.';
-    err.classList.add('show');
-    addLog('denied', `Acceso denegado (inactivo): ${u}`);
-    setTimeout(() => err.classList.remove('show'), 4000);
+    if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
     return;
   }
 
