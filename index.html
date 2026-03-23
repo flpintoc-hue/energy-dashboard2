@@ -1032,7 +1032,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
               <div class="dnc-status-dot" id="dncStatusDot"></div>
               <span id="dncStatusText">Sin lista cargada</span>
             </div>
-            <span class="dnc-upload-link" id="dncUploadLink" onclick="openAdmin();dTab('dnc')" style="display:none">↑ Actualizar lista</span>
+            <span id="dncUploadLink" style="display:none"></span>
           </div>
           <div class="dnc-input-row">
             <input class="dnc-input" id="dncPhone" type="tel" placeholder="5551234567" maxlength="10"
@@ -2661,13 +2661,10 @@ function toast(msg,type=''){
 // ════════════════════════════════════════════
 // DNC — GOOGLE SHEETS REAL-TIME CHECK
 // ════════════════════════════════════════════
-const DNC_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVjF05PNIoMS-g6HAEVvLe7v2-GAUHgP24Udtu2W5FvfdnB84dtf4Jij4KcUYRfLpntpgqsrjIjPNP/pub?gid=884224000&single=true&output=csv';
+// DNC_SHEET_URL removed — DNC checks now via Apps Script (private sheet)
 
-// Cache: Set of phone numbers loaded from Sheets
-let dncSet    = null;   // null = not loaded yet
-let dncLoaded = false;
-let dncLoading = false;
-let dncLoadError = false;
+// DNC checked server-side via Apps Script
+let dncCount = 0;
 
 async function loadDNCFromSheets() {
   if(dncLoading) return;
@@ -2711,30 +2708,12 @@ function dncFormatInput(el) {
 }
 
 async function renderDNC() {
-  // Trigger load in background if not loaded
-  if(!dncLoaded && !dncLoading) loadDNCFromSheets();
-
   const dot  = document.getElementById('dncStatusDot');
   const text = document.getElementById('dncStatusText');
   const link = document.getElementById('dncUploadLink');
-
-  if(dncLoading) {
-    if(dot)  dot.className = 'dnc-status-dot empty';
-    if(text) text.textContent = 'Cargando lista DNC...';
-    // Poll until loaded
-    setTimeout(renderDNC, 800);
-    return;
-  }
-  if(dncLoadError) {
-    if(dot)  dot.className = 'dnc-status-dot empty';
-    if(text) text.textContent = '⚠ Error al cargar la lista DNC';
-    return;
-  }
-  if(dncLoaded && dncSet) {
-    if(dot)  dot.className = 'dnc-status-dot loaded';
-    if(text) text.textContent = dncSet.size.toLocaleString() + ' números en lista DNC ✓';
-    if(link && currentUser?.role === 'admin') link.style.display = 'inline';
-  }
+  if(dot)  dot.className = 'dnc-status-dot loaded';
+  if(text) text.textContent = '🔒 Lista DNC activa — verificación segura';
+  if(link) link.style.display = 'none';
 }
 
 async function checkDNC() {
@@ -2747,38 +2726,35 @@ async function checkDNC() {
   btn.disabled = true;
   btn.textContent = 'Verificando...';
 
-  // If not loaded yet, wait
-  if(!dncLoaded) {
-    if(!dncLoading) await loadDNCFromSheets();
-    else {
-      // Wait up to 10s
-      let waited = 0;
-      while(dncLoading && waited < 10000) {
-        await new Promise(r => setTimeout(r, 300));
-        waited += 300;
-      }
+  try {
+    const resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'check_dnc', phone: clean }),
+    });
+    const result = await resp.json();
+    btn.disabled = false;
+    btn.textContent = 'Verificar';
+
+    if(result.error) {
+      showDNCResult('unknown','⚠️','No se pudo verificar',
+        'Error al consultar la lista DNC: ' + result.error);
+      return;
     }
-  }
 
-  btn.disabled = false;
-  btn.textContent = 'Verificar';
-
-  if(dncLoadError || !dncSet) {
-    showDNCResult('unknown','⚠️','No se pudo verificar',
-      'Error al cargar la lista DNC. Verifica tu conexión e intenta de nuevo.');
-    return;
-  }
-
-  const found = dncSet.has(clean);
-
-  if(found) {
-    showDNCResult('blocked','🚫','NÚMERO EN DNC — NO LLAMAR',
-      clean + ' está registrado en la lista Do Not Call. No continuar con la venta.');
-    document.getElementById('dncProceedBtn').classList.remove('show');
-  } else {
-    showDNCResult('clear','✅','Número libre — Puede continuar',
-      clean + ' no está en la lista DNC. Puede proceder con la venta.');
-    document.getElementById('dncProceedBtn').classList.add('show');
+    if(result.found) {
+      showDNCResult('blocked','🚫','NÚMERO EN DNC — NO LLAMAR',
+        clean + ' está registrado en la lista Do Not Call. No continuar con la venta.');
+      document.getElementById('dncProceedBtn').classList.remove('show');
+    } else {
+      showDNCResult('clear','✅','Número libre — Puede continuar',
+        clean + ' no está en la lista DNC. Puede proceder con la venta.');
+      document.getElementById('dncProceedBtn').classList.add('show');
+    }
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Verificar';
+    showDNCResult('unknown','⚠️','Error de conexión',
+      'No se pudo conectar al validador DNC. Verifica tu conexión.');
   }
 }
 
