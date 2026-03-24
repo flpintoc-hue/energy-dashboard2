@@ -346,6 +346,10 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .sup-panel.sup-indra .sup-panel-header { background: #E91E8C; }
 .sup-panel.sup-indra.selected .sup-panel-header { background: #C2185B; }
 .sup-panel.sup-other .sup-panel-header { background: var(--teal); }
+.sup-panel.sup-rushmore .sup-panel-header { background: #FF6F00; }
+.sup-panel.sup-rushmore.selected .sup-panel-header { background: #E65100; }
+.sup-panel.sup-ecoplus .sup-panel-header { background: #2E7D32; }
+.sup-panel.sup-ecoplus.selected .sup-panel-header { background: #1B5E20; }
 
 .sup-panel-name {
   color: #fff; font-weight: 900; font-size: 1.1rem; letter-spacing: 0.02em;
@@ -1523,6 +1527,7 @@ let db = {
     {id:'u_pnlc',  name:'Penelec (PNLC)',      stateId:'st3', type:'electric'},
     {id:'u_meted', name:'Metropolitan Edison (MetEd)',     stateId:'st3', type:'electric'},
     {id:'u_duqe',  name:'Duquesne Light (DUQE)',      stateId:'st3', type:'electric'},
+    {id:'u_penn_pa', name:'Penn Power (PA)',         stateId:'st3', type:'electric'},
     {id:'u_alleg', name:'Allegheny Power (ALLEG)',     stateId:'st3', type:'electric'},
     {id:'u_pecog', name:'PECO Energy Gas',  stateId:'st3', type:'gas'},
     {id:'u_pgw',   name:'Philadelphia Gas Works (PGW)',       stateId:'st3', type:'gas'},
@@ -1533,10 +1538,13 @@ let db = {
     {id:'u_consumers_g', name:'Consumers Energy (Gas)', stateId:'st10', type:'gas'},
     {id:'u_dte_g', name:'DTE Energy (Gas)',            stateId:'st10', type:'gas'},
     // OH
-    {id:'u_ohio_ee',  name:'Ohio Edison',              stateId:'st11', type:'electric'},
-    {id:'u_firstenergy', name:'FirstEnergy (OH)',      stateId:'st11', type:'electric'},
-    {id:'u_columbia_oh', name:'Columbia Gas OH',       stateId:'st11', type:'gas'},
-    {id:'u_dominion_oh', name:'Dominion Energy OH',    stateId:'st11', type:'gas'},
+    {id:'u_aep_oh',    name:'AEP Ohio / AEP Columbus',          stateId:'st11', type:'electric'},
+    {id:'u_duke_oh',   name:'Duke Energy Ohio',                  stateId:'st11', type:'electric'},
+    {id:'u_firstenergy',name:'FirstEnergy (Toledo Ed, Ohio Ed)', stateId:'st11', type:'electric'},
+    {id:'u_aes_oh',    name:'AES / Dayton Power & Light',        stateId:'st11', type:'electric'},
+    {id:'u_columbia_oh',name:'Columbia Gas Ohio',                stateId:'st11', type:'gas'},
+    {id:'u_dominion_oh',name:'Dominion Energy Ohio',             stateId:'st11', type:'gas'},
+    // DE (Delmarva already exists as u_delmarva but fix stateId)
     // CA
     {id:'u_pge',       name:'Pacific Gas & Electric (PG&E)',           stateId:'st6', type:'gas'},
     // DC
@@ -1581,6 +1589,19 @@ let db = {
     {id:'sp_nge_pgw',   name:'NG&E', utilId:'u_pgw',   margin:'18%', commission:'$28/sale'},
     {id:'sp_nge_ugi',   name:'NG&E', utilId:'u_ugi',   margin:'18%', commission:'$28/sale'},
     {id:'sp_nge_pge',   name:'NG&E', utilId:'u_pge',   margin:'18%', commission:'$28/sale'},
+    // RUSHMORE
+    {id:'sp_rs_de',    name:'Rushmore', utilId:'u_delmarva',    margin:'', commission:''},
+    {id:'sp_rs_jcpl',  name:'Rushmore', utilId:'u_jcpl',        margin:'', commission:''},
+    {id:'sp_rs_ace',   name:'Rushmore', utilId:'u_ace',         margin:'', commission:''},
+    {id:'sp_rs_psege', name:'Rushmore', utilId:'u_psege',       margin:'', commission:''},
+    {id:'sp_rs_aep',   name:'Rushmore', utilId:'u_aep_oh',      margin:'', commission:''},
+    {id:'sp_rs_duke',  name:'Rushmore', utilId:'u_duke_oh',     margin:'', commission:''},
+    {id:'sp_rs_fe',    name:'Rushmore', utilId:'u_firstenergy', margin:'', commission:''},
+    {id:'sp_rs_aes',   name:'Rushmore', utilId:'u_aes_oh',      margin:'', commission:''},
+    {id:'sp_rs_peco',  name:'Rushmore', utilId:'u_peco',        margin:'', commission:''},
+    {id:'sp_rs_ppl',   name:'Rushmore', utilId:'u_pple',        margin:'', commission:''},
+    {id:'sp_rs_duq',   name:'Rushmore', utilId:'u_duqe',        margin:'', commission:''},
+    {id:'sp_rs_meted', name:'Rushmore', utilId:'u_meted',       margin:'', commission:''},
     // INDRA
     {id:'sp_ind_jcpl',    name:'INDRA', utilId:'u_jcpl',      margin:'22%', commission:'$35/sale'},
     {id:'sp_ind_psege',   name:'INDRA', utilId:'u_psege',     margin:'22%', commission:'$35/sale'},
@@ -1637,6 +1658,20 @@ let db = {
     {id:'r_pge2',  supId:'sp_nge_pge',   utility:'PG&E',      energyType:'gas',      rateType:'fixed', price:'0.00',   months:'12',    etf:'125',   uom:'$/Day',   notes:'Tier 2'},
     // ══ INDRA RATES (Effective 12/22/2025) ══════════
     // NJ · Electric
+    // RUSHMORE rates — Fixed 36M, $5/mo remaining ETF
+    {id:'rr_de',    supId:'sp_rs_de',    energyType:'electric', price:'0.1460', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_jcpl',  supId:'sp_rs_jcpl',  energyType:'electric', price:'0.1940', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_ace',   supId:'sp_rs_ace',   energyType:'electric', price:'0.1940', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_psege', supId:'sp_rs_psege', energyType:'electric', price:'0.2230', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_aep',   supId:'sp_rs_aep',   energyType:'electric', price:'0.1360', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_duke',  supId:'sp_rs_duke',  energyType:'electric', price:'0.1300', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_fe',    supId:'sp_rs_fe',    energyType:'electric', price:'0.1330', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_aes',   supId:'sp_rs_aes',   energyType:'electric', price:'0.1290', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_peco',  supId:'sp_rs_peco',  energyType:'electric', price:'0.1560', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_ppl',   supId:'sp_rs_ppl',   energyType:'electric', price:'0.1830', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_duq',   supId:'sp_rs_duq',   energyType:'electric', price:'0.1900', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    {id:'rr_meted', supId:'sp_rs_meted', energyType:'electric', price:'0.1700', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
+    // INDRA rates
     {id:'ind_jcpl_v',    supId:'sp_ind_jcpl',    utility:'JCP&L',      energyType:'electric', rateType:'variable', price:'0.139',         months:'1',   etf:'No ETF', uom:'$/kWh',   notes:'Variable Intro'},
     {id:'ind_jcpl_2p',   supId:'sp_ind_jcpl',    utility:'JCP&L',      energyType:'electric', rateType:'fixed',    price:'0.139 → 0.2687',months:'13',  etf:'No ETF', uom:'$/kWh',   notes:'2-Phase Fixed'},
     {id:'ind_jcpl_6f',   supId:'sp_ind_jcpl',    utility:'JCP&L',      energyType:'electric', rateType:'fixed',    price:'0.2218',         months:'6',   etf:'$10/mo', uom:'$/kWh',   notes:'6M Fixed w/ ETF'},
@@ -1854,6 +1889,9 @@ function doLogout() {
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('adminBtn').style.display = 'none';
+  // Reset login button
+  const btn = document.querySelector('.login-btn');
+  if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
   sel = { stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{} };
   openSupId = null;
   checkedItems.clear();
@@ -2142,7 +2180,7 @@ function renderSupplierCards() {
   g.innerHTML = '<div class="suppliers-parallel">' + supNames.map(name => {
     const supGroup = sups.filter(s => s.name === name);
     const isSelected = supGroup.some(s => sel.supId === s.id);
-    const panelClass = name==='NG&E'?'sup-nge':name==='INDRA'?'sup-indra':'sup-other';
+    const panelClass = name==='NG&E'?'sup-nge':name==='INDRA'?'sup-indra':name==='Rushmore'?'sup-rushmore':name==='Ecoplus Power'?'sup-ecoplus':'sup-other';
     const firstSupId = supGroup[0].id;
 
     // Build rate sections for each utility under this supplier
