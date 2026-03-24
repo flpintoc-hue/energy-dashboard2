@@ -62,7 +62,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   position: relative;
   z-index:1;
   box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-  animation: loginIn 0.5s ease;
+  animation: loginIn 0.5s ease; animation-fill-mode: none;
 }
 @keyframes loginIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
@@ -1527,6 +1527,219 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 <div class="toast" id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════
+// TRANSLATION SYSTEM
+// ════════════════════════════════════════════
+let currentLang = localStorage.getItem('esd_lang') || 'es';
+
+const T = {
+  es: {
+    // Login
+    login_title: 'ENERGY DASHBOARD',
+    login_subtitle: 'SUPPLIER MANAGEMENT SYSTEM',
+    login_user: 'USUARIO',
+    login_pass: 'CONTRASEÑA',
+    login_btn: 'Ingresar →',
+    login_checking: 'Verificando...',
+    login_error_invalid: 'Usuario o contraseña incorrectos',
+    login_error_inactive: '⛔ Tu acceso ha sido desactivado',
+    login_error_blocked: '🔒 Cuenta bloqueada',
+    login_error_session: '🔒 Usuario ya tiene una sesión activa',
+    login_error_conn: '⚠ No se pudo conectar al servidor',
+    login_select_lang: 'Selecciona tu idioma',
+    login_select_avatar: 'Elige tu avatar',
+    login_continue: 'Continuar →',
+    // Nav steps
+    step_dnc: 'DNC',
+    step_state: 'Estado',
+    step_util: 'Utilidad',
+    step_supplier: ''+t('sup_title')+'',
+    step_checklist: 'Checklist',
+    // Buttons
+    btn_back: ''+t('btn_back')+'',
+    btn_continue: 'Continuar →',
+    btn_verify: 'Verificar',
+    btn_verifying: 'Verificando...',
+    btn_proceed: ''+t('btn_proceed')+'',
+    btn_suppliers: 'Ver suppliers',
+    btn_checklist: 'Ir al Checklist →',
+    btn_copy: '📋 Copiar Plantilla',
+    btn_copied: '✅ ¡Copiado!',
+    btn_home: ''+t('btn_home')+'',
+    btn_logout: 'Salir',
+    // DNC
+    dnc_title: ''+t('dnc_title')+'',
+    dnc_subtitle: ''+t('dnc_subtitle')+'',
+    dnc_status: ''+t('dnc_status')+'',
+    dnc_placeholder: '5551234567',
+    dnc_clear: '✅ Número libre — Puede continuar',
+    dnc_clear_sub: 'no está en la lista DNC. Puede proceder con la venta.',
+    dnc_blocked: '🚫 NÚMERO EN DNC — NO LLAMAR',
+    dnc_blocked_sub: 'está registrado en la lista Do Not Call. No continuar con la venta.',
+    dnc_error: '⚠ Error de conexión',
+    dnc_error_sub: 'No se pudo conectar al validador DNC.',
+    // States
+    state_title: ''+t('state_title')+'',
+    state_subtitle: ''+t('state_subtitle')+'',
+    state_utils: 'utilidad',
+    state_utils_pl: 'utilidades',
+    // Utilities
+    util_title: 'Utilidad',
+    util_subtitle: 'Selecciona una utilidad eléctrica y/o de gas',
+    util_hint: '💡 Máximo 1 eléctrica y 1 de gas',
+    util_sample: ''+t('util_sample')+'',
+    util_selected: 'Seleccionadas:',
+    util_add: ''+t('util_add')+'',
+    util_electric: 'ELECTRICIDAD',
+    util_gas: 'GAS',
+    // Supplier
+    sup_title: ''+t('sup_title')+'',
+    sup_subtitle: 'Selecciona un supplier y tarifa',
+    // Checklist
+    check_title: 'Checklist',
+    check_step: 'Paso',
+    check_dnc_title: ''+t('check_dnc_title')+'',
+    check_dnc_desc: ''+t('check_dnc_desc')+'',
+    check_tpl_title: ''+t('check_tpl_title')+'',
+    check_tpl_desc: ''+t('check_tpl_desc')+'',
+    // Template fields
+    tpl_state: 'STATE',
+    tpl_lang: 'LANGUAGE',
+    tpl_phone: 'PHONE NUMBER',
+    tpl_auth: 'AUTHORIZED',
+    tpl_holder: 'ACC HOLDER',
+    tpl_address: 'ADDRESS',
+    tpl_city: 'CITY',
+    tpl_acc: 'ACC INFO',
+    tpl_util: 'UTILITY',
+    tpl_dob: 'DATE OF BIRTH',
+    tpl_namekey: 'NAME KEY',
+    tpl_repid: 'REP ID',
+    tpl_tarifa: 'TARIFA SELECCIONADA',
+    tpl_repid_hint: 'Selecciona el tuyo',
+    // Summary
+    sum_state: 'Estado',
+    sum_util: 'Utilidad',
+    sum_supplier: 'Supplier',
+    sum_agent: 'Agente',
+    // Progress
+    progress_of: ''+t('progress_of')+'',
+    // Session
+    session_warn: '⏱️ Tu sesión expirará en 1 minuto por inactividad',
+    session_continue: 'Continuar sesión',
+    // Admin
+    admin_title: 'Panel Admin',
+    admin_close: '✕',
+  },
+  en: {
+    // Login
+    login_title: 'ENERGY DASHBOARD',
+    login_subtitle: 'SUPPLIER MANAGEMENT SYSTEM',
+    login_user: 'USERNAME',
+    login_pass: 'PASSWORD',
+    login_btn: 'Login →',
+    login_checking: 'Verifying...',
+    login_error_invalid: 'Incorrect username or password',
+    login_error_inactive: '⛔ Your access has been deactivated',
+    login_error_blocked: '🔒 Account locked',
+    login_error_session: '🔒 User already has an active session',
+    login_error_conn: '⚠ Could not connect to server',
+    login_select_lang: 'Select your language',
+    login_select_avatar: 'Choose your avatar',
+    login_continue: 'Continue →',
+    // Nav steps
+    step_dnc: 'DNC',
+    step_state: 'State',
+    step_util: 'Utility',
+    step_supplier: ''+t('sup_title')+'',
+    step_checklist: 'Checklist',
+    // Buttons
+    btn_back: '← Back',
+    btn_continue: 'Continue →',
+    btn_verify: 'Verify',
+    btn_verifying: 'Verifying...',
+    btn_proceed: '✓ Number clear — Continue with sale →',
+    btn_suppliers: 'View suppliers',
+    btn_checklist: 'Go to Checklist →',
+    btn_copy: '📋 Copy Template',
+    btn_copied: '✅ Copied!',
+    btn_home: '🏠 NEW DNC QUERY',
+    btn_logout: 'Logout',
+    // DNC
+    dnc_title: 'Do Not Call — Validator',
+    dnc_subtitle: 'Enter the customer number to verify if it is on the DNC list',
+    dnc_status: '🔒 DNC list active — secure verification',
+    dnc_placeholder: '5551234567',
+    dnc_clear: '✅ Number clear — Can continue',
+    dnc_clear_sub: 'is not on the DNC list. You may proceed with the sale.',
+    dnc_blocked: '🚫 NUMBER ON DNC — DO NOT CALL',
+    dnc_blocked_sub: 'is registered on the Do Not Call list. Do not continue with the sale.',
+    dnc_error: '⚠ Connection error',
+    dnc_error_sub: 'Could not connect to DNC validator.',
+    // States
+    state_title: 'Select State',
+    state_subtitle: 'Tap a state to continue',
+    state_utils: 'utility',
+    state_utils_pl: 'utilities',
+    // Utilities
+    util_title: 'Utility',
+    util_subtitle: 'Select an electric and/or gas utility',
+    util_hint: '💡 Max 1 electric and 1 gas',
+    util_sample: '📄 View sample bill',
+    util_selected: 'Selected:',
+    util_add: '+ Add',
+    util_electric: 'ELECTRICITY',
+    util_gas: 'GAS',
+    // Supplier
+    sup_title: ''+t('sup_title')+'',
+    sup_subtitle: 'Select a supplier and rate',
+    // Checklist
+    check_title: 'Checklist',
+    check_step: 'Step',
+    check_dnc_title: 'Validate DNC number',
+    check_dnc_desc: 'Verify the phone number is NOT on the Do Not Call list.',
+    check_tpl_title: 'Complete sale template',
+    check_tpl_desc: 'Fill all fields. Highlighted ones were auto-filled.',
+    // Template fields
+    tpl_state: 'STATE',
+    tpl_lang: 'LANGUAGE',
+    tpl_phone: 'PHONE NUMBER',
+    tpl_auth: 'AUTHORIZED',
+    tpl_holder: 'ACC HOLDER',
+    tpl_address: 'ADDRESS',
+    tpl_city: 'CITY',
+    tpl_acc: 'ACC INFO',
+    tpl_util: 'UTILITY',
+    tpl_dob: 'DATE OF BIRTH',
+    tpl_namekey: 'NAME KEY',
+    tpl_repid: 'REP ID',
+    tpl_tarifa: 'SELECTED RATE',
+    tpl_repid_hint: 'Select yours',
+    // Summary
+    sum_state: 'State',
+    sum_util: 'Utility',
+    sum_supplier: 'Supplier',
+    sum_agent: 'Agent',
+    // Progress
+    progress_of: 'completed',
+    // Session
+    session_warn: '⏱️ Your session will expire in 1 minute due to inactivity',
+    session_continue: 'Continue session',
+    // Admin
+    admin_title: 'Admin Panel',
+    admin_close: '✕',
+  }
+};
+
+function t(key) {
+  return (T[currentLang] && T[currentLang][key]) || (T['es'][key]) || key;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('esd_lang', lang);
+}
+
 // ════════════════════════════════════════════
 // PERSISTENT STORAGE
 // users → Google Sheets (shared across devices)
@@ -3075,218 +3288,7 @@ function getAccInfo(utilName) {
 }
 
 
-// ════════════════════════════════════════════
-// TRANSLATION SYSTEM
-// ════════════════════════════════════════════
-let currentLang = localStorage.getItem('esd_lang') || 'es';
 
-const T = {
-  es: {
-    // Login
-    login_title: 'ENERGY DASHBOARD',
-    login_subtitle: 'SUPPLIER MANAGEMENT SYSTEM',
-    login_user: 'USUARIO',
-    login_pass: 'CONTRASEÑA',
-    login_btn: 'Ingresar →',
-    login_checking: 'Verificando...',
-    login_error_invalid: 'Usuario o contraseña incorrectos',
-    login_error_inactive: '⛔ Tu acceso ha sido desactivado',
-    login_error_blocked: '🔒 Cuenta bloqueada',
-    login_error_session: '🔒 Usuario ya tiene una sesión activa',
-    login_error_conn: '⚠ No se pudo conectar al servidor',
-    login_select_lang: 'Selecciona tu idioma',
-    login_select_avatar: 'Elige tu avatar',
-    login_continue: 'Continuar →',
-    // Nav steps
-    step_dnc: 'DNC',
-    step_state: 'Estado',
-    step_util: 'Utilidad',
-    step_supplier: ''+t('sup_title')+'',
-    step_checklist: 'Checklist',
-    // Buttons
-    btn_back: ''+t('btn_back')+'',
-    btn_continue: 'Continuar →',
-    btn_verify: 'Verificar',
-    btn_verifying: 'Verificando...',
-    btn_proceed: ''+t('btn_proceed')+'',
-    btn_suppliers: 'Ver suppliers',
-    btn_checklist: 'Ir al Checklist →',
-    btn_copy: '📋 Copiar Plantilla',
-    btn_copied: '✅ ¡Copiado!',
-    btn_home: ''+t('btn_home')+'',
-    btn_logout: 'Salir',
-    // DNC
-    dnc_title: ''+t('dnc_title')+'',
-    dnc_subtitle: ''+t('dnc_subtitle')+'',
-    dnc_status: ''+t('dnc_status')+'',
-    dnc_placeholder: '5551234567',
-    dnc_clear: '✅ Número libre — Puede continuar',
-    dnc_clear_sub: 'no está en la lista DNC. Puede proceder con la venta.',
-    dnc_blocked: '🚫 NÚMERO EN DNC — NO LLAMAR',
-    dnc_blocked_sub: 'está registrado en la lista Do Not Call. No continuar con la venta.',
-    dnc_error: '⚠ Error de conexión',
-    dnc_error_sub: 'No se pudo conectar al validador DNC.',
-    // States
-    state_title: ''+t('state_title')+'',
-    state_subtitle: ''+t('state_subtitle')+'',
-    state_utils: 'utilidad',
-    state_utils_pl: 'utilidades',
-    // Utilities
-    util_title: 'Utilidad',
-    util_subtitle: 'Selecciona una utilidad eléctrica y/o de gas',
-    util_hint: '💡 Máximo 1 eléctrica y 1 de gas',
-    util_sample: ''+t('util_sample')+'',
-    util_selected: 'Seleccionadas:',
-    util_add: ''+t('util_add')+'',
-    util_electric: 'ELECTRICIDAD',
-    util_gas: 'GAS',
-    // Supplier
-    sup_title: ''+t('sup_title')+'',
-    sup_subtitle: 'Selecciona un supplier y tarifa',
-    // Checklist
-    check_title: 'Checklist',
-    check_step: 'Paso',
-    check_dnc_title: ''+t('check_dnc_title')+'',
-    check_dnc_desc: ''+t('check_dnc_desc')+'',
-    check_tpl_title: ''+t('check_tpl_title')+'',
-    check_tpl_desc: ''+t('check_tpl_desc')+'',
-    // Template fields
-    tpl_state: 'STATE',
-    tpl_lang: 'LANGUAGE',
-    tpl_phone: 'PHONE NUMBER',
-    tpl_auth: 'AUTHORIZED',
-    tpl_holder: 'ACC HOLDER',
-    tpl_address: 'ADDRESS',
-    tpl_city: 'CITY',
-    tpl_acc: 'ACC INFO',
-    tpl_util: 'UTILITY',
-    tpl_dob: 'DATE OF BIRTH',
-    tpl_namekey: 'NAME KEY',
-    tpl_repid: 'REP ID',
-    tpl_tarifa: 'TARIFA SELECCIONADA',
-    tpl_repid_hint: 'Selecciona el tuyo',
-    // Summary
-    sum_state: 'Estado',
-    sum_util: 'Utilidad',
-    sum_supplier: 'Supplier',
-    sum_agent: 'Agente',
-    // Progress
-    progress_of: ''+t('progress_of')+'',
-    // Session
-    session_warn: '⏱️ Tu sesión expirará en 1 minuto por inactividad',
-    session_continue: 'Continuar sesión',
-    // Admin
-    admin_title: 'Panel Admin',
-    admin_close: '✕',
-  },
-  en: {
-    // Login
-    login_title: 'ENERGY DASHBOARD',
-    login_subtitle: 'SUPPLIER MANAGEMENT SYSTEM',
-    login_user: 'USERNAME',
-    login_pass: 'PASSWORD',
-    login_btn: 'Login →',
-    login_checking: 'Verifying...',
-    login_error_invalid: 'Incorrect username or password',
-    login_error_inactive: '⛔ Your access has been deactivated',
-    login_error_blocked: '🔒 Account locked',
-    login_error_session: '🔒 User already has an active session',
-    login_error_conn: '⚠ Could not connect to server',
-    login_select_lang: 'Select your language',
-    login_select_avatar: 'Choose your avatar',
-    login_continue: 'Continue →',
-    // Nav steps
-    step_dnc: 'DNC',
-    step_state: 'State',
-    step_util: 'Utility',
-    step_supplier: ''+t('sup_title')+'',
-    step_checklist: 'Checklist',
-    // Buttons
-    btn_back: '← Back',
-    btn_continue: 'Continue →',
-    btn_verify: 'Verify',
-    btn_verifying: 'Verifying...',
-    btn_proceed: '✓ Number clear — Continue with sale →',
-    btn_suppliers: 'View suppliers',
-    btn_checklist: 'Go to Checklist →',
-    btn_copy: '📋 Copy Template',
-    btn_copied: '✅ Copied!',
-    btn_home: '🏠 NEW DNC QUERY',
-    btn_logout: 'Logout',
-    // DNC
-    dnc_title: 'Do Not Call — Validator',
-    dnc_subtitle: 'Enter the customer number to verify if it is on the DNC list',
-    dnc_status: '🔒 DNC list active — secure verification',
-    dnc_placeholder: '5551234567',
-    dnc_clear: '✅ Number clear — Can continue',
-    dnc_clear_sub: 'is not on the DNC list. You may proceed with the sale.',
-    dnc_blocked: '🚫 NUMBER ON DNC — DO NOT CALL',
-    dnc_blocked_sub: 'is registered on the Do Not Call list. Do not continue with the sale.',
-    dnc_error: '⚠ Connection error',
-    dnc_error_sub: 'Could not connect to DNC validator.',
-    // States
-    state_title: 'Select State',
-    state_subtitle: 'Tap a state to continue',
-    state_utils: 'utility',
-    state_utils_pl: 'utilities',
-    // Utilities
-    util_title: 'Utility',
-    util_subtitle: 'Select an electric and/or gas utility',
-    util_hint: '💡 Max 1 electric and 1 gas',
-    util_sample: '📄 View sample bill',
-    util_selected: 'Selected:',
-    util_add: '+ Add',
-    util_electric: 'ELECTRICITY',
-    util_gas: 'GAS',
-    // Supplier
-    sup_title: ''+t('sup_title')+'',
-    sup_subtitle: 'Select a supplier and rate',
-    // Checklist
-    check_title: 'Checklist',
-    check_step: 'Step',
-    check_dnc_title: 'Validate DNC number',
-    check_dnc_desc: 'Verify the phone number is NOT on the Do Not Call list.',
-    check_tpl_title: 'Complete sale template',
-    check_tpl_desc: 'Fill all fields. Highlighted ones were auto-filled.',
-    // Template fields
-    tpl_state: 'STATE',
-    tpl_lang: 'LANGUAGE',
-    tpl_phone: 'PHONE NUMBER',
-    tpl_auth: 'AUTHORIZED',
-    tpl_holder: 'ACC HOLDER',
-    tpl_address: 'ADDRESS',
-    tpl_city: 'CITY',
-    tpl_acc: 'ACC INFO',
-    tpl_util: 'UTILITY',
-    tpl_dob: 'DATE OF BIRTH',
-    tpl_namekey: 'NAME KEY',
-    tpl_repid: 'REP ID',
-    tpl_tarifa: 'SELECTED RATE',
-    tpl_repid_hint: 'Select yours',
-    // Summary
-    sum_state: 'State',
-    sum_util: 'Utility',
-    sum_supplier: 'Supplier',
-    sum_agent: 'Agent',
-    // Progress
-    progress_of: 'completed',
-    // Session
-    session_warn: '⏱️ Your session will expire in 1 minute due to inactivity',
-    session_continue: 'Continue session',
-    // Admin
-    admin_title: 'Admin Panel',
-    admin_close: '✕',
-  }
-};
-
-function t(key) {
-  return (T[currentLang] && T[currentLang][key]) || (T['es'][key]) || key;
-}
-
-function setLang(lang) {
-  currentLang = lang;
-  localStorage.setItem('esd_lang', lang);
-}
 
 
 // ════════════════════════════════════════════
@@ -3311,9 +3313,11 @@ const AVATAR_SEEDS = [
 ];
 
 const AVATARS = {};
-AVATAR_SEEDS.forEach(a => {
-  AVATARS[a.id] = { ...a, url: `https://api.dicebear.com/7.x/adventurer/svg?seed=${a.seed}&backgroundColor=${a.bg.replace('#','')}` };
-});
+try {
+  AVATAR_SEEDS.forEach(a => {
+    AVATARS[a.id] = { ...a, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed='+a.seed+'&backgroundColor='+a.bg.replace('#','') };
+  });
+} catch(e) { console.error('Avatar init error:', e); }
 
 function getAvatarHtml(avatarKey, size=36) {
   const av = AVATARS[avatarKey] || AVATAR_SEEDS[0];
@@ -3553,11 +3557,22 @@ function selectStateFromMap(stateId) {
   selectState(stateId);
 }
 
-loadFromStorage().then(() => {
-  // DNC loads automatically from Google Sheets when agent reaches step 0
-  // Push initial state for browser back button
-  history.pushState({ step: 0 }, '');
+// Ensure login button works even if onclick attr fails
+document.addEventListener('DOMContentLoaded', function() {
+  const lb = document.getElementById('loginBtn');
+  if(lb) lb.addEventListener('click', doLogin);
+  const eb = document.getElementById('loginEnterBtn');
+  if(eb) eb.addEventListener('click', finishLogin);
 });
+
+try {
+  loadFromStorage().then(() => {
+    // DNC loads automatically from Google Sheets when agent reaches step 0
+    try { history.pushState({ step: 0 }, ''); } catch(e) {}
+  }).catch(e => console.error('Init error:', e));
+} catch(e) {
+  console.error('Load error:', e);
+}
 
 // Intercept browser back button
 window.addEventListener('popstate', function(e) {
