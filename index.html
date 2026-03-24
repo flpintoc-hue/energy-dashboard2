@@ -1570,7 +1570,7 @@ const T = {
     // DNC
     dnc_title: 'Do Not Call — Validador',
     dnc_subtitle: 'Ingresa el número del cliente para verificar si está en la lista DNC',
-    dnc_status: ''+t('dnc_status')+'',
+    dnc_status: '🔒 Lista DNC activa — verificación segura',
     dnc_placeholder: '5551234567',
     dnc_clear: '✅ Número libre — Puede continuar',
     dnc_clear_sub: 'no está en la lista DNC. Puede proceder con la venta.',
@@ -1598,10 +1598,10 @@ const T = {
     // Checklist
     check_title: 'Checklist',
     check_step: 'Paso',
-    check_dnc_title: ''+t('check_dnc_title')+'',
-    check_dnc_desc: ''+t('check_dnc_desc')+'',
-    check_tpl_title: ''+t('check_tpl_title')+'',
-    check_tpl_desc: ''+t('check_tpl_desc')+'',
+    check_dnc_title: 'Validar número en el DNC',
+    check_dnc_desc: 'Verificar que el número NO esté en la lista DNC.',
+    check_tpl_title: 'Completar plantilla de venta',
+    check_tpl_desc: 'Llena todos los campos antes de continuar.',
     // Template fields
     tpl_state: 'STATE',
     tpl_lang: 'LANGUAGE',
@@ -2051,8 +2051,8 @@ let db = {
 
   ],
   checkItems: [
-    {id:'c0',title:''+t('check_dnc_title')+'',desc:'Verificar que el número de teléfono del cliente NO esté registrado en la lista Do Not Call (DNC) antes de continuar con la venta.',type:'check'},
-    {id:'c_template',title:''+t('check_tpl_title')+'',desc:'Llenar todos los campos de la plantilla antes de continuar.',type:'template'},
+    {id:'c0',title:''+'check_dnc_title'+'',desc:'Verificar que el número de teléfono del cliente NO esté registrado en la lista Do Not Call (DNC) antes de continuar con la venta.',type:'check'},
+    {id:'c_template',title:''+'check_tpl_title'+'',desc:'Llenar todos los campos de la plantilla antes de continuar.',type:'template'},
   ]
 };
 
