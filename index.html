@@ -823,15 +823,16 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;
 }
 .rep-chip {
-  padding:8px 18px; border-radius:100px;
-  border:2px solid #5CB85C; background:#fff;
-  cursor:pointer; font-size:0.82rem; font-weight:900;
-  color:#2E7D32; transition:all 0.2s;
+  padding:10px 20px; border-radius:8px;
+  border:none; background:#4CAF50;
+  cursor:pointer; font-size:0.85rem; font-weight:900;
+  color:#fff; transition:all 0.2s;
   font-family:'Nunito',sans-serif;
-  letter-spacing:0.03em;
+  letter-spacing:0.04em;
+  box-shadow:0 3px 8px rgba(76,175,80,0.35);
 }
-.rep-chip:hover { background:#E8F5E9; border-color:#2E7D32; transform:translateY(-1px); box-shadow:0 3px 8px rgba(46,125,50,0.2); }
-.rep-chip.selected { background:#4CAF50; border-color:#2E7D32; color:#fff; box-shadow:0 3px 10px rgba(76,175,80,0.4); }
+.rep-chip:hover { background:#388E3C; transform:translateY(-2px); box-shadow:0 5px 14px rgba(76,175,80,0.45); }
+.rep-chip.selected { background:#1B5E20; box-shadow:0 3px 10px rgba(27,94,32,0.5); transform:translateY(-1px); }
 
 /* ── HOME BUTTON (big, prominent) ── */
 .home-btn-big {
@@ -956,6 +957,30 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 .attempt-dot.used { background:#E53935; }
 
+
+.top-back-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);
+  color:#fff; border-radius:8px; padding:6px 14px;
+  cursor:pointer; font-family:'Nunito',sans-serif;
+  font-weight:800; font-size:0.78rem; transition:all 0.2s;
+}
+.top-back-btn:hover { background:rgba(255,255,255,0.25); }
+
+
+/* DNC pulse animation */
+.dnc-header-icon { position:relative; display:flex; align-items:center; justify-content:center; }
+.dnc-pulse-ring {
+  position:absolute; width:52px; height:52px;
+  border-radius:50%; border:3px solid rgba(255,255,255,0.4);
+  animation:dncPulse 2s ease-out infinite;
+}
+@keyframes dncPulse {
+  0%   { transform:scale(0.8); opacity:1; }
+  70%  { transform:scale(1.4); opacity:0; }
+  100% { transform:scale(0.8); opacity:0; }
+}
+
 </style>
 </head>
 <body>
@@ -1002,6 +1027,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </div>
 
   <div class="step-nav" id="stepNav">
+    <button class="top-back-btn" id="topBackBtn" onclick="goBack()" style="display:none">← Atrás</button>
     <div class="step-item active" id="nav0" onclick="goStep(0)"><span class="step-num">1</span>DNC</div>
     <span class="step-arrow">›</span>
     <div class="step-item" id="nav1" onclick="goStep(1)"><span class="step-num">2</span>Estado</div>
@@ -1020,7 +1046,10 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
     <div class="panel active" id="panel0">
       <div class="dnc-panel">
         <div class="dnc-header">
-          <div class="dnc-header-icon">🚫</div>
+          <div class="dnc-header-icon">
+            <div class="dnc-pulse-ring"></div>
+            🚫
+          </div>
           <div class="dnc-header-text">
             <h3>Do Not Call — Validador</h3>
             <p>Ingresa el número del cliente para verificar si está en la lista DNC</p>
@@ -1070,35 +1099,27 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <!-- Pacific coast indent -->
             <path d="M108,190 L155,165 L165,220 L170,300 L168,370 L150,420 L130,400 L100,300 Z" fill="#D4DCE8" stroke="none"/>
 
-            <!-- CA - Orange -->
+            <!-- MI - Orange -->
             <g class="map-state-group" style="cursor:default">
-              <path d="M108,185 L148,162 L162,205 L168,275 L170,345 L158,395 L138,415 L115,398 L100,350 L98,280 Z"
+              <path d="M510,140 L555,138 L560,185 L555,200 L510,198 L505,185 Z"
                 fill="#F47C20" stroke="white" stroke-width="2.5"
-                style="transition:all 0.25s;transform-origin:135px 295px"
-                onmouseover="zoomState(this,'CA','California')"
+                style="transition:all 0.25s;transform-origin:532px 170px"
+                onmouseover="zoomState(this,'MI','Michigan')"
                 onmouseout="unzoomState(this)"/>
-              <text x="134" y="300" text-anchor="middle" font-family="Nunito,sans-serif" font-size="14" font-weight="900" fill="white" style="pointer-events:none">CA</text>
+              <text x="532" y="173" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">MI</text>
             </g>
 
-            <!-- IN - Purple -->
+            <!-- OH - Purple -->
             <g class="map-state-group" style="cursor:default">
-              <path d="M488,190 L535,188 L540,255 L534,278 L488,276 L482,255 Z"
+              <path d="M555,198 L605,195 L610,255 L555,258 L550,255 Z"
                 fill="#9C27B0" stroke="white" stroke-width="2.5"
-                style="transition:all 0.25s;transform-origin:511px 234px"
-                onmouseover="zoomState(this,'IN','Indiana')"
+                style="transition:all 0.25s;transform-origin:580px 227px"
+                onmouseover="zoomState(this,'OH','Ohio')"
                 onmouseout="unzoomState(this)"/>
-              <text x="511" y="238" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">IN</text>
+              <text x="580" y="230" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">OH</text>
             </g>
 
-            <!-- NY - Teal -->
-            <g class="map-state-group" style="cursor:default">
-              <path d="M635,110 L760,105 L766,155 L730,158 L720,160 L632,165 Z"
-                fill="#00897B" stroke="white" stroke-width="2.5"
-                style="transition:all 0.25s;transform-origin:700px 137px"
-                onmouseover="zoomState(this,'NY','New York')"
-                onmouseout="unzoomState(this)"/>
-              <text x="700" y="140" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="900" fill="white" style="pointer-events:none">NY</text>
-            </g>
+            <!-- NY removed -->
 
             <!-- PA - Blue -->
             <g class="map-state-group" style="cursor:default">
@@ -1150,15 +1171,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
               <text x="720" y="264" text-anchor="middle" font-family="Nunito,sans-serif" font-size="7.5" font-weight="900" fill="white" style="pointer-events:none">DC</text>
             </g>
 
-            <!-- VA - Cyan -->
-            <g class="map-state-group" style="cursor:default">
-              <path d="M628,258 L732,252 L738,290 L704,315 L644,310 L620,288 Z"
-                fill="#0097A7" stroke="white" stroke-width="2.5"
-                style="transition:all 0.25s;transform-origin:679px 284px"
-                onmouseover="zoomState(this,'VA','Virginia')"
-                onmouseout="unzoomState(this)"/>
-              <text x="679" y="288" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">VA</text>
-            </g>
+            <!-- VA removed -->
 
             <!-- Tooltip -->
             <g id="mapTooltip" style="display:none;pointer-events:none">
@@ -1169,15 +1182,13 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         </div>
         <!-- Color legend -->
         <div class="big-map-legend">
-          <span class="bml-item"><span class="bml-dot" style="background:#F47C20"></span>CA</span>
-          <span class="bml-item"><span class="bml-dot" style="background:#9C27B0"></span>IN</span>
-          <span class="bml-item"><span class="bml-dot" style="background:#00897B"></span>NY</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#F47C20"></span>MI</span>
+          <span class="bml-item"><span class="bml-dot" style="background:#9C27B0"></span>OH</span>
           <span class="bml-item"><span class="bml-dot" style="background:#1565C0"></span>PA</span>
           <span class="bml-item"><span class="bml-dot" style="background:#C62828"></span>MA</span>
           <span class="bml-item"><span class="bml-dot" style="background:#2E7D32"></span>NJ</span>
           <span class="bml-item"><span class="bml-dot" style="background:#E91E8C"></span>DE</span>
           <span class="bml-item"><span class="bml-dot" style="background:#F9A825"></span>DC</span>
-          <span class="bml-item"><span class="bml-dot" style="background:#0097A7"></span>VA</span>
         </div>
       </div>
       <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
@@ -1189,6 +1200,16 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <div class="selected-utils-bar" id="selectedUtilsBar">
         <div style="font-size:0.7rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Seleccionadas:</div>
         <div id="selectedUtilsBadges"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700">
+          💡 Selecciona máximo 1 utilidad eléctrica y 1 de gas
+        </div>
+        <a href="#" id="sampleBillLink" onclick="openSampleBill(event)"
+           style="display:inline-flex;align-items:center;gap:6px;background:#E3F2FD;color:var(--blue-dark);padding:7px 14px;border-radius:8px;font-size:0.75rem;font-weight:800;text-decoration:none;border:1px solid #BBDEFB;transition:all 0.2s"
+           title="Ver factura de ejemplo">
+          📄 Ver factura de ejemplo
+        </a>
       </div>
       <div class="utilities-grid" id="utilitiesGrid"></div>
       <button class="util-proceed-btn" id="utilProceedBtn" onclick="goStep(3)" style="margin-bottom:12px">
@@ -1254,6 +1275,17 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div style="margin-bottom:16px">
           <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Estado de la Lista DNC</div>
           <div id="dncAdminStatus" style="font-size:0.85rem;font-weight:700;padding:12px 16px;background:#E8F5E9;border-radius:8px;color:var(--green-dark);">Calculando...</div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">URL Factura de Ejemplo</div>
+          <div style="display:flex;gap:8px">
+            <input id="sampleBillInput" class="dinput" placeholder="https://link-al-pdf.com/factura.pdf"
+              value="${localStorage.getItem('esd_sample_bill')||''}" style="flex:1">
+            <button onclick="setSampleBillUrl(document.getElementById('sampleBillInput').value)"
+              style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem">
+              Guardar
+            </button>
+          </div>
         </div>
         <button onclick="reloadDNC();refreshDNCAdminStatus()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem;margin-bottom:18px;transition:all 0.2s">
           ↺ Recargar lista desde Google Sheets
@@ -1471,11 +1503,9 @@ let db = {
     {id:'st2', name:'New Jersey',    code:'NJ'},
     {id:'st3', name:'Pennsylvania',  code:'PA'},
     {id:'st4', name:'Washington DC', code:'DC'},
-    {id:'st5', name:'Indiana',       code:'IN'},
-    {id:'st6', name:'California',    code:'CA'},
-    {id:'st7', name:'Virginia',      code:'VA'},
     {id:'st8', name:'Delaware',      code:'DE'},
-    {id:'st9', name:'New York',      code:'NY'},
+    {id:'st10',name:'Michigan',      code:'MI'},
+    {id:'st11',name:'Ohio',          code:'OH'},
   ],
   utilities: [
     // MA
@@ -1497,6 +1527,16 @@ let db = {
     {id:'u_pecog', name:'PECO Energy Gas',  stateId:'st3', type:'gas'},
     {id:'u_pgw',   name:'Philadelphia Gas Works (PGW)',       stateId:'st3', type:'gas'},
     {id:'u_ugi',   name:'UGI Utilities (UGI)',       stateId:'st3', type:'gas'},
+    // MI
+    {id:'u_dte',   name:'DTE Energy (Electric)',      stateId:'st10', type:'electric'},
+    {id:'u_consumers', name:'Consumers Energy (Electric)', stateId:'st10', type:'electric'},
+    {id:'u_consumers_g', name:'Consumers Energy (Gas)', stateId:'st10', type:'gas'},
+    {id:'u_dte_g', name:'DTE Energy (Gas)',            stateId:'st10', type:'gas'},
+    // OH
+    {id:'u_ohio_ee',  name:'Ohio Edison',              stateId:'st11', type:'electric'},
+    {id:'u_firstenergy', name:'FirstEnergy (OH)',      stateId:'st11', type:'electric'},
+    {id:'u_columbia_oh', name:'Columbia Gas OH',       stateId:'st11', type:'gas'},
+    {id:'u_dominion_oh', name:'Dominion Energy OH',    stateId:'st11', type:'gas'},
     // CA
     {id:'u_pge',       name:'Pacific Gas & Electric (PG&E)',           stateId:'st6', type:'gas'},
     // DC
@@ -1883,6 +1923,9 @@ function goStep(n) {
   if(n===3) renderSupplierCards();
   if(n===4) renderChecklist();
   updateContext();
+  // Show/hide top back button
+  const topBack = document.getElementById('topBackBtn');
+  if(topBack) topBack.style.display = n > 0 ? 'inline-flex' : 'none';
 }
 
 function updateContext() {
@@ -1935,6 +1978,24 @@ function renderStates() {
   }).join('');
   renderMiniMap();
 }
+function openSampleBill(e) {
+  e.preventDefault();
+  // Admin can set PDF URL per state in admin panel
+  // For now open a placeholder — admin should update SAMPLE_BILL_URL
+  const url = localStorage.getItem('esd_sample_bill') || null;
+  if(url) {
+    window.open(url, '_blank');
+  } else {
+    toast('⚠ No hay factura de ejemplo configurada. Admin: agrega el link en ⚙ Admin → Configuración', 'warn');
+  }
+}
+function setSampleBillUrl(url) {
+  localStorage.setItem('esd_sample_bill', url);
+  toast('✓ URL de factura guardada', 'success');
+}
+function goBack() {
+  if(currentStep > 0) goStep(currentStep - 1);
+}
 function selectState(id){sel.stateId=id;sel.utilIds=[];sel.supId=null;updateContext();goStep(2);}
 
 function renderUtilities() {
@@ -1949,10 +2010,15 @@ function renderUtilities() {
 
   const utilCard = u => {
     const isSelected = sel.utilIds.includes(u.id);
+    const accInfo = getAccInfo(u.name);
+    const accHint = accInfo ? `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:3px;font-weight:700">${accInfo.label}${accInfo.chars?' · '+accInfo.chars+' car.':''}</div>` : '';
     return `
     <div class="util-card${isSelected?' selected':''}" onclick="toggleUtil('${u.id}')">
-      <div class="util-name">${u.name}</div>
-      ${isSelected ? '<span style="color:var(--blue);font-weight:900;font-size:1rem">✓</span>' : '<span style="color:var(--text-muted);font-size:0.8rem">+ Agregar</span>'}
+      <div>
+        <div class="util-name">${u.name}</div>
+        ${accHint}
+      </div>
+      ${isSelected ? '<span style="color:var(--blue);font-weight:900;font-size:1rem;flex-shrink:0">✓</span>' : '<span style="color:var(--text-muted);font-size:0.75rem;flex-shrink:0">+ Agregar</span>'}
     </div>`;
   };
 
@@ -1972,10 +2038,26 @@ function renderUtilities() {
 }
 
 function toggleUtil(id) {
+  const util = db.utilities.find(u => u.id === id);
+  if(!util) return;
+  const type = util.type; // 'electric' or 'gas'
+
   const idx = sel.utilIds.indexOf(id);
-  if(idx === -1) sel.utilIds.push(id);
-  else sel.utilIds.splice(idx, 1);
-  // For supplier step, use first selected util (we'll show all)
+  if(idx !== -1) {
+    // Deselect
+    sel.utilIds.splice(idx, 1);
+  } else {
+    // Remove any existing selection of same type (max 1 per type)
+    const sameType = sel.utilIds.filter(uid => {
+      const u = db.utilities.find(x => x.id === uid);
+      return u && u.type === type;
+    });
+    sameType.forEach(uid => {
+      const i = sel.utilIds.indexOf(uid);
+      if(i !== -1) sel.utilIds.splice(i, 1);
+    });
+    sel.utilIds.push(id);
+  }
   sel.utilId = sel.utilIds[0] || null;
   renderUtilities();
   updateContext();
@@ -2265,9 +2347,6 @@ function renderTemplateStep(stepNum, state, util, sup) {
             <option value="">Selecciona...</option>
             <option value="English">🇺🇸 English</option>
             <option value="Spanish">🇪🇸 Spanish</option>
-            <option value="Portuguese">🇧🇷 Portuguese</option>
-            <option value="French">🇫🇷 French</option>
-            <option value="Mandarin">🇨🇳 Mandarin</option>
           </select>
         </div>
 
