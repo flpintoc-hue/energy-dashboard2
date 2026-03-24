@@ -1062,7 +1062,9 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
     <!-- STEP 2: LANGUAGE + AVATAR -->
     <div id="loginStep2" style="display:none">
       <div class="login-logo">
-        <div id="loginAvatarPreview" style="margin:0 auto 12px;width:80px;height:80px;border-radius:50%;background:#FF6B6B;display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.3s">😊</div>
+        <div id="loginAvatarPreview" style="margin:0 auto 12px;width:90px;height:90px;border-radius:50%;background:#FF6B6B;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.3s;display:flex;align-items:center;justify-content:center">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix&backgroundColor=FF6B6B" style="width:100%;height:100%;object-fit:cover" id="avatarPreviewImg">
+          </div>
         <h1 id="loginWelcome" style="font-size:1.1rem">¡Bienvenido!</h1>
         <p id="loginWelcomeName" style="color:rgba(255,255,255,0.7);font-size:0.85rem;margin-top:4px;font-weight:700"></p>
       </div>
@@ -1850,7 +1852,7 @@ let currentUser = null;
 let pendingUser = null; // user waiting for lang/avatar selection
 
 async function doLogin() {
-  const btn = document.querySelector('.login-btn');
+  const btn = document.getElementById('loginBtn');
   if(btn) { btn.disabled = true; btn.textContent = t('btn_verifying'); }
 
   const rawU = document.getElementById('loginUser').value.trim();
@@ -1940,6 +1942,7 @@ async function doLogin() {
   }
 
   // Auth success — show step 2 (language + avatar)
+  if(btn) { btn.disabled = false; btn.textContent = t('login_btn'); }
   pendingUser = { ...user, sessionToken };
   showLoginStep2(user.name);
 }
@@ -1961,7 +1964,7 @@ function doLogout() {
   document.getElementById('loginStep2').style.display = 'none';
   pendingUser = null;
   // Reset login button
-  const btn = document.querySelector('.login-btn');
+  const btn = document.getElementById('loginBtn');
   if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
   sel = { stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{} };
   openSupId = null;
@@ -3291,24 +3294,31 @@ function setLang(lang) {
 // ════════════════════════════════════════════
 let currentAvatar = localStorage.getItem('esd_avatar') || 'avatar1';
 
-const AVATARS = {
-  avatar1: { name: '😊 Feliz',    emoji: '😊', bg: '#FF6B6B', label: 'Happy' },
-  avatar2: { name: '😎 Cool',     emoji: '😎', bg: '#4ECDC4', label: 'Cool' },
-  avatar3: { name: '🤓 Experto',  emoji: '🤓', bg: '#45B7D1', label: 'Expert' },
-  avatar4: { name: '🦊 Zorro',    emoji: '🦊', bg: '#F7B731', label: 'Fox' },
-  avatar5: { name: '🦁 León',     emoji: '🦁', bg: '#FC5C65', label: 'Lion' },
-  avatar6: { name: '🐺 Lobo',     emoji: '🐺', bg: '#778CA3', label: 'Wolf' },
-  avatar7: { name: '🦋 Mariposa', emoji: '🦋', bg: '#A55EEA', label: 'Butterfly' },
-  avatar8: { name: '🦅 Águila',   emoji: '🦅', bg: '#2D3436', label: 'Eagle' },
-  avatar9: { name: '🐉 Dragón',   emoji: '🐉', bg: '#E17055', label: 'Dragon' },
-  avatar10:{ name: '⚡ Rayo',      emoji: '⚡', bg: '#FDCB6E', label: 'Lightning' },
-  avatar11:{ name: '🔥 Fuego',    emoji: '🔥', bg: '#D63031', label: 'Fire' },
-  avatar12:{ name: '🌊 Ola',      emoji: '🌊', bg: '#0984E3', label: 'Wave' },
-};
+// iPhone-style cartoon avatars using DiceBear Adventurer
+const AVATAR_SEEDS = [
+  { id:'av1',  seed:'Felix',    bg:'#FF6B6B', name:'Felix'    },
+  { id:'av2',  seed:'Luna',     bg:'#4ECDC4', name:'Luna'     },
+  { id:'av3',  seed:'Max',      bg:'#45B7D1', name:'Max'      },
+  { id:'av4',  seed:'Sofia',    bg:'#F7B731', name:'Sofia'    },
+  { id:'av5',  seed:'Leo',      bg:'#FC5C65', name:'Leo'      },
+  { id:'av6',  seed:'Mia',      bg:'#778CA3', name:'Mia'      },
+  { id:'av7',  seed:'Carlos',   bg:'#A55EEA', name:'Carlos'   },
+  { id:'av8',  seed:'Elena',    bg:'#2D98DA', name:'Elena'    },
+  { id:'av9',  seed:'Diego',    bg:'#E17055', name:'Diego'    },
+  { id:'av10', seed:'Valeria',  bg:'#FDCB6E', name:'Valeria'  },
+  { id:'av11', seed:'Andres',   bg:'#D63031', name:'Andrés'   },
+  { id:'av12', seed:'Isabella', bg:'#0984E3', name:'Isabella' },
+];
+
+const AVATARS = {};
+AVATAR_SEEDS.forEach(a => {
+  AVATARS[a.id] = { ...a, url: `https://api.dicebear.com/7.x/adventurer/svg?seed=${a.seed}&backgroundColor=${a.bg.replace('#','')}` };
+});
 
 function getAvatarHtml(avatarKey, size=36) {
-  const av = AVATARS[avatarKey] || AVATARS['avatar1'];
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${av.bg};display:flex;align-items:center;justify-content:center;font-size:${size*0.55}px;box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0">${av.emoji}</div>`;
+  const av = AVATARS[avatarKey] || AVATAR_SEEDS[0];
+  const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed || av.id}&backgroundColor=${(av.bg||'#FF6B6B').replace('#','')}`;
+  return `<img src="${url}" style="width:${size}px;height:${size}px;border-radius:50%;background:${av.bg};box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0;object-fit:cover" onerror="this.style.display='none'">`;
 }
 
 function setAvatar(key) {
@@ -3328,11 +3338,13 @@ function showLoginStep2(name) {
 
   // Build avatar grid
   const grid = document.getElementById('avatarGrid');
-  grid.innerHTML = Object.entries(AVATARS).map(([key, av]) => `
-    <div class="avatar-option${currentAvatar===key?' selected':''}"
-         onclick="selectLoginAvatar('${key}')"
-         title="${av.name}" style="background:${av.bg}22;border-color:${av.bg}55">
-      ${av.emoji}
+  grid.innerHTML = AVATAR_SEEDS.map(av => `
+    <div class="avatar-option${currentAvatar===av.id?' selected':''}"
+         onclick="selectLoginAvatar('${av.id}')"
+         title="${av.name}" style="background:${av.bg}33;border-color:${av.bg}88;padding:2px;overflow:hidden">
+      <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}"
+           style="width:100%;height:100%;object-fit:cover;border-radius:8px"
+           loading="lazy">
     </div>`).join('');
 
   // Set initial lang buttons
@@ -3380,15 +3392,13 @@ function selectLoginLang(lang) {
 
 function selectLoginAvatar(key) {
   setAvatar(key);
-  // Update preview
   const av = AVATARS[key];
+  if(!av) return;
+  // Update preview
   const preview = document.getElementById('loginAvatarPreview');
-  if(preview) {
-    preview.style.background = av.bg;
-    preview.textContent = av.emoji;
-    preview.style.transform = 'scale(1.15)';
-    setTimeout(() => preview.style.transform = 'scale(1)', 300);
-  }
+  const img = document.getElementById('avatarPreviewImg');
+  if(preview) { preview.style.background = av.bg; preview.style.transform = 'scale(1.12)'; setTimeout(()=>preview.style.transform='scale(1)',300); }
+  if(img) img.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}`;
   // Update grid selection
   document.querySelectorAll('.avatar-option').forEach((el, i) => {
     const k = Object.keys(AVATARS)[i];
