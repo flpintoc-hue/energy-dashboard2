@@ -1722,16 +1722,21 @@ async function doLogin() {
 
   if(btn) { btn.textContent = 'Verificando sesión...'; }
 
-  // ── Server-side authentication via Apps Script ──
+  // ── Server-side authentication + session check via Apps Script ──
   let authResult;
   try {
+    if(btn) { btn.textContent = 'Verificando...'; }
     const authResp = await fetch(SESSIONS_URL, {
       method: 'POST',
       body: JSON.stringify({ action:'authenticate', username: u, password: p }),
     });
-    authResult = await authResp.json();
+    // Follow redirects — Apps Script may redirect once
+    const text = await authResp.text();
+    console.log('Auth raw response:', text);
+    authResult = JSON.parse(text);
+    console.log('Auth result:', JSON.stringify(authResult));
   } catch(e) {
-    // Fallback to local users if script is unreachable
+    console.error('Auth script error:', e);
     authResult = null;
   }
 
@@ -1739,8 +1744,12 @@ async function doLogin() {
   if(authResult && authResult.success) {
     user = { username: u, name: authResult.name, role: authResult.role, id: authResult.id, active: true };
   } else if(!authResult) {
-    // Script unreachable — fallback to hardcoded defaults only
-    user = users.find(x => x.username === u && x.password === p);
+    // Script unreachable — show error clearly
+    err.textContent = '⚠ No se pudo conectar al servidor. Verifica tu conexión.';
+    err.classList.add('show');
+    if(btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
+    setTimeout(() => err.classList.remove('show'), 5000);
+    return;
   }
 
   if (!user) {
@@ -2731,7 +2740,7 @@ async function checkDNC() {
       method: 'POST',
       body: JSON.stringify({ action: 'check_dnc', phone: clean }),
     });
-    const result = await resp.json();
+    const result = JSON.parse(await resp.text());
     btn.disabled = false;
     btn.textContent = 'Verificar';
 
@@ -2794,7 +2803,7 @@ async function checkAndRegisterSession(username, token) {
       method: 'POST',
       body: JSON.stringify({ action:'login', username, token }),
     });
-    const data = await resp.json();
+    const data = JSON.parse(await resp.text());
     return data;
   } catch(err) {
     console.warn('Session check failed (allowing login):', err);
