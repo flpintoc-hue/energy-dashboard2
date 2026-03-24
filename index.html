@@ -985,6 +985,21 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   100% { transform:scale(0.8); opacity:0; }
 }
 
+
+/* Fix rate table overflow */
+.rate-compact-table { table-layout: fixed; width: 100%; }
+.rate-td-plan  { word-break: break-word; max-width: 0; }
+.rate-td-term  { white-space: nowrap; width: 70px; }
+.rate-td-etf   { white-space: nowrap; width: 110px; font-size: 0.75rem; }
+.rv-etf        { font-size: 0.72rem; }
+.sup-panel-util {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.65rem !important;
+}
+
 </style>
 </head>
 <body>
@@ -1094,7 +1109,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       </div>
       <!-- BIG MAP BELOW CARDS -->
       <div class="big-map-wrap">
-        <div class="big-map-title">🗺️ Mapa de referencia — Estados disponibles</div>
+        <div class="big-map-title">🗺️ Mapa de referencia — <span style="color:var(--orange)">Haz clic en un estado para seleccionarlo</span></div>
         <div class="big-map-svg-container">
           <svg viewBox="0 0 960 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
             <rect width="960" height="580" fill="#EEF2F7" rx="12"/>
@@ -1104,21 +1119,21 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <path d="M108,190 L155,165 L165,220 L170,300 L168,370 L150,420 L130,400 L100,300 Z" fill="#D4DCE8" stroke="none"/>
 
             <!-- MI - Orange -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <path d="M510,140 L555,138 L560,185 L555,200 L510,198 L505,185 Z"
                 fill="#F47C20" stroke="white" stroke-width="2.5"
                 style="transition:all 0.25s;transform-origin:532px 170px"
-                onmouseover="zoomState(this,'MI','Michigan')"
+                onclick="selectStateFromMap('st10')" onmouseover="zoomState(this,'MI','Michigan')"
                 onmouseout="unzoomState(this)"/>
               <text x="532" y="173" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">MI</text>
             </g>
 
             <!-- OH - Purple -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <path d="M555,198 L605,195 L610,255 L555,258 L550,255 Z"
                 fill="#9C27B0" stroke="white" stroke-width="2.5"
                 style="transition:all 0.25s;transform-origin:580px 227px"
-                onmouseover="zoomState(this,'OH','Ohio')"
+                onclick="selectStateFromMap('st11')" onmouseover="zoomState(this,'OH','Ohio')"
                 onmouseout="unzoomState(this)"/>
               <text x="580" y="230" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="900" fill="white" style="pointer-events:none">OH</text>
             </g>
@@ -1126,51 +1141,51 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <!-- NY removed -->
 
             <!-- PA - Blue -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <path d="M622,162 L722,157 L728,205 L626,210 Z"
                 fill="#1565C0" stroke="white" stroke-width="2.5"
                 style="transition:all 0.25s;transform-origin:675px 184px"
-                onmouseover="zoomState(this,'PA','Pennsylvania')"
+                onclick="selectStateFromMap('st3')" onmouseover="zoomState(this,'PA','Pennsylvania')"
                 onmouseout="unzoomState(this)"/>
               <text x="675" y="188" text-anchor="middle" font-family="Nunito,sans-serif" font-size="13" font-weight="900" fill="white" style="pointer-events:none">PA</text>
             </g>
 
             <!-- MA - Red -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <path d="M764,108 L828,105 L832,138 L766,141 Z"
                 fill="#C62828" stroke="white" stroke-width="2.5"
                 style="transition:all 0.25s;transform-origin:798px 124px"
-                onmouseover="zoomState(this,'MA','Massachusetts')"
+                onclick="selectStateFromMap('st1')" onmouseover="zoomState(this,'MA','Massachusetts')"
                 onmouseout="unzoomState(this)"/>
               <text x="798" y="128" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="900" fill="white" style="pointer-events:none">MA</text>
             </g>
 
             <!-- NJ - Green -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <path d="M736,206 L762,202 L768,244 L740,246 Z"
                 fill="#2E7D32" stroke="white" stroke-width="2.5"
                 style="transition:all 0.25s;transform-origin:754px 224px"
-                onmouseover="zoomState(this,'NJ','New Jersey')"
+                onclick="selectStateFromMap('st2')" onmouseover="zoomState(this,'NJ','New Jersey')"
                 onmouseout="unzoomState(this)"/>
               <text x="754" y="228" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="900" fill="white" style="pointer-events:none">NJ</text>
             </g>
 
             <!-- DE - Pink -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <path d="M732,246 L750,244 L752,268 L734,269 Z"
                 fill="#E91E8C" stroke="white" stroke-width="2"
                 style="transition:all 0.25s;transform-origin:742px 257px"
-                onmouseover="zoomState(this,'DE','Delaware')"
+                onclick="selectStateFromMap('st8')" onmouseover="zoomState(this,'DE','Delaware')"
                 onmouseout="unzoomState(this)"/>
               <text x="742" y="260" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="900" fill="white" style="pointer-events:none">DE</text>
             </g>
 
             <!-- DC - Yellow/Gold -->
-            <g class="map-state-group" style="cursor:default">
+            <g class="map-state-group" style="cursor:pointer">
               <circle cx="720" cy="260" r="12"
                 fill="#F9A825" stroke="white" stroke-width="2.5"
                 style="transition:all 0.25s;transform-origin:720px 260px"
-                onmouseover="zoomState(this,'DC','Washington DC')"
+                onclick="selectStateFromMap('st4')" onmouseover="zoomState(this,'DC','Washington DC')"
                 onmouseout="unzoomState(this)"/>
               <text x="720" y="264" text-anchor="middle" font-family="Nunito,sans-serif" font-size="7.5" font-weight="900" fill="white" style="pointer-events:none">DC</text>
             </g>
@@ -1179,8 +1194,8 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
             <!-- Tooltip -->
             <g id="mapTooltip" style="display:none;pointer-events:none">
-              <rect id="tooltipBg" x="0" y="0" width="140" height="34" rx="6" fill="#1a1a2e" opacity="0.88"/>
-              <text id="tooltipText" x="70" y="21" text-anchor="middle" font-family="Nunito,sans-serif" font-size="12" font-weight="800" fill="white"></text>
+              <rect id="tooltipBg" x="0" y="0" width="160" height="36" rx="8" fill="#1a1a2e" opacity="0.95"/>
+              <text id="tooltipText" x="70" y="22" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11.5" font-weight="900" fill="white"></text>
             </g>
           </svg>
         </div>
@@ -1940,6 +1955,8 @@ const MONTHS = [
 ];
 
 function goStep(n) {
+  // Push browser history state
+  history.pushState({ step: n }, '');
   // If going back to DNC, clear everything
   if(n === 0 && currentStep > 0) {
     sel = {stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{}};
@@ -2408,11 +2425,12 @@ function renderTemplateStep(stepNum, state, util, sup) {
           </select>
         </div>
 
-        <!-- DATE OF BIRTH — date picker -->
+        <!-- DATE OF BIRTH — only for MA/Eversource -->
+        ${(state && state.code === 'MA' && sel.utilIds.some(id => { const u=db.utilities.find(x=>x.id===id); return u && u.name.includes('Eversource'); })) ? `
         <div class="tpl-row">
-          <label class="tpl-label">DATE OF BIRTH</label>
+          <label class="tpl-label">DATE OF BIRTH <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label>
           <input class="tpl-input" type="date" id="tpl_dob" max="${new Date().toISOString().split('T')[0]}">
-        </div>
+        </div>` : '<div style="display:none"><input id="tpl_dob"></div>'}
 
         <!-- PHONE NUMBER — pre-filled -->
         <div class="tpl-row">
@@ -2441,11 +2459,12 @@ function renderTemplateStep(stepNum, state, util, sup) {
         <!-- ACC INFO — dynamic per selected utility -->
         <div class="tpl-row tpl-full" id="accInfoFields"></div>
 
-        <!-- NAME KEY -->
+        <!-- NAME KEY — only for MA/Eversource -->
+        ${(state && state.code === 'MA' && sel.utilIds.some(id => { const u=db.utilities.find(x=>x.id===id); return u && u.name.includes('Eversource'); })) ? `
         <div class="tpl-row">
-          <label class="tpl-label">NAME KEY</label>
+          <label class="tpl-label">NAME KEY <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label>
           <input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre">
-        </div>
+        </div>` : '<div style="display:none"><input id="tpl_namekey"></div>'}
 
         <!-- UTILITY — pre-filled, editable -->
         <div class="tpl-row tpl-full">
@@ -2998,16 +3017,78 @@ function getAccInfo(utilName) {
   return key ? ACC_INFO_MAP[key] : null;
 }
 
+// ════════════════════════════════════════════
+// MAP ZOOM + CLICK FUNCTIONS
+// ════════════════════════════════════════════
+function zoomState(el, code, name) {
+  el.style.transform = 'scale(1.28)';
+  el.style.filter = 'drop-shadow(0 6px 16px rgba(0,0,0,0.5)) brightness(1.2)';
+  el.style.transition = 'all 0.2s cubic-bezier(0.34,1.56,0.64,1)';
+  const tooltip = document.getElementById('mapTooltip');
+  const tooltipText = document.getElementById('tooltipText');
+  const tooltipBg = document.getElementById('tooltipBg');
+  if(tooltip && tooltipText) {
+    try {
+      const bbox = el.getBBox();
+      const tx = bbox.x + bbox.width/2;
+      const ty = bbox.y - 10;
+      const label = code + ' — ' + name;
+      tooltipText.textContent = label;
+      const tw = label.length * 7.5 + 28;
+      tooltipBg.setAttribute('width', tw);
+      tooltipBg.setAttribute('x', tx - tw/2);
+      tooltipBg.setAttribute('y', ty - 32);
+      tooltipText.setAttribute('x', tx);
+      tooltipText.setAttribute('y', ty - 13);
+      tooltip.style.display = 'block';
+    } catch(e) {}
+  }
+}
+
+function unzoomState(el) {
+  el.style.transform = 'scale(1)';
+  el.style.filter = 'none';
+  el.style.transition = 'all 0.18s ease';
+  const t = document.getElementById('mapTooltip');
+  if(t) t.style.display = 'none';
+}
+
+function selectStateFromMap(stateId) {
+  if(window.event && window.event.currentTarget) {
+    const shapes = window.event.currentTarget.querySelectorAll('path, circle');
+    shapes.forEach(el => {
+      el.style.filter = 'brightness(1.6)';
+      setTimeout(() => { el.style.filter = 'none'; }, 250);
+    });
+  }
+  selectState(stateId);
+}
+
 loadFromStorage().then(() => {
   // DNC loads automatically from Google Sheets when agent reaches step 0
+  // Push initial state for browser back button
+  history.pushState({ step: 0 }, '');
+});
+
+// Intercept browser back button
+window.addEventListener('popstate', function(e) {
+  if(document.getElementById('appScreen').style.display !== 'none') {
+    // User is in the app — go back one step instead of leaving
+    if(currentStep > 0) {
+      history.pushState({ step: currentStep }, '');
+      goBack();
+    } else {
+      history.pushState({ step: 0 }, '');
+    }
+  }
 });
 
 // ════════════════════════════════════════════
 // SECURITY MODULE
 // ════════════════════════════════════════════
 const SEC = {
-  SESSION_TIMEOUT_MS:  15 * 60 * 1000,
-  WARN_BEFORE_MS:       2 * 60 * 1000,
+  SESSION_TIMEOUT_MS:  10 * 60 * 1000,   // 10 min inactividad
+  WARN_BEFORE_MS:       1 * 60 * 1000,   // aviso 1 min antes
   MAX_LOGIN_ATTEMPTS:  5,
   LOCKOUT_MS:         10 * 60 * 1000,
   SESSION_KEY:        'esd_session',
