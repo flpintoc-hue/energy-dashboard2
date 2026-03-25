@@ -1372,7 +1372,14 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="checklistBody"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;">
           <button class="reset-btn" style="margin:0" onclick="resetChecklist()">↺ Reiniciar Checklist</button>
-          <button class="home-btn-big" onclick="volverInicio()"><span class="btn-icon">🏠</span> NUEVA CONSULTA DNC</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button id="submitSaleBtn" onclick="submitSale()"
+              style="background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;border-radius:10px;padding:12px 22px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:900;font-size:0.88rem;box-shadow:0 3px 12px rgba(39,174,96,0.4);transition:all 0.2s;display:flex;align-items:center;gap:8px">
+              <span style="font-size:1.1rem">📤</span>
+              <span id="submitSaleBtnText">Enviar venta</span>
+            </button>
+            <button class="home-btn-big" onclick="volverInicio()"><span class="btn-icon">🏠</span> NUEVA CONSULTA DNC</button>
+          </div>
         </div>
       </div>
 
@@ -3150,6 +3157,82 @@ function saveScriptEntry(key, safeKey) {
 
 function saveScript(supplierName) {
   // Legacy - kept for compatibility
+}
+
+
+// ════════════════════════════════════════════
+// SUBMIT SALE TO GOOGLE SHEETS
+// ════════════════════════════════════════════
+async function submitSale() {
+  const btn     = document.getElementById('submitSaleBtn');
+  const btnText = document.getElementById('submitSaleBtnText');
+
+  // Gather all data from template fields
+  const g = id => (document.getElementById(id)||{}).value || '';
+
+  const state   = db.states.find(s => s.id === sel.stateId);
+  const sup     = db.suppliers.find(s => s.id === sel.supId);
+  const utilNames = sel.utilIds.map(id => {
+    const u = db.utilities.find(x => x.id === id);
+    return u ? u.name : '';
+  }).filter(Boolean).join(' / ');
+
+  const sale = {
+    agent:      currentUser ? currentUser.name : '',
+    repId:      g('tpl_repid'),
+    holder:     g('tpl_holder'),
+    phone:      g('tpl_phone') || (document.getElementById('dncPhone')||{}).value || '',
+    address:    g('tpl_address'),
+    city:       g('tpl_city'),
+    state:      state ? state.name + ' (' + state.code + ')' : g('tpl_state'),
+    utility:    utilNames,
+    supplier:   sup ? sup.name : '',
+    rate:       g('tpl_tarifa'),
+    language:   g('tpl_lang'),
+    authorized: g('tpl_auth'),
+  };
+
+  // Validate required fields
+  const missing = [];
+  if(!sale.holder)   missing.push(currentLang==='en'?'Account Holder':'Titular');
+  if(!sale.phone)    missing.push(currentLang==='en'?'Phone':'Teléfono');
+  if(!sale.supplier) missing.push('Supplier');
+  if(!sale.rate)     missing.push(currentLang==='en'?'Rate':'Tarifa');
+
+  if(missing.length > 0) {
+    toast((currentLang==='en'?'⚠ Missing fields: ':'⚠ Campos faltantes: ') + missing.join(', '), 'warn');
+    return;
+  }
+
+  // Send to Apps Script
+  if(btn) { btn.disabled = true; }
+  if(btnText) btnText.textContent = currentLang==='en' ? 'Sending...' : 'Enviando...';
+
+  try {
+    const resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'save_sale', sale })
+    });
+    const result = JSON.parse(await resp.text());
+
+    if(result.success) {
+      // Success state
+      if(btn) {
+        btn.style.background = 'linear-gradient(135deg,#1565C0,#0D47A1)';
+        btn.disabled = true;
+      }
+      if(btnText) btnText.textContent = currentLang==='en' ? '✅ Sale submitted!' : '✅ ¡Venta enviada!';
+      toast(currentLang==='en' ? '✅ Sale saved to Google Sheets (row '+result.row+')' : '✅ Venta guardada en Google Sheets (fila '+result.row+')', 'success');
+      addLog('sale', (currentUser?currentUser.name:'') + ' — ' + sale.holder + ' — ' + sale.supplier + ' — ' + sale.state);
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch(err) {
+    if(btn) { btn.disabled = false; btn.style.background = ''; }
+    if(btnText) btnText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
+    toast((currentLang==='en'?'❌ Error sending sale: ':'❌ Error enviando venta: ') + err.message, 'error');
+    console.error('submitSale error:', err);
+  }
 }
 
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
