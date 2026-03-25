@@ -3287,15 +3287,15 @@ function getWANumber() {
   return db.whatsappNumber || '573155062006';
 }
 
-// Call CallMeBot directly from browser (bypasses Apps Script 403 issue)
+// Send WhatsApp via Apps Script (which calls CallMeBot server-side)
 async function callMeBot(message) {
-  const phone  = '573155062006';
-  const apikey = '6567404';
   try {
-    const url = 'https://api.callmebot.com/whatsapp.php?phone=' + phone + '&text=' + encodeURIComponent(message) + '&apikey=' + apikey;
-    await fetch(url, { method: 'GET', mode: 'no-cors' });
+    await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'send_whatsapp', message: message })
+    });
   } catch(e) {
-    console.log('CallMeBot sent (no-cors)');
+    console.log('WA notification error:', e);
   }
 }
 
