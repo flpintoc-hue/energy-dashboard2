@@ -1401,6 +1401,8 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <button class="dtab" onclick="dTab('suppliers')">Suppliers</button>
       <button class="dtab" onclick="dTab('rates')">Rates</button>
       <button class="dtab" onclick="dTab('checklist')">Checklist</button>
+      <button class="dtab" onclick="dTab('bills')">📄 Facturas</button>
+      <button class="dtab" onclick="dTab('scripts')">📜 Scripts</button>
     </div>
     <div class="drawer-body">
 
@@ -1441,6 +1443,22 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             Ejemplo: <strong>5551234567</strong>
           </div>
         </div>
+      </div>
+
+      <!-- BILLS -->
+      <div class="dsection" id="ds-bills">
+        <div style="margin-bottom:12px;font-size:0.78rem;font-weight:700;color:var(--text-muted)">
+          Agrega un link de Google Drive, Dropbox o cualquier URL pública para cada utilidad.
+        </div>
+        <div id="billUrlsList"></div>
+      </div>
+
+      <!-- SCRIPTS -->
+      <div class="dsection" id="ds-scripts">
+        <div style="margin-bottom:12px;font-size:0.78rem;font-weight:700;color:var(--text-muted)">
+          Escribe o pega el script para cada supplier. Se mostrará al agente al finalizar el checklist.
+        </div>
+        <div id="scriptsList"></div>
       </div>
 
       <!-- AGENTS -->
@@ -2104,8 +2122,7 @@ let db = {
   checkItems: [
     {id:'c0',title:''+'check_dnc_title'+'',desc:'Verificar que el número de teléfono del cliente NO esté registrado en la lista Do Not Call (DNC) antes de continuar con la venta.',type:'check'},
     {id:'c_template',title:''+'check_tpl_title'+'',desc:'Llenar todos los campos de la plantilla antes de continuar.',type:'template'},
-  ]
-};
+  ]};
 
 let accessLog = [];
 
@@ -2394,14 +2411,20 @@ function renderUtilities() {
     const isSelected = sel.utilIds.includes(u.id);
     const accInfo = getAccInfo(u.name);
     const accHint = accInfo ? `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:3px;font-weight:700">${accInfo.label}${accInfo.chars?' · '+accInfo.chars+' car.':''}</div>` : '';
-    return `
-    <div class="util-card${isSelected?' selected':''}" onclick="toggleUtil('${u.id}')">
-      <div>
-        <div class="util-name">${u.name}</div>
-        ${accHint}
-      </div>
-      ${isSelected ? '<span style="color:var(--blue);font-weight:900;font-size:1rem;flex-shrink:0">✓</span>' : '<span style="color:var(--text-muted);font-size:0.75rem;flex-shrink:0">+ Agregar</span>'}
-    </div>`;
+    const billUrl = db.billUrls && db.billUrls[u.id];
+    const billBtn = billUrl ? `<a href="${billUrl}" target="_blank" onclick="event.stopPropagation()"
+      style="display:inline-flex;align-items:center;gap:4px;background:#E3F2FD;color:var(--blue-dark);
+             padding:3px 9px;border-radius:6px;font-size:0.65rem;font-weight:800;text-decoration:none;
+             border:1px solid #BBDEFB;margin-top:5px;transition:all 0.15s" 
+      title="Ver factura de ejemplo">📄 ${t('util_sample')}</a>` : '';
+    return '<div class="util-card' + (isSelected?' selected':'') + '" onclick="toggleUtil(\'' + u.id + '\')">' +
+      '<div>' +
+        '<div class="util-name">' + u.name + '</div>' +
+        (accInfo ? '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:3px;font-weight:700">' + accInfo.label + (accInfo.chars?' · '+accInfo.chars+' car.':'') + '</div>' : '') +
+        (billUrl ? '<a href="' + billUrl + '" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;background:#E3F2FD;color:var(--blue-dark);padding:3px 9px;border-radius:6px;font-size:0.65rem;font-weight:800;text-decoration:none;border:1px solid #BBDEFB;margin-top:5px">📄 Factura</a>' : '') +
+      '</div>' +
+      (isSelected ? '<span style="color:var(--blue);font-weight:900;font-size:1rem;flex-shrink:0">✓</span>' : '<span style="color:var(--text-muted);font-size:0.75rem;flex-shrink:0">+ Agregar</span>') +
+    '</div>';
   };
 
   const group = (title, icon, colorClass, items) => items.length ? `
@@ -2670,7 +2693,9 @@ function renderCheckItems() {
   }).join('');
   const total=db.checkItems.length, done=checkedItems.size, pct=total?Math.round(done/total*100):0;
   document.getElementById('progressBar').style.width=pct+'%';
-  document.getElementById('progressText').textContent=`${done} / ${total} ${t('progress_of')}`;
+  document.getElementById('progressText').textContent=done + ' / ' + total + ' ' + t('progress_of');
+  // Render supplier script at bottom
+  renderSupplierScript();
   // Restore saved template values
   restoreTemplateValues();
   // Build dynamic ACC INFO fields
@@ -2866,6 +2891,86 @@ function copyTemplate() {
   }).catch(()=>{ toast('⚠ No se pudo copiar','warn'); });
 }
 
+
+function renderSupplierScript() {
+  const container = document.getElementById('supplierScriptSection');
+  if(!container) return;
+  const sup = db.suppliers.find(s => s.id === sel.supId);
+  if(!sup) { container.style.display = 'none'; return; }
+  const script = db.supplierScripts && db.supplierScripts[sup.name];
+  if(!script) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  document.getElementById('scriptSupplierName').textContent = sup.name;
+  document.getElementById('scriptTextContent').textContent = script;
+}
+
+function copyScript() {
+  const el = document.getElementById('scriptTextContent');
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = document.getElementById('copyScriptBtn');
+    if(btn) { btn.textContent = '✅ ' + (currentLang==='en'?'Copied!':'¡Copiado!'); setTimeout(()=>{ btn.textContent = '📋 ' + (currentLang==='en'?'Copy Script':'Copiar Script'); }, 2500); }
+    toast(currentLang==='en'?'✓ Script copied':'✓ Script copiado', 'success');
+  });
+}
+
+
+function renderBillsAdmin() {
+  const el = document.getElementById('billUrlsList');
+  if(!el) return;
+  const utils = db.utilities;
+  el.innerHTML = utils.map(u => {
+    const url = (db.billUrls && db.billUrls[u.id]) || '';
+    return '<div style="margin-bottom:12px">' +
+      '<div style="font-size:0.72rem;font-weight:800;color:var(--text-muted);margin-bottom:4px">' + u.name + '</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<input class="dinput" id="bill_' + u.id + '" placeholder="https://drive.google.com/..." value="' + url + '" style="flex:1">' +
+        '<button onclick="saveBillUrl(\'' + u.id + '\')" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.75rem">Guardar</button>' +
+        (url ? '<a href="' + url + '" target="_blank" style="background:#E3F2FD;color:var(--blue-dark);border:1px solid #BBDEFB;border-radius:8px;padding:8px 10px;text-decoration:none;font-size:0.75rem">👁</a>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function saveBillUrl(utilId) {
+  const input = document.getElementById('bill_' + utilId);
+  if(!input) return;
+  if(!db.billUrls) db.billUrls = {};
+  db.billUrls[utilId] = input.value.trim();
+  saveDb();
+  renderBillsAdmin();
+  toast('✓ Factura guardada', 'success');
+}
+
+function renderScriptsAdmin() {
+  const el = document.getElementById('scriptsList');
+  if(!el) return;
+  const suppliers = ['NG&E', 'INDRA', 'Rushmore', 'Ecoplus Power'];
+  if(!db.supplierScripts) db.supplierScripts = {};
+  el.innerHTML = suppliers.map(name => {
+    const script = db.supplierScripts[name] || '';
+    return '<div style="margin-bottom:20px">' +
+      '<div style="font-weight:800;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px">' +
+        '<span>' + name + '</span>' +
+      '</div>' +
+      '<textarea id="script_' + name.replace(/[^a-z0-9]/gi,'_') + '" ' +
+        'style="width:100%;height:180px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:Nunito,sans-serif;font-size:0.82rem;resize:vertical;outline:none;line-height:1.6" ' +
+        'placeholder="Escribe o pega el script para ' + name + '...">' + script + '</textarea>' +
+      '<button onclick="saveScript(\'' + name + '\')" style="margin-top:6px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.8rem">Guardar Script</button>' +
+    '</div>';
+  }).join('');
+}
+
+function saveScript(supplierName) {
+  const key = supplierName.replace(/[^a-z0-9]/gi,'_');
+  const textarea = document.getElementById('script_' + key);
+  if(!textarea) return;
+  if(!db.supplierScripts) db.supplierScripts = {};
+  db.supplierScripts[supplierName] = textarea.value;
+  saveDb();
+  toast('✓ Script guardado para ' + supplierName, 'success');
+}
+
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
 function resetChecklist(){checkedItems.clear();renderCheckItems();}
 
@@ -2883,13 +2988,15 @@ function closeAdmin() { document.getElementById('adminOverlay').classList.remove
 function closeAdminIfOutside(e) { if(e.target===document.getElementById('adminOverlay')) closeAdmin(); }
 
 function dTab(tab) {
-  const tabs=['agents','log','dnc','states','utilities','suppliers','rates','checklist'];
+  const tabs=['agents','log','dnc','states','utilities','suppliers','rates','checklist','bills','scripts'];
   document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
   document.querySelectorAll('.dsection').forEach(s=>s.classList.remove('active'));
   document.getElementById('ds-'+tab).classList.add('active');
   if(tab==='log') renderLog();
   if(tab==='agents') renderAgents();
   if(tab==='dnc') refreshDNCAdminStatus();
+  if(tab==='bills') renderBillsAdmin();
+  if(tab==='scripts') renderScriptsAdmin();
 }
 
 // AGENTS
