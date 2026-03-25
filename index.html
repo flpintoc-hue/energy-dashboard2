@@ -1335,7 +1335,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div style="font-size:0.72rem;color:var(--text-muted);font-weight:700">
-          '+t('util_hint')+'
+          <span id="utilHintText">💡 Máximo 1 eléctrica y 1 de gas</span>
         </div>
         <a href="#" id="sampleBillLink" onclick="openSampleBill(event)"
            style="display:inline-flex;align-items:center;gap:6px;background:#E3F2FD;color:var(--blue-dark);padding:7px 14px;border-radius:8px;font-size:0.75rem;font-weight:800;text-decoration:none;border:1px solid #BBDEFB;transition:all 0.2s"
@@ -1636,7 +1636,7 @@ var T = {
     // Utilities
     util_title: 'Utilidad',
     util_subtitle: 'Selecciona una utilidad eléctrica y/o de gas',
-    util_hint: ''+t('util_hint')+'',
+    util_hint: '💡 Máximo 1 eléctrica y 1 de gas',
     util_sample: '📄 Ver factura de ejemplo',
     util_selected: 'Seleccionadas:',
     util_add: '+ Agregar',
@@ -2644,8 +2644,8 @@ function renderChecklist() {
   document.getElementById('summaryCard').innerHTML=`
     <div class="sum-item"><div class="sum-label">${t('sum_state')}</div><div class="sum-val">${state?state.name:'—'}</div></div>
     <div class="sum-item"><div class="sum-label">${t('sum_util')}</div><div class="sum-val">${util?util.name:'—'}</div></div>
-    <div class="sum-item"><div class="sum-label">'+t('sum_supplier')+'</div><div class="sum-val">${sup?sup.name:'—'}</div></div>
-    <div class="sum-item"><div class="sum-label">'+t('sum_agent')+'</div><div class="sum-val">${currentUser?currentUser.name:'—'}</div></div>
+    <div class="sum-item"><div class="sum-label">${t('sum_supplier')}</div><div class="sum-val">${sup?sup.name:'—'}</div></div>
+    <div class="sum-item"><div class="sum-label">${t('sum_agent')}</div><div class="sum-val">${currentUser?currentUser.name:'—'}</div></div>
   `;
   renderCheckItems();
 }
@@ -2710,7 +2710,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
   const repSelector = repIds.length > 0 ? `
     <div class="tpl-row tpl-full">
-      <label class="tpl-label">'+t('tpl_repid')+' — '+t('tpl_repid_hint')+'</label>
+      <label class="tpl-label">${t('tpl_repid')} — ${t('tpl_repid_hint')}</label>
       <div class="rep-selector" id="repSelectorChips">
         ${repIds.map(r => `<button class="rep-chip" onclick="selectRepId('${r}')">${r}</button>`).join('')}
       </div>
@@ -2725,13 +2725,13 @@ function renderTemplateStep(stepNum, state, util, sup) {
     <div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>
     <div class="check-content" style="flex:1">
       <div class="check-step">Paso ${stepNum}</div>
-      <div class="check-title">'+t('check_tpl_title')+'</div>
+      <div class="check-title">${t('check_tpl_title')}</div>
       <div class="check-desc" style="margin-bottom:14px">Los campos marcados se llenaron automáticamente. Completa los que faltan.</div>
       <div class="tpl-grid">
 
         <!-- LANGUAGE — dropdown -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_lang')+'</label>
+          <label class="tpl-label">${t('tpl_lang')}</label>
           <select class="tpl-input" id="tpl_lang">
             <option value="">Selecciona...</option>
             <option value="English">🇺🇸 English</option>
@@ -2741,7 +2741,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         <!-- AUTHORIZED — dropdown -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_auth')+'</label>
+          <label class="tpl-label">${t('tpl_auth')}</label>
           <select class="tpl-input" id="tpl_auth">
             <option value="">Selecciona...</option>
             <option value="Yes — Account Holder">✅ Yes — Account Holder</option>
@@ -2752,7 +2752,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         <!-- STATE — dropdown (changeable) -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_state')+'</label>
+          <label class="tpl-label">${t('tpl_state')}</label>
           <select class="tpl-input" id="tpl_state">
             <option value="">Selecciona...</option>
             ${stateOptions}
@@ -2768,25 +2768,25 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         <!-- PHONE NUMBER — pre-filled -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_phone')+'</label>
+          <label class="tpl-label">${t('tpl_phone')}</label>
           <input class="tpl-input" id="tpl_phone" value="${phoneVal}" placeholder="(555) 123-4567">
         </div>
 
         <!-- ACC HOLDER -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_holder')+'</label>
+          <label class="tpl-label">${t('tpl_holder')}</label>
           <input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular">
         </div>
 
         <!-- ADDRESS -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_address')+'</label>
+          <label class="tpl-label">${t('tpl_address')}</label>
           <input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio">
         </div>
 
         <!-- CITY -->
         <div class="tpl-row">
-          <label class="tpl-label">'+t('tpl_city')+'</label>
+          <label class="tpl-label">${t('tpl_city')}</label>
           <input class="tpl-input" id="tpl_city" placeholder="Ciudad">
         </div>
 
@@ -2802,7 +2802,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         <!-- UTILITY — pre-filled, editable -->
         <div class="tpl-row tpl-full">
-          <label class="tpl-label">'+t('tpl_util')+'</label>
+          <label class="tpl-label">${t('tpl_util')}</label>
           <input class="tpl-input" id="tpl_util" value="${utilVal}" placeholder="Utilidad">
         </div>
 
@@ -2811,13 +2811,13 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         <!-- TARIFA — pre-filled -->
         <div class="tpl-row tpl-full">
-          <label class="tpl-label">'+t('tpl_tarifa')+'</label>
+          <label class="tpl-label">${t('tpl_tarifa')}</label>
           <input class="tpl-input" id="tpl_tarifa" value="${rateVal}" placeholder="Supplier — Rate | Term | ETF">
         </div>
 
       </div>
       <button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn">
-        <span>📋</span> '+t('btn_copy')+'
+        <span>📋</span> ${t('btn_copy')}
       </button>
     </div>
   </div>`;
@@ -2911,9 +2911,9 @@ function copyTemplate() {
 
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('tplCopyBtn');
-    if(btn){ btn.innerHTML='<span>✅</span> '+t('btn_copied')+''; btn.style.background='var(--green-dark)'; }
+    if(btn){ btn.innerHTML='<span>...</span> '+t('btn_copied'); btn.style.background='var(--green-dark)'; }
     setTimeout(()=>{
-      if(btn){ btn.innerHTML='<span>📋</span> '+t('btn_copy')+''; btn.style.background=''; }
+      if(btn){ btn.innerHTML='<span>...</span> '+t('btn_copy'); btn.style.background=''; }
     }, 2500);
     toast('✓ Plantilla copiada al portapapeles','success');
   }).catch(()=>{ toast('⚠ No se pudo copiar','warn'); });
