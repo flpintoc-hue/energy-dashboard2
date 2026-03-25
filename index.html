@@ -3735,6 +3735,15 @@ function selectStateFromMap(stateId) {
   selectState(stateId);
 }
 
+const SEC = {
+  SESSION_TIMEOUT_MS:  10 * 60 * 1000,   // 10 min inactividad
+  WARN_BEFORE_MS:       1 * 60 * 1000,   // aviso 1 min antes
+  MAX_LOGIN_ATTEMPTS:  5,
+  LOCKOUT_MS:         10 * 60 * 1000,
+  SESSION_KEY:        'esd_session',
+  ATTEMPTS_KEY:       'esd_attempts',
+};
+
 // Ensure login button works even if onclick attr fails
 document.addEventListener('DOMContentLoaded', function() {
   const lb = document.getElementById('loginBtn');
@@ -3788,14 +3797,7 @@ window.addEventListener('popstate', function(e) {
 // ════════════════════════════════════════════
 // SECURITY MODULE
 // ════════════════════════════════════════════
-const SEC = {
-  SESSION_TIMEOUT_MS:  10 * 60 * 1000,   // 10 min inactividad
-  WARN_BEFORE_MS:       1 * 60 * 1000,   // aviso 1 min antes
-  MAX_LOGIN_ATTEMPTS:  5,
-  LOCKOUT_MS:         10 * 60 * 1000,
-  SESSION_KEY:        'esd_session',
-  ATTEMPTS_KEY:       'esd_attempts',
-};
+
 
 let _sessionTimer = null, _warnTimer = null, _warnBanner = null;
 
