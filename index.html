@@ -2680,148 +2680,95 @@ function renderCheckItems() {
 function renderTemplateStep(stepNum, state, util, sup) {
   const stateVal  = state ? state.name + ' (' + state.code + ')' : '';
   const utilVal   = sel.utilIds.length > 0
-    ? sel.utilIds.map(id => { const u=db.utilities.find(x=>x.id===id); return u?u.name:''; }).join(' / ')
+    ? sel.utilIds.map(function(id) { var u=db.utilities.find(function(x){return x.id===id;}); return u?u.name:''; }).join(' / ')
     : (util ? util.name : '');
-  const phoneVal  = document.getElementById('dncPhone')?.value || '';
+  const phoneVal  = (document.getElementById('dncPhone') || {}).value || '';
   const supName   = sup ? sup.name : '';
 
-  // Build rate info
-  let rateVal = Object.values(sel.rateInfos).join(' / ');
+  var rateVal = Object.values(sel.rateInfos).join(' / ');
   if(!rateVal && sup) {
-    const rates = db.rates.filter(r => r.supId === sup.id);
+    var rates = db.rates.filter(function(r){return r.supId===sup.id;});
     if(rates.length > 0) {
-      const r = rates[0];
-      const uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
-      rateVal = `${supName} — ${r.price} ${uomShort} | Term: ${r.months} mo | ETF: ${r.etf}`;
+      var r = rates[0];
+      var uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
+      rateVal = supName + ' — ' + r.price + ' ' + uomShort + ' | Term: ' + r.months + ' mo | ETF: ' + r.etf;
     }
   }
 
-  // REP IDs per supplier
-  const REP_IDS = {
-    'INDRA': ['NLS1064','NLS1065','NLS1066','NLS1062','NLS1060','NLS1063','NLS1068'],
-    'NG&E':  ['BNSC1003'],
-  };
-  const repIds = (sup && REP_IDS[sup.name]) ? REP_IDS[sup.name] : [];
+  var REP_IDS = { 'INDRA': ['NLS1064','NLS1065','NLS1066','NLS1062','NLS1060','NLS1063','NLS1068'], 'NG&E': ['BNSC1003'] };
+  var repIds = (sup && REP_IDS[sup.name]) ? REP_IDS[sup.name] : [];
 
-  // States list for dropdown
-  const stateOptions = db.states.map(s =>
-    `<option value="${s.name} (${s.code})" ${stateVal.includes(s.code)?'selected':''}>${s.name} (${s.code})</option>`
-  ).join('');
+  var stateOptions = db.states.map(function(s) {
+    var sel_ = stateVal.includes(s.code) ? ' selected' : '';
+    return '<option value="' + s.name + ' (' + s.code + ')"' + sel_ + '>' + s.name + ' (' + s.code + ')</option>';
+  }).join('');
 
-  const repSelector = repIds.length > 0 ? `
-    <div class="tpl-row tpl-full">
-      <label class="tpl-label">${t('tpl_repid')} — ${t('tpl_repid_hint')}</label>
-      <div class="rep-selector" id="repSelectorChips">
-        ${repIds.map(r => `<button class="rep-chip" onclick="selectRepId('${r}')">${r}</button>`).join('')}
-      </div>
-      <input class="tpl-input" id="tpl_repid" placeholder="Selecciona arriba" style="margin-top:6px;display:none" readonly>
-    </div>` : `
-    <div class="tpl-row">
-      <label class="tpl-label">REP ID</label>
-      <input class="tpl-input" id="tpl_repid" placeholder="Tu Rep ID">
-    </div>`;
+  var repSelector = repIds.length > 0
+    ? '<div class="tpl-row tpl-full"><label class="tpl-label">' + t('tpl_repid') + ' — ' + t('tpl_repid_hint') + '</label>' +
+      '<div class="rep-selector" id="repSelectorChips">' +
+      repIds.map(function(r){ return '<button class="rep-chip" onclick="selectRepId(\'' + r + '\')">' + r + '</button>'; }).join('') +
+      '</div><input class="tpl-input" id="tpl_repid" placeholder="' + t('tpl_repid_hint') + '" style="margin-top:6px;display:none" readonly></div>'
+    : '<div class="tpl-row"><label class="tpl-label">' + t('tpl_repid') + '</label><input class="tpl-input" id="tpl_repid" placeholder="' + t('tpl_repid_hint') + '"></div>';
 
-  return `<div class="check-item template-step">
-    <div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>
-    <div class="check-content" style="flex:1">
-      <div class="check-step">Paso ${stepNum}</div>
-      <div class="check-title">${t('check_tpl_title')}</div>
-      <div class="check-desc" style="margin-bottom:14px">Los campos marcados se llenaron automáticamente. Completa los que faltan.</div>
-      <div class="tpl-grid">
+  var showDobNamekey = state && state.code === 'MA' && sel.utilIds.some(function(id){
+    var u = db.utilities.find(function(x){return x.id===id;});
+    return u && u.name.includes('Eversource');
+  });
 
-        <!-- LANGUAGE — dropdown -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_lang')}</label>
-          <select class="tpl-input" id="tpl_lang">
-            <option value="">Selecciona...</option>
-            <option value="English">🇺🇸 English</option>
-            <option value="Spanish">🇪🇸 Spanish</option>
-          </select>
-        </div>
+  var dobField = showDobNamekey
+    ? '<div class="tpl-row"><label class="tpl-label">' + t('tpl_dob') + ' <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label><input class="tpl-input" type="date" id="tpl_dob" max="' + new Date().toISOString().split('T')[0] + '"></div>'
+    : '<div style="display:none"><input id="tpl_dob"></div>';
 
-        <!-- AUTHORIZED — dropdown -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_auth')}</label>
-          <select class="tpl-input" id="tpl_auth">
-            <option value="">Selecciona...</option>
-            <option value="Yes — Account Holder">✅ Yes — Account Holder</option>
-            <option value="Yes — Authorized User">✅ Yes — Authorized User</option>
-            <option value="No">❌ No</option>
-          </select>
-        </div>
+  var nameKeyField = showDobNamekey
+    ? '<div class="tpl-row"><label class="tpl-label">' + t('tpl_namekey') + ' <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label><input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre"></div>'
+    : '<div style="display:none"><input id="tpl_namekey"></div>';
 
-        <!-- STATE — dropdown (changeable) -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_state')}</label>
-          <select class="tpl-input" id="tpl_state">
-            <option value="">Selecciona...</option>
-            ${stateOptions}
-          </select>
-        </div>
-
-        <!-- DATE OF BIRTH — only for MA/Eversource -->
-        ${(state && state.code === 'MA' && sel.utilIds.some(id => { const u=db.utilities.find(x=>x.id===id); return u && u.name.includes('Eversource'); })) ? `
-        <div class="tpl-row">
-          <label class="tpl-label">DATE OF BIRTH <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label>
-          <input class="tpl-input" type="date" id="tpl_dob" max="${new Date().toISOString().split('T')[0]}">
-        </div>` : '<div style="display:none"><input id="tpl_dob"></div>'}
-
-        <!-- PHONE NUMBER — pre-filled -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_phone')}</label>
-          <input class="tpl-input" id="tpl_phone" value="${phoneVal}" placeholder="(555) 123-4567">
-        </div>
-
-        <!-- ACC HOLDER -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_holder')}</label>
-          <input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular">
-        </div>
-
-        <!-- ADDRESS -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_address')}</label>
-          <input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio">
-        </div>
-
-        <!-- CITY -->
-        <div class="tpl-row">
-          <label class="tpl-label">${t('tpl_city')}</label>
-          <input class="tpl-input" id="tpl_city" placeholder="Ciudad">
-        </div>
-
-        <!-- ACC INFO — dynamic per selected utility -->
-        <div class="tpl-row tpl-full" id="accInfoFields"></div>
-
-        <!-- NAME KEY — only for MA/Eversource -->
-        ${(state && state.code === 'MA' && sel.utilIds.some(id => { const u=db.utilities.find(x=>x.id===id); return u && u.name.includes('Eversource'); })) ? `
-        <div class="tpl-row">
-          <label class="tpl-label">NAME KEY <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label>
-          <input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre">
-        </div>` : '<div style="display:none"><input id="tpl_namekey"></div>'}
-
-        <!-- UTILITY — pre-filled, editable -->
-        <div class="tpl-row tpl-full">
-          <label class="tpl-label">${t('tpl_util')}</label>
-          <input class="tpl-input" id="tpl_util" value="${utilVal}" placeholder="Utilidad">
-        </div>
-
-        <!-- REP ID — green chips -->
-        ${repSelector}
-
-        <!-- TARIFA — pre-filled -->
-        <div class="tpl-row tpl-full">
-          <label class="tpl-label">${t('tpl_tarifa')}</label>
-          <input class="tpl-input" id="tpl_tarifa" value="${rateVal}" placeholder="Supplier — Rate | Term | ETF">
-        </div>
-
-      </div>
-      <button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn">
-        <span>📋</span> ${t('btn_copy')}
-      </button>
-    </div>
-  </div>`;
+  return '<div class="check-item template-step">' +
+    '<div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>' +
+    '<div class="check-content" style="flex:1">' +
+      '<div class="check-step">' + t('check_step') + ' ' + stepNum + '</div>' +
+      '<div class="check-title">' + t('check_tpl_title') + '</div>' +
+      '<div class="check-desc" style="margin-bottom:14px">' + t('check_tpl_desc') + '</div>' +
+      '<div class="tpl-grid">' +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_lang') + '</label>' +
+          '<select class="tpl-input" id="tpl_lang">' +
+            '<option value="">Selecciona...</option>' +
+            '<option value="English">🇺🇸 English</option>' +
+            '<option value="Spanish">🇪🇸 Spanish</option>' +
+          '</select></div>' +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_auth') + '</label>' +
+          '<select class="tpl-input" id="tpl_auth">' +
+            '<option value="">Selecciona...</option>' +
+            '<option value="Yes — Account Holder">✅ Yes — Account Holder</option>' +
+            '<option value="Yes — Authorized User">✅ Yes — Authorized User</option>' +
+            '<option value="No">❌ No</option>' +
+          '</select></div>' +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_state') + '</label>' +
+          '<select class="tpl-input" id="tpl_state"><option value="">Selecciona...</option>' + stateOptions + '</select></div>' +
+        dobField +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_phone') + '</label>' +
+          '<input class="tpl-input" id="tpl_phone" value="' + phoneVal + '" placeholder="(555) 123-4567"></div>' +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_holder') + '</label>' +
+          '<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular"></div>' +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_address') + '</label>' +
+          '<input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio"></div>' +
+        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_city') + '</label>' +
+          '<input class="tpl-input" id="tpl_city" placeholder="Ciudad"></div>' +
+        '<div class="tpl-row tpl-full" id="accInfoFields"></div>' +
+        '<div class="tpl-row tpl-full"><label class="tpl-label">' + t('tpl_util') + '</label>' +
+          '<input class="tpl-input" id="tpl_util" value="' + utilVal + '" placeholder="Utilidad"></div>' +
+        nameKeyField +
+        repSelector +
+        '<div class="tpl-row tpl-full"><label class="tpl-label">' + t('tpl_tarifa') + '</label>' +
+          '<input class="tpl-input" id="tpl_tarifa" value="' + rateVal + '" placeholder="Supplier — Rate | Term | ETF"></div>' +
+      '</div>' +
+      '<button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn">' +
+        '<span>📋</span> ' + t('btn_copy') +
+      '</button>' +
+    '</div>' +
+  '</div>';
 }
+
 function restoreTemplateValues() {
   // Keep values across re-renders by storing in a global object
   if(!window._tplData) return;
