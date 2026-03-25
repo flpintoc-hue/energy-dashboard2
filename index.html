@@ -2892,16 +2892,90 @@ function copyTemplate() {
 }
 
 
+function getScriptKey(supName, stateCode, lang) {
+  return supName + '|' + stateCode + '|' + lang;
+}
+
 function renderSupplierScript() {
   const container = document.getElementById('supplierScriptSection');
   if(!container) return;
-  const sup = db.suppliers.find(s => s.id === sel.supId);
-  if(!sup) { container.style.display = 'none'; return; }
-  const script = db.supplierScripts && db.supplierScripts[sup.name];
-  if(!script) { container.style.display = 'none'; return; }
+  const sup   = db.suppliers.find(s => s.id === sel.supId);
+  const state = db.states.find(s => s.id === sel.stateId);
+  if(!sup || !state) { container.style.display = 'none'; return; }
+  if(!db.supplierScripts) db.supplierScripts = {};
+
+  const langs = ['es', 'en'];
+  const supName = sup.name;
+  const stateCode = state.code;
+
+  // Build script buttons for all available lang combos for this supplier+state
+  const available = langs.map(lang => {
+    const key = getScriptKey(supName, stateCode, lang);
+    const entry = db.supplierScripts[key];
+    return entry ? { lang, key, entry } : null;
+  }).filter(Boolean);
+
+  // Also check for a "all states" fallback: Supplier|ALL|lang
+  langs.forEach(lang => {
+    const key = getScriptKey(supName, 'ALL', lang);
+    const entry = db.supplierScripts[key];
+    if(entry && !available.find(a => a.lang === lang)) {
+      available.push({ lang, key, entry });
+    }
+  });
+
+  if(available.length === 0) { container.style.display = 'none'; return; }
+
   container.style.display = 'block';
-  document.getElementById('scriptSupplierName').textContent = sup.name;
-  document.getElementById('scriptTextContent').textContent = script;
+  document.getElementById('scriptSupplierName').textContent = supName + ' — ' + stateCode;
+
+  // Show first available by default
+  const first = available[0];
+  showScript(first.entry, first.lang);
+
+  // Build lang toggle buttons if multiple
+  const toggles = document.getElementById('scriptLangToggles');
+  if(toggles) {
+    if(available.length > 1) {
+      toggles.style.display = 'flex';
+      toggles.innerHTML = available.map(function(a) {
+        var bg = a.lang===currentLang ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)';
+        var label = a.lang==='en' ? '🇺🇸 English' : '🇪🇸 Español';
+        return '<button data-skey="' + a.key + '" data-slang="' + a.lang + '" class="script-lang-btn" ' +
+          'style="padding:6px 14px;border-radius:8px;border:2px solid rgba(255,255,255,0.3);background:' + bg + ';color:#fff;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.78rem">' +
+          label + '</button>';
+      }).join('');
+      // Attach click handlers
+      toggles.querySelectorAll('.script-lang-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          showScriptByKey(this.dataset.skey, this.dataset.slang);
+        });
+      });
+    } else {
+      toggles.style.display = 'none';
+    }
+  }
+}
+
+function showScriptByKey(key, lang) {
+  if(!db.supplierScripts) return;
+  var entry = db.supplierScripts[key];
+  if(entry) showScript(entry, lang);
+}
+
+function showScript(entry, lang) {
+  if(!entry) return;
+  const textEl = document.getElementById('scriptTextContent');
+  const linkEl = document.getElementById('scriptOpenLink');
+  if(textEl) textEl.textContent = entry.text || '';
+  if(linkEl) {
+    if(entry.url) {
+      linkEl.href = entry.url;
+      linkEl.style.display = 'inline-flex';
+    } else {
+      linkEl.style.display = 'none';
+    }
+  }
 }
 
 function copyScript() {
@@ -2945,30 +3019,85 @@ function saveBillUrl(utilId) {
 function renderScriptsAdmin() {
   const el = document.getElementById('scriptsList');
   if(!el) return;
-  const suppliers = ['NG&E', 'INDRA', 'Rushmore', 'Ecoplus Power'];
   if(!db.supplierScripts) db.supplierScripts = {};
-  el.innerHTML = suppliers.map(name => {
-    const script = db.supplierScripts[name] || '';
-    return '<div style="margin-bottom:20px">' +
-      '<div style="font-weight:800;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px">' +
-        '<span>' + name + '</span>' +
-      '</div>' +
-      '<textarea id="script_' + name.replace(/[^a-z0-9]/gi,'_') + '" ' +
-        'style="width:100%;height:180px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:Nunito,sans-serif;font-size:0.82rem;resize:vertical;outline:none;line-height:1.6" ' +
-        'placeholder="Escribe o pega el script para ' + name + '...">' + script + '</textarea>' +
-      '<button onclick="saveScript(\'' + name + '\')" style="margin-top:6px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.8rem">Guardar Script</button>' +
-    '</div>';
-  }).join('');
+
+  const suppliers = ['NG&E','INDRA','Rushmore','Ecoplus Power'];
+  const states    = db.states;
+  const langs     = [{code:'es',label:'🇪🇸 Español'},{code:'en',label:'🇺🇸 English'}];
+
+  let html = '';
+  suppliers.forEach(sup => {
+    html += '<div style="margin-bottom:24px;border:1.5px solid var(--border);border-radius:10px;overflow:hidden">';
+    html += '<div style="background:#f5f6f8;padding:10px 14px;font-weight:900;font-size:0.88rem;border-bottom:1.5px solid var(--border)">' + sup + '</div>';
+    
+    states.forEach(state => {
+      langs.forEach(lang => {
+        const key   = getScriptKey(sup, state.code, lang.code);
+        const entry = db.supplierScripts[key] || {text:'', url:''};
+        const safeKey = key.replace(/[^a-z0-9]/gi,'_');
+        
+        html += '<div style="padding:12px 14px;border-bottom:1px solid var(--border)">';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+        html += '<span style="font-size:0.75rem;font-weight:800;color:var(--text)">' + state.code + ' — ' + lang.label + '</span>';
+        html += '<button class="tog-script-btn" data-sk="' + safeKey + '" style="font-size:0.7rem;background:var(--border);border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">' + (entry.text||entry.url?'✏️ Editar':'+ Agregar') + '</button>';
+        html += '</div>';
+        
+        html += '<div id="editor_' + safeKey + '" style="display:' + (entry.text||entry.url?'block':'none') + '">';
+        html += '<input class="dinput" id="url_' + safeKey + '" placeholder="Link del documento (Google Drive, etc.)" value="' + (entry.url||'') + '" style="margin-bottom:6px">';
+        html += '<textarea id="txt_' + safeKey + '" placeholder="Texto del script..." style="width:100%;height:140px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:Nunito,sans-serif;font-size:0.8rem;resize:vertical;outline:none;line-height:1.6;margin-bottom:6px">' + (entry.text||'') + '</textarea>';
+        html += '<button class="sav-script-btn" data-key="' + key + '" data-sk="' + safeKey + '" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.78rem">Guardar</button>';
+        html += '</div>';
+        html += '</div>';
+      });
+    });
+    
+    // Also add ALL states option
+    langs.forEach(lang => {
+      const key = getScriptKey(sup, 'ALL', lang.code);
+      const entry = db.supplierScripts[key] || {text:'', url:''};
+      const safeKey = key.replace(/[^a-z0-9]/gi,'_');
+      html += '<div style="padding:12px 14px;border-bottom:1px solid var(--border);background:#FFFDE7">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+      html += '<span style="font-size:0.75rem;font-weight:800;color:#E65100">ALL estados — ' + lang.label + ' (aplica a todos)</span>';
+      html += '<button class="tog-script-btn" data-sk="' + safeKey + '" style="font-size:0.7rem;background:var(--border);border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:700">' + (entry.text||entry.url?'✏️ Editar':'+ Agregar') + '</button>';
+      html += '</div>';
+      html += '<div id="editor_' + safeKey + '" style="display:' + (entry.text||entry.url?'block':'none') + '">';
+      html += '<input class="dinput" id="url_' + safeKey + '" placeholder="Link del documento" value="' + (entry.url||'') + '" style="margin-bottom:6px">';
+      html += '<textarea id="txt_' + safeKey + '" placeholder="Texto del script..." style="width:100%;height:140px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:Nunito,sans-serif;font-size:0.8rem;resize:vertical;outline:none;line-height:1.6;margin-bottom:6px">' + (entry.text||'') + '</textarea>';
+      html += '<button class="sav-script-btn" data-key="' + key + '" data-sk="' + safeKey + '" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.78rem">Guardar</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+    
+    html += '</div>';
+  });
+  
+  el.innerHTML = html;
+  el.querySelectorAll('.tog-script-btn').forEach(function(b){
+    b.addEventListener('click', function(){ toggleScriptEditor(this.dataset.sk); });
+  });
+  el.querySelectorAll('.sav-script-btn').forEach(function(b){
+    b.addEventListener('click', function(){ saveScriptEntry(this.dataset.key, this.dataset.sk); });
+  });
+}
+
+function toggleScriptEditor(safeKey) {
+  const ed = document.getElementById('editor_' + safeKey);
+  if(ed) ed.style.display = ed.style.display==='none' ? 'block' : 'none';
+}
+
+function saveScriptEntry(key, safeKey) {
+  if(!db.supplierScripts) db.supplierScripts = {};
+  const url  = (document.getElementById('url_' + safeKey)||{}).value || '';
+  const text = (document.getElementById('txt_' + safeKey)||{}).value || '';
+  db.supplierScripts[key] = { text, url };
+  saveDb();
+  renderScriptsAdmin();
+  toast('✓ Script guardado', 'success');
 }
 
 function saveScript(supplierName) {
-  const key = supplierName.replace(/[^a-z0-9]/gi,'_');
-  const textarea = document.getElementById('script_' + key);
-  if(!textarea) return;
-  if(!db.supplierScripts) db.supplierScripts = {};
-  db.supplierScripts[supplierName] = textarea.value;
-  saveDb();
-  toast('✓ Script guardado para ' + supplierName, 'success');
+  // Legacy - kept for compatibility
 }
 
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
