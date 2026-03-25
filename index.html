@@ -1580,9 +1580,9 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 // ════════════════════════════════════════════
 // TRANSLATION SYSTEM
 // ════════════════════════════════════════════
-let currentLang = localStorage.getItem('esd_lang') || 'es';
+var currentLang = localStorage.getItem('esd_lang') || 'es';
 
-const T = {
+var T = {
   es: {
     // Login
     login_title: 'ENERGY DASHBOARD',
@@ -1782,7 +1782,8 @@ const T = {
 };
 
 function t(key) {
-  return (T[currentLang] && T[currentLang][key]) || (T['es'][key]) || key;
+  if(!T || !T[currentLang]) return key;
+  return (T[currentLang][key]) || (T['es'] && T['es'][key]) || key;
 }
 
 function setLang(lang) {
@@ -3376,10 +3377,10 @@ function getAccInfo(utilName) {
 // ════════════════════════════════════════════
 // AVATAR SYSTEM
 // ════════════════════════════════════════════
-let currentAvatar = localStorage.getItem('esd_avatar') || 'avatar1';
+var currentAvatar = localStorage.getItem('esd_avatar') || 'avatar1';
 
 // iPhone-style cartoon avatars using DiceBear Adventurer
-const AVATAR_SEEDS = [
+var AVATAR_SEEDS = [
   { id:'av1',  seed:'Felix',    bg:'#FF6B6B', name:'Felix'    },
   { id:'av2',  seed:'Luna',     bg:'#4ECDC4', name:'Luna'     },
   { id:'av3',  seed:'Max',      bg:'#45B7D1', name:'Max'      },
@@ -3394,7 +3395,7 @@ const AVATAR_SEEDS = [
   { id:'av12', seed:'Isabella', bg:'#0984E3', name:'Isabella' },
 ];
 
-const AVATARS = {};
+var AVATARS = {};
 try {
   AVATAR_SEEDS.forEach(a => {
     AVATARS[a.id] = { ...a, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed='+a.seed+'&backgroundColor='+a.bg.replace('#','') };
@@ -3735,7 +3736,7 @@ function selectStateFromMap(stateId) {
   selectState(stateId);
 }
 
-const SEC = {
+var SEC = {
   SESSION_TIMEOUT_MS:  10 * 60 * 1000,   // 10 min inactividad
   WARN_BEFORE_MS:       1 * 60 * 1000,   // aviso 1 min antes
   MAX_LOGIN_ATTEMPTS:  5,
