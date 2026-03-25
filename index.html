@@ -1375,6 +1375,41 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           <button class="home-btn-big" onclick="volverInicio()"><span class="btn-icon">🏠</span> NUEVA CONSULTA DNC</button>
         </div>
       </div>
+
+      <!-- ── SUPPLIER SCRIPT SECTION ── -->
+      <div id="supplierScriptSection" style="display:none;margin-top:16px">
+        <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15)">
+          <!-- Header -->
+          <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.1)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:1.3rem">📜</span>
+                <div>
+                  <div style="color:rgba(255,255,255,0.5);font-size:0.6rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em">Script de Venta</div>
+                  <div style="color:#fff;font-weight:900;font-size:0.95rem" id="scriptSupplierName">—</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <a id="scriptOpenLink" href="#" target="_blank"
+                   style="display:none;align-items:center;gap:5px;background:rgba(255,255,255,0.15);color:#fff;padding:7px 14px;border-radius:8px;font-size:0.78rem;font-weight:800;text-decoration:none;border:1px solid rgba(255,255,255,0.3)">
+                  📂 Abrir documento
+                </a>
+                <button id="copyScriptBtn" onclick="copyScript()"
+                  style="background:#F47C20;border:none;color:#fff;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.78rem">
+                  📋 Copiar
+                </button>
+              </div>
+            </div>
+            <!-- Language toggles -->
+            <div id="scriptLangToggles" style="display:none;gap:8px;flex-wrap:wrap"></div>
+          </div>
+          <!-- Script text -->
+          <div style="padding:18px;max-height:420px;overflow-y:auto">
+            <pre id="scriptTextContent" style="color:rgba(255,255,255,0.9);font-family:'Nunito',sans-serif;font-size:0.85rem;line-height:1.8;white-space:pre-wrap;margin:0;word-break:break-word"></pre>
+          </div>
+        </div>
+      </div>
+
       <div class="nav-bar"><button class="back-btn" onclick="goStep(3)">← Atrás</button></div>
     </div>
 
@@ -2924,7 +2959,24 @@ function renderSupplierScript() {
     }
   });
 
-  if(available.length === 0) { container.style.display = 'none'; return; }
+  if(available.length === 0) {
+    // Show placeholder so admin knows scripts can be configured
+    if(currentUser && currentUser.role === 'admin') {
+      container.style.display = 'block';
+      document.getElementById('scriptSupplierName').textContent = supName + ' — ' + stateCode;
+      const textEl = document.getElementById('scriptTextContent');
+      if(textEl) textEl.textContent = currentLang==='en'
+        ? '⚙ No script configured for this supplier/state. Go to Admin → Scripts to add one.'
+        : '⚙ No hay script configurado para este supplier/estado. Ve a Admin → Scripts para agregar uno.';
+      const linkEl = document.getElementById('scriptOpenLink');
+      if(linkEl) linkEl.style.display = 'none';
+      const toggles = document.getElementById('scriptLangToggles');
+      if(toggles) toggles.style.display = 'none';
+    } else {
+      container.style.display = 'none';
+    }
+    return;
+  }
 
   container.style.display = 'block';
   document.getElementById('scriptSupplierName').textContent = supName + ' — ' + stateCode;
