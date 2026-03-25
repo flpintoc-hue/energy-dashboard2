@@ -3241,11 +3241,24 @@ async function submitSale() {
     const result = JSON.parse(await resp.text());
 
     if(result.success) {
-      // Also notify supervisor via WhatsApp (CallMeBot — silent, no UI needed)
-      fetch(SESSIONS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'notify_sale', sale })
-      }).catch(()=>{}); // silent — don't block UI
+      // Notify supervisor via CallMeBot directly from browser
+      const now3 = new Date().toLocaleString('es-CO', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const saleMsg = '💰 *VENTA REGISTRADA*\n'
+        + '━━━━━━━━━━━━━━━\n'
+        + '👤 Agente: *' + sale.agent + '*\n'
+        + '🏷 REP ID: ' + sale.repId + '\n'
+        + '━━━━━━━━━━━━━━━\n'
+        + '👤 Cliente: *' + sale.holder + '*\n'
+        + '📞 Tel: ' + sale.phone + '\n'
+        + '📍 Estado: ' + sale.state + '\n'
+        + '⚡ Utilidad: ' + sale.utility + '\n'
+        + '🏢 Supplier: *' + sale.supplier + '*\n'
+        + '💰 Tarifa: ' + sale.rate + '\n'
+        + '🌐 Idioma: ' + sale.language + '\n'
+        + '━━━━━━━━━━━━━━━\n'
+        + '🕐 ' + now3 + '\n'
+        + '_Energy Dashboard_';
+      callMeBot(saleMsg).catch(()=>{});
 
       // Success state
       if(btn) {
@@ -3272,6 +3285,18 @@ async function submitSale() {
 // ════════════════════════════════════════════
 function getWANumber() {
   return db.whatsappNumber || '573155062006';
+}
+
+// Call CallMeBot directly from browser (bypasses Apps Script 403 issue)
+async function callMeBot(message) {
+  const phone  = '573155062006';
+  const apikey = '6567404';
+  try {
+    const url = 'https://api.callmebot.com/whatsapp.php?phone=' + phone + '&text=' + encodeURIComponent(message) + '&apikey=' + apikey;
+    await fetch(url, { method: 'GET', mode: 'no-cors' });
+  } catch(e) {
+    console.log('CallMeBot sent (no-cors)');
+  }
 }
 
 function sendDNCToWhatsApp(phone, result) {
@@ -3691,19 +3716,32 @@ function showDNCResult(type, icon, title, sub) {
   document.getElementById('dncResultIcon').textContent  = icon;
   document.getElementById('dncResultTitle').textContent = title;
   document.getElementById('dncResultSub').textContent   = sub;
-  // Show WA status indicator and send notification
+  // Show WA status and send via CallMeBot from browser
   const waStatus = document.getElementById('dncWAStatus');
   const waText   = document.getElementById('dncWAStatusText');
   if(waStatus) {
     waStatus.style.display = 'flex';
-    if(waText) waText.textContent = '📱 Notificando supervisor por WhatsApp...';
-    // The notification is sent automatically by Apps Script during check_dnc
-    // Just update the indicator after a short delay
-    setTimeout(() => {
-      if(waText) waText.textContent = '✅ Supervisor notificado por WhatsApp';
-      if(waStatus) { waStatus.style.background='#E8F5E9'; waStatus.style.borderColor='#A5D6A7'; }
-    }, 2000);
+    if(waText) waText.textContent = '📱 Notificando supervisor...';
   }
+  // Build and send message directly from browser
+  const phone2   = (document.getElementById('dncPhone')||{}).value || '';
+  const agent2   = currentUser ? currentUser.name : 'Agente';
+  const state2   = (() => { const s = db.states.find(x => x.id === sel.stateId); return s ? s.name + ' (' + s.code + ')' : ''; })();
+  const status2  = type === 'blocked' ? '🚫 EN DNC - NO LLAMAR' : '✅ LIBRE - Puede continuar';
+  const emoji2   = type === 'blocked' ? '🚨' : '✅';
+  const now2     = new Date().toLocaleString('es-CO', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const msg2 = emoji2 + ' *CONSULTA DNC*%0A'
+    + '━━━━━━━━━━━━━━━%0A'
+    + '📞 Número: *' + phone2 + '*%0A'
+    + '📊 Resultado: *' + status2 + '*%0A'
+    + '👤 Agente: ' + agent2 + '%0A'
+    + '📍 Estado: ' + state2 + '%0A'
+    + '🕐 ' + now2 + '%0A'
+    + '━━━━━━━━━━━━━━━%0A'
+    + '_Energy Dashboard_';
+  callMeBot(msg2).then(() => {
+    if(waText) waText.textContent = '✅ Supervisor notificado por WhatsApp';
+  });
 }
 
 function dncClearResult() {
