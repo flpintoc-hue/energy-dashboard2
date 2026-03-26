@@ -2421,6 +2421,29 @@ const ACTIVE_STATES_MAP = {
 };
 
 
+function renderMiniMap() {
+  // Update map state highlights based on selected state
+  try {
+    document.querySelectorAll('.map-state-group path, .map-state-group circle').forEach(el => {
+      el.style.opacity = '1';
+      el.style.strokeWidth = '';
+    });
+    if(sel.stateId) {
+      const state = db.states.find(s => s.id === sel.stateId);
+      if(state) {
+        // Highlight selected state on map
+        document.querySelectorAll('.map-state-group').forEach(g => {
+          const txt = g.querySelector('text');
+          if(txt && txt.textContent.trim() === state.code) {
+            const shape = g.querySelector('path, circle');
+            if(shape) { shape.style.strokeWidth = '4'; shape.style.stroke = '#fff'; }
+          }
+        });
+      }
+    }
+  } catch(e) {}
+}
+
 function renderStates() {
   const g = document.getElementById('statesGrid');
   if(!db.states.length) {
