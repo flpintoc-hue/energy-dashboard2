@@ -2609,7 +2609,7 @@ function goStep(n) {
   if(n===1) { renderStates(); }
   if(n===2) renderUtilities();
   if(n===3) renderSupplierCards();
-  if(n===4) renderChecklist();
+  if(n===4) { renderChecklist(); setTimeout(validateTemplate, 150); }
   updateContext();
   applyTranslationsToDOM();
   updateStepAvatar();
@@ -2986,6 +2986,7 @@ function renderChecklist() {
     <div class="sum-item"><div class="sum-label">${t('sum_agent')}</div><div class="sum-val">${currentUser?currentUser.name:'—'}</div></div>
   `;
   renderCheckItems();
+  setTimeout(validateTemplate, 100);
 }
 function renderCheckItems() {
   const state  = db.states.find(s=>s.id===sel.stateId);
@@ -3796,7 +3797,7 @@ function validateTemplate() {
   checkField('tpl_phone', 'Phone (10 dígitos)', phoneDigits.length === 10);
   checkField('tpl_address', 'Address');
   checkField('tpl_city',    'City');
-  checkField('tpl_zip',     'ZIP Code', g('tpl_zip').length === 5);
+  checkField('tpl_zip',     'ZIP Code', g('tpl_zip').replace(/\s/g,'').length === 5);
 
   // Auth-dependent
   var authVal = g('tpl_auth');
