@@ -3269,7 +3269,9 @@ function copyTemplate() {
 
   // Build ACC INFO lines — read directly from each input's value and placeholder
   var accLines = [];
+  console.log('ACC inputs found:', document.querySelectorAll('.acc-info-input').length);
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    console.log('ACC input:', inp.id, 'value:', inp.value, 'data-util:', inp.getAttribute('data-util'));
     var val = inp.value.trim();
     if(!val) return; // skip empty
     var utilId    = inp.getAttribute('data-util') || '';
