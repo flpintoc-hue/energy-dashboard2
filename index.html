@@ -3153,7 +3153,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
         +'<div class="tpl-row"><label class="tpl-label">Apt / Unit / Floor <span style="color:var(--text-muted);font-weight:600;font-size:0.7rem">(opcional)</span></label>'
         +'<input class="tpl-input" id="tpl_apt" placeholder="Ej: Apt 2B, Unit 3, 2FL" oninput="validateTemplate()"></div>'
 
@@ -3914,6 +3914,13 @@ var _addrDropdown = null;
 
 function setupAddressAutocomplete() {}  // kept for compatibility
 
+function clearAddressMismatch() {
+  var div = document.getElementById('addressStateMismatch');
+  if(div) div.style.display = 'none';
+  var inp = document.getElementById('tpl_address');
+  if(inp) { inp.style.borderColor = ''; inp.style.boxShadow = ''; }
+}
+
 function initAddressAutocomplete() {
   var input = document.getElementById('tpl_address');
   if(!input || input._addrInit) return;
@@ -3930,7 +3937,7 @@ function initAddressAutocomplete() {
   input.addEventListener('input', function() {
     clearTimeout(_addrTimeout);
     var q = input.value.trim();
-    if(q.length < 4) { _addrDropdown.style.display='none'; return; }
+    if(q.length < 3) { _addrDropdown.style.display='none'; return; }
     _addrTimeout = setTimeout(function(){ fetchAddresses(q); }, 400);
   });
 
@@ -3942,37 +3949,61 @@ function initAddressAutocomplete() {
 }
 
 function fetchAddresses(query) {
-  var url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=us&q=' + encodeURIComponent(query);
-  fetch(url, { headers: { 'Accept-Language': 'en' } })
+  // Add selected state to improve results
+  var stateHint = '';
+  if(sel.stateId) {
+    var st = db.states.find(function(s){ return s.id===sel.stateId; });
+    if(st) stateHint = ', ' + st.name;
+  }
+  var q = query + stateHint;
+  var url = 'https://nominatim.openstreetmap.org/search'
+    + '?format=json&addressdetails=1&limit=8&countrycodes=us'
+    + '&featuretype=house&dedupe=1'
+    + '&q=' + encodeURIComponent(q);
+  fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'EnergyDashboard/1.0' } })
     .then(function(r){ return r.json(); })
     .then(function(results){ showAddressSuggestions(results); })
     .catch(function(){ _addrDropdown.style.display='none'; });
 }
 
 function showAddressSuggestions(results) {
-  if(!_addrDropdown || !results.length) { if(_addrDropdown) _addrDropdown.style.display='none'; return; }
+  if(!_addrDropdown) return;
   _addrDropdown.innerHTML = '';
+  var added = 0;
   results.forEach(function(r) {
     var addr = r.address || {};
-    var street = (addr.house_number ? addr.house_number + ' ' : '') + (addr.road || '');
-    var city   = addr.city || addr.town || addr.village || addr.county || '';
-    var state  = addr.state || '';
-    var zip    = addr.postcode || '';
-    var stCode = getStateCode(state);
-    if(!street) return;
+    var houseNum = addr.house_number || '';
+    var road     = addr.road || addr.pedestrian || addr.footway || '';
+    var street   = (houseNum ? houseNum + ' ' : '') + road;
+    var city     = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || '';
+    var state    = addr.state || '';
+    var zip      = addr.postcode || '';
+    var stCode   = getStateCode(state);
+
+    // Skip results without a proper street address
+    if(!street || !road) return;
 
     var item = document.createElement('div');
     item.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.82rem;transition:background 0.15s';
     item.innerHTML = '<div style="font-weight:800;color:#1a1a2e">'+street+'</div>'
-      +'<div style="color:#666;font-size:0.75rem">'+city+(stCode?' — '+stCode:'')+(zip?' '+zip:'')+'</div>';
-    item.addEventListener('mouseenter', function(){ this.style.background='#f5f7ff'; });
+      +'<div style="color:#888;font-size:0.75rem">'+city+(city&&stCode?', ':'')+stCode+(zip?' '+zip:'')+'</div>';
+    item.addEventListener('mouseenter', function(){ this.style.background='#f0f4ff'; });
     item.addEventListener('mouseleave', function(){ this.style.background=''; });
-    item.addEventListener('click', function() {
+    item.addEventListener('mousedown', function(e) {
+      e.preventDefault(); // prevent input blur before click fires
       selectAddress(street, city, stCode, zip);
       _addrDropdown.style.display = 'none';
     });
     _addrDropdown.appendChild(item);
+    added++;
   });
+
+  if(added === 0) {
+    var noResult = document.createElement('div');
+    noResult.style.cssText = 'padding:10px 14px;font-size:0.8rem;color:#888;text-align:center';
+    noResult.textContent = 'No se encontraron direcciones. Intenta con más detalles.';
+    _addrDropdown.appendChild(noResult);
+  }
   _addrDropdown.style.display = 'block';
 }
 
