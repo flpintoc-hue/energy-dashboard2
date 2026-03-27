@@ -1065,6 +1065,179 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   100% { transform: scale(1) rotate(0deg); }
 }
 
+
+@keyframes avatarWiggle {
+  0%   { transform: rotate(0deg) scale(1); }
+  15%  { transform: rotate(-12deg) scale(1.1); }
+  30%  { transform: rotate(10deg) scale(1.15); }
+  45%  { transform: rotate(-8deg) scale(1.1); }
+  60%  { transform: rotate(6deg) scale(1.05); }
+  75%  { transform: rotate(-4deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+.step-avatar-float.wiggle {
+  animation: avatarWiggle 0.6s cubic-bezier(0.36,0.07,0.19,0.97);
+}
+
+
+/* ── OBJECTION BUBBLES ── */
+.objections-container {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fb;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.objections-title {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+}
+.bubbles-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.obj-bubble {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  color: #fff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border: 2px solid transparent;
+  max-width: 180px;
+  text-align: center;
+}
+.obj-bubble:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+.obj-bubble.active { border-color: var(--orange); background: linear-gradient(135deg, #E65100, #F47C20); }
+
+/* Objection modal */
+.obj-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.obj-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+.obj-modal-title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+}
+.obj-modal-body {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.obj-modal-close {
+  margin-top: 16px;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-family: Nunito, sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+
+/* ── OBJECTIONS CLOUD ── */
+.obj-cloud-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fb;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.obj-cloud-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.obj-clouds-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.obj-bubble {
+  background: white;
+  border: 2px solid #E3F2FD;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--blue-dark);
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  user-select: none;
+  position: relative;
+}
+.obj-bubble:hover {
+  transform: scale(1.08);
+  background: #E3F2FD;
+  box-shadow: 0 4px 16px rgba(21,101,192,0.15);
+}
+.obj-bubble.expanded {
+  background: #1565C0;
+  color: white;
+  border-color: #1565C0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.6;
+  cursor: pointer;
+  flex: 0 0 100%;
+  transform: scale(1);
+  box-shadow: 0 6px 20px rgba(21,101,192,0.3);
+}
+.obj-bubble.expanded .obj-keyword {
+  display: block;
+  font-weight: 900;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  padding-bottom: 6px;
+}
+.obj-keyword { display: inline; }
+
 </style>
 </head>
 <body>
@@ -1115,11 +1288,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           </button>
         </div>
       </div>
-      <div style="margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.08);border-radius:10px;border:1px solid rgba(255,255,255,0.15);text-align:center">
-        <div style="font-size:0.72rem;color:rgba(255,255,255,0.6)" id="avatarHint">
-          🎭 Personaliza tu avatar desde el menú superior una vez dentro
-        </div>
-      </div>
+
       <button class="login-btn" id="loginEnterBtn" onclick="finishLogin()" style="background:#27ae60">
         Continuar →
       </button>
@@ -1131,7 +1300,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 <!-- ════════════════════════════════
   APP SCREEN
 ════════════════════════════════ -->
-<div id="appScreen">
+<div id="appScreen" onclick="wiggleAvatar()">
 
   <div class="top-header">
     <h1 style="font-size:1.1rem"><span style="font-size:1.5rem;vertical-align:middle;margin-right:6px">⚡</span>Energy Supplier Dashboard</h1>
@@ -1207,6 +1376,18 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           <button class="dnc-proceed-btn" id="dncProceedBtn" onclick="goStep(1)">
             ✓ Número libre — Continuar con la venta →
           </button>
+          <!-- Objection bubbles -->
+          <div class="objections-container" id="objectionsSection">
+            <div class="objections-title">💬 Manejo de Objeciones — clic para ver respuesta</div>
+            <div class="bubbles-grid" id="objectionBubbles"></div>
+          </div>
+
+          <!-- Objections cloud -->
+          <div class="obj-cloud-section">
+            <div class="obj-cloud-title">💬 Manejo de Objeciones — clic para ver respuesta</div>
+            <div class="obj-clouds-wrap" id="objCloudWrap"></div>
+          </div>
+
           <!-- Agent avatar + name at bottom of DNC -->
           <div id="dncAgentCard" style="margin-top:16px;padding:12px 16px;background:#f8f9fb;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;gap:12px">
             <div id="dncAvatarDisplay" style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#FF6B6B"></div>
@@ -3662,7 +3843,9 @@ async function renderDNC() {
   const text = document.getElementById('dncStatusText');
   const link = document.getElementById('dncUploadLink');
   if(dot)  dot.className = 'dnc-status-dot loaded';
-  if(text) text.textContent = t('dnc_status');
+  if(text) {
+    text.innerHTML = '<strong>DNC INDRA</strong> &nbsp;·&nbsp; ' + t('dnc_status');
+  }
   if(link) link.style.display = 'none';
   // Update DNC panel static texts
   const h3 = document.querySelector('#panel0 .dnc-header h3');
@@ -3686,6 +3869,7 @@ async function renderDNC() {
     if(agentName)  agentName.textContent  = currentUser.name;
     if(agentLabel) agentLabel.textContent = currentLang==='en' ? 'Agent' : 'Agente';
   }
+  renderObjections();
 }
 
 async function checkDNC() {
@@ -3694,6 +3878,9 @@ async function checkDNC() {
   const clean = cleanPhone(raw);
   if(clean.length < 7) { toast('⚠ Número muy corto','warn'); return; }
 
+  // Clear previous result and WA status
+  dncClearResult();
+  dncClearResult();
   const btn = document.getElementById('dncCheckBtn');
   btn.disabled = true;
   btn.textContent = t('btn_verifying');
@@ -3744,7 +3931,7 @@ function showDNCResult(type, icon, title, sub) {
   const waText   = document.getElementById('dncWAStatusText');
   if(waStatus) {
     waStatus.style.display = 'flex';
-    if(waText) waText.textContent = '✅ Supervisor notificado por WhatsApp';
+    if(waText) waText.textContent = currentLang==='en' ? '✅ Info sent to supervisor for other suppliers' : '✅ Para otros suppliers: información enviada al supervisor';
   }
 }
 
@@ -3753,6 +3940,11 @@ function dncClearResult() {
   if(r) r.className = 'dnc-result';
   const p = document.getElementById('dncProceedBtn');
   if(p) p.classList.remove('show');
+  // Clear WA status for new query
+  const ws = document.getElementById('dncWAStatus');
+  if(ws) ws.style.display = 'none';
+  const wt = document.getElementById('dncWAStatusText');
+  if(wt) wt.textContent = '';
 }
 
 // Reload DNC from Sheets (for admin refresh button)
@@ -3886,10 +4078,13 @@ try {
   });
 } catch(e) { console.error('Avatar init error:', e); }
 
-function getAvatarHtml(avatarKey, size=36) {
-  const av = AVATARS[avatarKey] || AVATAR_SEEDS[0];
-  const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed || av.id}&backgroundColor=${(av.bg||'#FF6B6B').replace('#','')}`;
-  return `<img src="${url}" style="width:${size}px;height:${size}px;border-radius:50%;background:${av.bg};box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0;object-fit:cover" onerror="this.style.display='none'">`;
+function getAvatarHtml(avatarKey, size) {
+  size = size || 36;
+  const av = AVATARS[avatarKey];
+  const initial = currentUser ? currentUser.name.charAt(0).toUpperCase() : '?';
+  if(!av) return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:#F47C20;display:flex;align-items:center;justify-content:center;font-size:'+(size*0.45)+'px;font-weight:900;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0">'+initial+'</div>';
+  const url = 'https://api.dicebear.com/7.x/adventurer/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
+  return '<img src="'+url+'" style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+av.bg+';box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0;object-fit:cover">';
 }
 
 function setAvatar(key) {
@@ -4142,6 +4337,15 @@ function updateStepAvatar() {
     onerror="this.parentElement.style.display='none'">`;
 }
 
+function wiggleAvatar() {
+  const float = document.getElementById('stepAvatarFloat');
+  if(!float || float.style.display === 'none') return;
+  float.classList.remove('wiggle');
+  void float.offsetWidth;
+  float.classList.add('wiggle');
+  setTimeout(() => float.classList.remove('wiggle'), 600);
+}
+
 function bounceAvatar() {
   const float = document.getElementById('stepAvatarFloat');
   if(!float) return;
@@ -4152,6 +4356,123 @@ function bounceAvatar() {
 }
 
 // Bounce avatar on every step navigation click
+
+// ════════════════════════════════════════════
+// OBJECTION HANDLING SYSTEM
+// ════════════════════════════════════════════
+var OBJECTIONS = [
+  {
+    key: 'Precio alto',
+    text: 'Entiendo que el precio es importante para usted. Lo que ofrecemos es una tarifa FIJA que le protege de los aumentos del mercado. Actualmente las tarifas variables están subiendo, con nosotros usted sabe exactamente lo que pagará cada mes. ¿Le gustaría comparar su factura actual con nuestra tarifa?'
+  },
+  {
+    key: 'Ya tengo proveedor',
+    text: 'Es genial que ya tenga un proveedor. Mi llamada es precisamente para mostrarle una alternativa que podría ahorrarle dinero. No tiene que cancelar nada ahora mismo, solo comparemos las tarifas. ¿Cuánto paga aproximadamente al mes por su servicio eléctrico?'
+  },
+  {
+    key: 'No me interesa',
+    text: 'Lo entiendo completamente. Muchos de nuestros clientes dijeron lo mismo antes de escuchar nuestra oferta. Solo le tomo 2 minutos: tenemos una tarifa fija que podría ahorrarle hasta un 20% en su factura. ¿Me permite mostrarle los números?'
+  },
+  {
+    key: 'Hablar con esposo/a',
+    text: 'Por supuesto, es una decisión familiar importante. ¿Cuándo sería un buen momento para llamar cuando estén los dos disponibles? Puedo llamar esta tarde o mañana a la hora que prefieran.'
+  },
+  {
+    key: 'Mándelo por escrito',
+    text: 'Con gusto le envío la información. Para poder enviarle la oferta personalizada necesito confirmar algunos datos de su cuenta. ¿Me puede dar su nombre completo y dirección de servicio? Así le envío exactamente lo que aplica para su caso.'
+  },
+  {
+    key: 'Es una estafa',
+    text: 'Entiendo su preocupación, hay muchas llamadas fraudulentas. Somos un proveedor certificado por la Comisión de Servicios Públicos de su estado. Puede verificarnos en el sitio web del estado. Nuestro número de licencia es [NÚMERO]. ¿Le gustaría verificarlo mientras hablamos?'
+  },
+  {
+    key: 'Llame después',
+    text: 'Por supuesto, ¿cuándo sería el mejor momento para hablar? ¿Esta tarde o mañana? Quiero asegurarme de llamarle cuando sea conveniente para usted.'
+  },
+  {
+    key: 'Contrato largo',
+    text: 'Nuestro contrato es de [X] meses, pero le protege de los aumentos de precio durante ese tiempo. Si decide cancelar antes hay una tarifa de salida de $5 por mes restante, lo cual es mucho menos que los aumentos que tendría con tarifa variable. ¿Le explico cómo funciona?'
+  }
+];
+
+function renderObjectionBubbles() {
+  const container = document.getElementById('objectionBubbles');
+  if(!container) return;
+  container.innerHTML = OBJECTIONS.map(function(obj, i) {
+    return '<div class="obj-bubble" onclick="openObjection('+i+')">' + obj.key + '</div>';
+  }).join('');
+}
+
+function openObjection(index) {
+  const obj = OBJECTIONS[index];
+  if(!obj) return;
+  wiggleAvatar();
+  const overlay = document.createElement('div');
+  overlay.className = 'obj-modal-overlay';
+  overlay.innerHTML = '<div class="obj-modal">'
+    + '<div class="obj-modal-title">💬 ' + obj.key + '</div>'
+    + '<div class="obj-modal-body">' + obj.text + '</div>'
+    + '<button class="obj-modal-close">✕ Cerrar</button>'
+    + '</div>';
+  overlay.querySelector('.obj-modal-close').addEventListener('click', function() {
+    overlay.remove();
+  });
+  overlay.addEventListener('click', function(e) {
+    if(e.target === overlay) overlay.remove();
+  });
+  document.body.appendChild(overlay);
+}
+
+
+// ════════════════════════════════════════════
+// OBJECTIONS HANDLER
+// ════════════════════════════════════════════
+var OBJECTIONS = [
+  { key: 'Ya tengo contrato', text: 'Entiendo perfectamente. Lo que hacemos es revisar si su tarifa actual es competitiva. Muchos clientes tienen contratos pero siguen pagando más de lo necesario. ¿Me podría decir cuánto está pagando aproximadamente por kWh?' },
+  { key: 'No me interesa', text: 'Lo comprendo. La mayoría de nuestros clientes nos decían lo mismo antes de ver el ahorro. Solo le toma 2 minutos revisar si podemos reducir su factura. ¿Cuánto paga actualmente de luz al mes?' },
+  { key: 'Es una estafa', text: 'Entiendo su preocupación y es válida. Somos un proveedor certificado por la PUC del estado. Puede verificarnos en el sitio oficial del regulador. ¿Le gustaría que le dé el nombre exacto para que lo busque?' },
+  { key: 'Llame más tarde', text: 'Por supuesto, lo respeto. ¿Podría decirme a qué hora le quedaría mejor para que yo mismo lo llame? Quiero asegurarme de no interrumpirle en un momento inapropiado.' },
+  { key: 'Hablar con esposo/a', text: 'Perfecto, es una decisión importante. Mientras tanto, ¿podría confirmarme si usted es el titular de la cuenta de electricidad? Así cuando hable con su pareja ya tienen la información correcta.' },
+  { key: 'No entiendo inglés', text: 'No hay problema, podemos continuar en español. Estoy aquí para ayudarle. ¿Me puede decir su nombre para llamarle correctamente?' },
+  { key: 'Ya llamaron antes', text: 'Le pido disculpas si ha recibido varias llamadas. Esta vez tenemos una oferta específica para su zona que no estaba disponible antes. ¿Me permite 2 minutos para explicársela?' },
+  { key: 'No quiero cambios', text: 'No se preocupe, no cambia nada en su servicio. El mismo electricista, los mismos cables, la misma confiabilidad. Solo cambia quién le cobra y a un precio menor. ¿Le gustaría ver cómo funciona?' },
+];
+
+var expandedObj = null;
+
+function renderObjections() {
+  var el = document.getElementById('objCloudWrap');
+  if(!el) return;
+  el.innerHTML = OBJECTIONS.map(function(obj, i) {
+    return '<div class="obj-bubble" onclick="toggleObjBubble('+i+')" id="obj_'+i+'">' +
+      '<span class="obj-keyword">'+obj.key+'</span>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleObjBubble(idx) {
+  var all = document.querySelectorAll('.obj-bubble');
+  if(expandedObj === idx) {
+    // Collapse
+    all.forEach(function(b) { b.classList.remove('expanded'); b.innerHTML = '<span class="obj-keyword">'+OBJECTIONS[parseInt(b.id.split('_')[1])].key+'</span>'; });
+    expandedObj = null;
+  } else {
+    // Collapse all first
+    all.forEach(function(b, i) {
+      b.classList.remove('expanded');
+      b.innerHTML = '<span class="obj-keyword">'+OBJECTIONS[i].key+'</span>';
+    });
+    // Expand selected
+    var el = document.getElementById('obj_'+idx);
+    if(el) {
+      el.classList.add('expanded');
+      el.innerHTML = '<span class="obj-keyword">'+OBJECTIONS[idx].key+'</span>' + OBJECTIONS[idx].text;
+      expandedObj = idx;
+      el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  }
+}
+
 // ════════════════════════════════════════════
 // MAP ZOOM + CLICK FUNCTIONS
 // ════════════════════════════════════════════
@@ -4266,6 +4587,20 @@ try {
 } catch(e) {
   console.error('Load error:', e);
 }
+
+// Bounce avatar on any click in app
+document.addEventListener('click', function(e) {
+  if(document.getElementById('appScreen') &&
+     document.getElementById('appScreen').style.display !== 'none') {
+    const float = document.getElementById('stepAvatarFloat');
+    if(float && !e.target.closest('#stepAvatarFloat') && !e.target.closest('#avatarPickerDropdown')) {
+      float.classList.remove('bounce');
+      void float.offsetWidth;
+      float.classList.add('bounce');
+      setTimeout(() => float.classList.remove('bounce'), 500);
+    }
+  }
+});
 
 // Intercept browser back button
 window.addEventListener('popstate', function(e) {
