@@ -3876,6 +3876,13 @@ function dncFormatInput(el) {
 }
 
 async function renderDNC() {
+  // Always reset input and button state
+  const phoneInput = document.getElementById('dncPhone');
+  const checkBtn   = document.getElementById('dncCheckBtn');
+  if(phoneInput) phoneInput.value = '';
+  if(checkBtn)  { checkBtn.disabled = true; checkBtn.textContent = t('btn_verify'); }
+  dncClearResult();
+
   const dot  = document.getElementById('dncStatusDot');
   const text = document.getElementById('dncStatusText');
   const link = document.getElementById('dncUploadLink');
@@ -4665,6 +4672,11 @@ document.addEventListener('DOMContentLoaded', function() {
       updateHeader();
       // Go to step 0 (DNC) with cleared state
       sel = {stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{}};
+      // Reset DNC input on session restore
+      const pi = document.getElementById('dncPhone');
+      const cb = document.getElementById('dncCheckBtn');
+      if(pi) pi.value = '';
+      if(cb) cb.disabled = true;
       renderDNC();
       addLog('login', saved.name + ' retomó sesión tras refresco');
     }
