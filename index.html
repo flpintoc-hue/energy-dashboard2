@@ -3014,8 +3014,7 @@ function renderCheckItems() {
   renderSupplierScript();
   // Restore saved template values
   restoreTemplateValues();
-  // Build dynamic ACC INFO fields
-  setTimeout(buildAccInfoFields, 50);
+  // ACC INFO fields are rendered directly by renderTemplateStep
 }
 
 function renderTemplateStep(stepNum, state, util, sup) {
@@ -3217,37 +3216,6 @@ function saveTplField(field) {
 }
 
 
-function buildAccInfoFields() {
-  const container = document.getElementById('accInfoFields');
-  if(!container) return;
-
-  // Get all selected utilities
-  const selectedUtils = sel.utilIds.length > 0
-    ? sel.utilIds.map(id => db.utilities.find(u => u.id === id)).filter(Boolean)
-    : sel.utilId ? [db.utilities.find(u => u.id === sel.utilId)].filter(Boolean) : [];
-
-  if(selectedUtils.length === 0) {
-    container.innerHTML = `<label class="tpl-label">ACC INFO</label>
-      <input class="tpl-input" id="tpl_acc_0" placeholder="Número de cuenta">`;
-    return;
-  }
-
-  container.innerHTML = selectedUtils.map((util, i) => {
-    const info = getAccInfo(util.name);
-    const typeIcon = util.type === 'gas' ? '🔥' : '⚡';
-    const label = info ? info.label : 'ACC #';
-    const charHint = info && info.chars ? ` (${info.chars} caracteres)` : '';
-    const maxLen = info && info.chars && typeof info.chars === 'number' ? `maxlength="${info.chars}"` : '';
-    const utilShort = util.name.replace(/\(.*?\)/g,'').trim();
-    return `
-      <div style="margin-bottom:10px">
-        <label class="tpl-label">${typeIcon} ${label} — ${utilShort}<span style="color:var(--orange);font-size:0.65rem;margin-left:4px">${charHint}</span></label>
-        <input class="tpl-input" id="tpl_acc_${i}" ${maxLen}
-          placeholder="${label}${charHint}"
-          style="border-color:${util.type==='gas'?'#C8E6C9':'#BBDEFB'}">
-      </div>`;
-  }).join('');
-}
 
 function copyTemplate() {
   if(!validateTemplate()) return;
