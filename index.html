@@ -3312,15 +3312,35 @@ function copyTemplate() {
   var text = lines.join('\n');
 
   // Copy to clipboard
-  navigator.clipboard.writeText(text).then(function() {
+  // Copy with fallback
+  var copySuccess = function() {
     var btn = document.getElementById('tplCopyBtn');
     if(btn) {
       btn.innerHTML = '<span>✅</span> ' + t('btn_copied');
-      btn.style.background = 'var(--green-dark)';
+      btn.style.background = '#27ae60';
       setTimeout(function(){ btn.innerHTML = '<span>📋</span> ' + t('btn_copy'); btn.style.background=''; }, 3000);
     }
     toast(currentLang==='en' ? '✓ Template copied!' : '✓ Plantilla copiada', 'success');
-  });
+  };
+
+  if(navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(copySuccess).catch(function() {
+      // Fallback
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      copySuccess();
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    copySuccess();
+  }
 
   // Send to WhatsApp automatically
   var agent = currentUser ? currentUser.name : '';
@@ -4004,7 +4024,53 @@ function setupAddressAutocomplete() {
     validateTemplate();
   });
 }
-function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
+
+// ════════════════════════════════════════════
+// TEMPLATE VALUE PERSISTENCE
+// ════════════════════════════════════════════
+var _savedTemplateValues = {};
+
+function saveTemplateValues() {
+  var ids = ['tpl_lang','tpl_auth','tpl_holder','tpl_auth_name','tpl_state','tpl_phone',
+             'tpl_address','tpl_apt','tpl_city','tpl_zip','tpl_util','tpl_dob',
+             'tpl_namekey','tpl_repid','tpl_tarifa'];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if(el) _savedTemplateValues[id] = el.value;
+  });
+  // Save ACC INFO inputs
+  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    if(inp.id) _savedTemplateValues[inp.id] = inp.value;
+  });
+  // Save auth dynamic fields state
+  _savedTemplateValues['_authVal'] = _savedTemplateValues['tpl_auth'] || '';
+}
+
+function restoreTemplateValues() {
+  // First trigger auth change to render dynamic fields
+  var authVal = _savedTemplateValues['_authVal'];
+  if(authVal) {
+    var authEl = document.getElementById('tpl_auth');
+    if(authEl) { authEl.value = authVal; onAuthChange(); }
+  }
+  // Restore all saved values
+  Object.keys(_savedTemplateValues).forEach(function(id) {
+    if(id.startsWith('_')) return;
+    var el = document.getElementById(id);
+    if(el) el.value = _savedTemplateValues[id];
+  });
+  // Restore rep chip selection
+  var repId = _savedTemplateValues['tpl_repid'];
+  if(repId) {
+    document.querySelectorAll('.rep-chip').forEach(function(c) {
+      c.classList.toggle('selected', c.textContent.trim() === repId);
+    });
+  }
+  // Re-run validation to update button state
+  setTimeout(validateTemplate, 50);
+}
+
+function toggleCheck(id){saveTemplateValues();checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();restoreTemplateValues();}
 function resetChecklist(){checkedItems.clear();renderCheckItems();}
 
 // ════════════════════════════════════════════
