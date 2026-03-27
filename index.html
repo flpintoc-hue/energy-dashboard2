@@ -1280,6 +1280,18 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 .obj-keyword { display: inline; }
 
+
+.rep-chip.selected {
+  background: var(--orange) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(244,124,32,0.4);
+  transform: scale(1.05);
+}
+.tpl-input.invalid, .tpl-input:invalid:not(:placeholder-shown) {
+  border-color: #E53935 !important;
+  box-shadow: 0 0 0 2px rgba(229,57,53,0.2) !important;
+}
+
 </style>
 </head>
 <body>
@@ -3063,10 +3075,10 @@ function renderTemplateStep(stepNum, state, util, sup) {
         +'<div style="display:flex;gap:8px">'
         +'<input class="tpl-input acc-info-input" data-util="'+u.id+'" data-part="1" '
         +'id="acc_'+u.id+'_1" placeholder="ACC # ('+c1+' car.)" maxlength="'+c1+'" minlength="'+c1+'" required '
-        +'oninput="validateTemplate()" style="flex:1">'
+        +'oninput="markAccInfoValidity(this);validateTemplate()" style="flex:1">'
         +'<input class="tpl-input acc-info-input" data-util="'+u.id+'" data-part="2" '
         +'id="acc_'+u.id+'_2" placeholder="SERVICE REF ('+c2+' car.)" maxlength="'+c2+'" minlength="'+c2+'" required '
-        +'oninput="validateTemplate()" style="flex:1">'
+        +'oninput="markAccInfoValidity(this);validateTemplate()" style="flex:1">'
         +'</div></div>';
     }
     return '<div class="tpl-row tpl-full acc-info-group" data-util="'+u.id+'">'
@@ -3133,7 +3145,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // PHONE
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_phone')+' *</label>'
-        +'<input class="tpl-input" id="tpl_phone" value="'+phoneVal+'" placeholder="(555) 123-4567" required oninput="validateTemplate()"></div>'
+        +'<input class="tpl-input" id="tpl_phone" value="'+phoneVal+'" placeholder="(555) 123-4567" maxlength="10" required oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,10);validateTemplate()"></div>'
 
         // DYNAMIC AUTH FIELDS (Account Holder / Authorized User names)
         +'<div id="authDynamicFields" style="display:contents"></div>'
@@ -3735,54 +3747,122 @@ function onAuthChange() {
 function validateTemplate() {
   var btn = document.getElementById('tplCopyBtn');
   var msg = document.getElementById('tplValidationMsg');
-  if(!btn) return;
+  if(!btn) return false;
 
   var missing = [];
   var g = function(id){ return (document.getElementById(id)||{}).value||''; };
 
-  // Required fields
-  if(!g('tpl_lang'))    missing.push('Language');
-  if(!g('tpl_auth'))    missing.push('Authorized');
-  if(!g('tpl_state'))   missing.push('State');
-  if(!g('tpl_phone'))   missing.push('Phone');
-  if(!g('tpl_address')) missing.push('Address');
-  if(!g('tpl_city'))    missing.push('City');
+  function checkField(id, label, customValid) {
+    var el = document.getElementById(id);
+    if(!el || el.closest('[style*="display:none"]')) return;
+    var valid = customValid !== undefined ? customValid : el.value.trim().length > 0;
+    el.style.borderColor = valid ? '' : '#E53935';
+    el.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
+    if(!valid) missing.push(label);
+  }
 
-  // Auth-dependent fields
+  // Required fields
+  checkField('tpl_lang',    'Language');
+  checkField('tpl_auth',    'Authorized');
+  checkField('tpl_state',   'State');
+  // Phone: exactly 10 digits
+  var phoneDigits = g('tpl_phone').replace(/[^0-9]/g,'');
+  checkField('tpl_phone', 'Phone (10 dígitos)', phoneDigits.length === 10);
+  checkField('tpl_address', 'Address');
+  checkField('tpl_city',    'City');
+
+  // Auth-dependent
   var authVal = g('tpl_auth');
   if(authVal === 'Yes — Account Holder' || authVal === 'Yes — Authorized User') {
-    if(!g('tpl_holder')) missing.push('Account Holder');
+    checkField('tpl_holder', 'Account Holder');
   }
   if(authVal === 'Yes — Authorized User') {
-    if(!g('tpl_auth_name')) missing.push('Authorized Name');
+    checkField('tpl_auth_name', 'Authorized Name');
   }
 
   // REP ID
-  if(!g('tpl_repid')) missing.push('REP ID');
+  checkField('tpl_repid', 'REP ID');
 
-  // ACC INFO — validate char counts
+  // ACC INFO — exact char count
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    if(inp.closest('[style*="display:none"]')) return;
     var min = parseInt(inp.getAttribute('minlength')||'0');
-    if(min > 0 && inp.value.replace(/\s/g,'').length < min) {
-      missing.push(inp.placeholder || 'ACC INFO');
-    }
+    var max = parseInt(inp.getAttribute('maxlength')||'999');
+    var len = inp.value.replace(/\s/g,'').length;
+    var valid = min === 0 ? len > 0 : (len >= min && len <= max);
+    inp.style.borderColor = valid ? '' : '#E53935';
+    inp.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
+    if(!valid) missing.push(inp.placeholder || 'ACC INFO');
   });
 
-  // MA/Eversource fields
+  // MA/Eversource
   var dobEl = document.getElementById('tpl_dob');
-  var nameKeyEl = document.getElementById('tpl_namekey');
-  if(dobEl && dobEl.closest('[style*="display:none"]') === null && dobEl.offsetParent !== null) {
-    if(!g('tpl_dob')) missing.push('Date of Birth');
-    if(!g('tpl_namekey')) missing.push('Name Key');
+  if(dobEl && dobEl.offsetParent !== null) {
+    checkField('tpl_dob',     'Date of Birth');
+    checkField('tpl_namekey', 'Name Key');
   }
 
   var valid = missing.length === 0;
   btn.disabled = !valid;
   btn.style.opacity = valid ? '1' : '0.5';
   btn.style.cursor  = valid ? 'pointer' : 'not-allowed';
-  if(msg) msg.style.display = (!valid && document.activeElement && document.activeElement.closest('.template-step')) ? 'block' : 'none';
-
+  if(msg) {
+    msg.style.display = !valid ? 'block' : 'none';
+    msg.textContent   = !valid ? '⚠ Campos incompletos: ' + missing.join(', ') : '';
+  }
   return valid;
+}
+
+
+// ════════════════════════════════════════════
+// REP ID SELECTOR
+// ════════════════════════════════════════════
+function selectRepId(id) {
+  var input = document.getElementById('tpl_repid');
+  if(!input) return;
+  input.value = id;
+  // Highlight selected chip
+  document.querySelectorAll('.rep-chip').forEach(function(c) {
+    c.classList.toggle('selected', c.textContent === id);
+  });
+  validateTemplate();
+  markFieldValidity('tpl_repid');
+}
+
+// Mark field red/green based on validity
+function markFieldValidity(id) {
+  var el = document.getElementById(id);
+  if(!el) return;
+  var valid = el.value.trim().length > 0;
+  el.style.borderColor = valid ? '' : '#E53935';
+  el.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
+}
+
+// Mark ACC INFO field based on exact char count
+function markAccInfoValidity(inp) {
+  var min = parseInt(inp.getAttribute('minlength')||'0');
+  var max = parseInt(inp.getAttribute('maxlength')||'999');
+  var len = inp.value.replace(/\s/g,'').length;
+  var valid = min === 0 ? len > 0 : (len === min);
+  inp.style.borderColor = valid ? '' : '#E53935';
+  inp.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
+}
+
+function markAllFields() {
+  ['tpl_lang','tpl_auth','tpl_state','tpl_phone','tpl_address','tpl_city','tpl_repid','tpl_holder','tpl_auth_name','tpl_dob','tpl_namekey'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if(!el || el.closest('[style*="display:none"]')) return;
+    var valid = el.value.trim().length > 0;
+    // Phone: exactly 10 digits
+    if(id === 'tpl_phone') {
+      valid = el.value.replace(/[^0-9]/g,'').length === 10;
+    }
+    el.style.borderColor = valid ? '' : '#E53935';
+    el.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
+  });
+  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    markAccInfoValidity(inp);
+  });
 }
 
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
