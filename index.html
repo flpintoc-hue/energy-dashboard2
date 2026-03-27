@@ -4330,11 +4330,14 @@ function updateStepAvatar() {
   const float = document.getElementById('stepAvatarFloat');
   if(!float || !currentUser) return;
   const av = AVATARS[currentAvatar];
-  if(!av) return;
   float.style.display = 'block';
-  float.innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}"
-    style="width:64px;height:64px;border-radius:50%;box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid white;display:block"
-    onerror="this.parentElement.style.display='none'">`;
+  if(!av) {
+    const initial = currentUser.name.charAt(0).toUpperCase();
+    float.innerHTML = '<div style="width:64px;height:64px;border-radius:50%;background:#F47C20;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid #fff;cursor:pointer">'+initial+'</div>';
+    return;
+  }
+  const url = 'https://api.dicebear.com/7.x/adventurer/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
+  float.innerHTML = '<img src="'+url+'" style="width:64px;height:64px;border-radius:50%;background:'+av.bg+';box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid #fff;display:block;object-fit:cover">';
 }
 
 function wiggleAvatar() {
@@ -4362,36 +4365,64 @@ function bounceAvatar() {
 // ════════════════════════════════════════════
 var OBJECTIONS = [
   {
-    key: 'Precio alto',
-    text: 'Entiendo que el precio es importante para usted. Lo que ofrecemos es una tarifa FIJA que le protege de los aumentos del mercado. Actualmente las tarifas variables están subiendo, con nosotros usted sabe exactamente lo que pagará cada mes. ¿Le gustaría comparar su factura actual con nuestra tarifa?'
+    key: 'No estoy interesado/a',
+    en: 'Not interested',
+    text: 'ES: Entiendo totalmente, sé que recibe muchas llamadas de telemarketing todo el tiempo, pero este no es ese tipo de llamada. Necesito que tenga una copia de su factura, yo espero.\n\nEN: I understand where you coming from. I know that you received a lot of telemarketing calls all the time, this is not that type of call. I need you to grab a copy of the bill, I\'ll hold.'
   },
   {
     key: 'Ya tengo proveedor',
-    text: 'Es genial que ya tenga un proveedor. Mi llamada es precisamente para mostrarle una alternativa que podría ahorrarle dinero. No tiene que cancelar nada ahora mismo, solo comparemos las tarifas. ¿Cuánto paga aproximadamente al mes por su servicio eléctrico?'
+    en: 'I have a supplier',
+    text: 'ES: Sí, lo sabemos, ese es exactamente el motivo de la llamada. Mi trabajo es asegurarme de que se le está cargando la tarifa correcta, necesito que tome una copia de la factura. Yo lo espero.\n\nEN: Yes, we know that. Everyone has a supplier. My job is to make sure that you getting the correct rate, grab a copy of the bill, I\'ll hold.'
   },
   {
-    key: 'No me interesa',
-    text: 'Lo entiendo completamente. Muchos de nuestros clientes dijeron lo mismo antes de escuchar nuestra oferta. Solo le tomo 2 minutos: tenemos una tarifa fija que podría ahorrarle hasta un 20% en su factura. ¿Me permite mostrarle los números?'
+    key: 'Estoy ocupado/a',
+    en: 'I\'m busy',
+    text: 'ES: Entiendo totalmente, sé que eres una persona ocupada, esto solo tomará un par de minutos y te devolveré a tu día, avíseme una vez que tengas la factura.\n\nEN: I understand that, I know that you are a busy person, this is only gonna take a couple of minutes and I\'ll get you right back to your day, let me know once you have the bill.'
   },
   {
-    key: 'Hablar con esposo/a',
-    text: 'Por supuesto, es una decisión familiar importante. ¿Cuándo sería un buen momento para llamar cuando estén los dos disponibles? Puedo llamar esta tarde o mañana a la hora que prefieran.'
+    key: 'Ya tengo contrato',
+    en: 'I have a contract',
+    text: 'ES: Sí, lo sabemos, ese es exactamente el motivo de la llamada. Necesitamos asegurarnos de que tiene la tarifa correcta en el cargo del proveedor. Ya que recibimos una notificación de que está incrementada, eso significa que está pagando de más. Tome una copia de la factura, yo lo espero.\n\nEN: Yes, We know that, that\'s exactly the reason for the call. We need to make sure you\'re getting the correct rate on your supply charge. Grab a copy of the bill, I\'ll hold.'
   },
   {
-    key: 'Mándelo por escrito',
-    text: 'Con gusto le envío la información. Para poder enviarle la oferta personalizada necesito confirmar algunos datos de su cuenta. ¿Me puede dar su nombre completo y dirección de servicio? Así le envío exactamente lo que aplica para su caso.'
+    key: 'Estamos bien',
+    en: 'We\'re all set',
+    text: 'ES: Entiendo. Los proveedores de donde (nombre de la utilidad) obtiene su energía cambian su tarifa dos o tres veces al año para mantenerse competitivos, mi trabajo es asegurarme de que tiene la tarifa correcta. Tome una copia de la factura, yo lo espero.\n\nEN: I get that. The suppliers where (utility name) gets your power from change their rate two or three times a year to be competitive and my job is to make sure you\'re getting the correct rate at the moment. Grab a copy of the bill, I\'ll hold.'
   },
   {
-    key: 'Es una estafa',
-    text: 'Entiendo su preocupación, hay muchas llamadas fraudulentas. Somos un proveedor certificado por la Comisión de Servicios Públicos de su estado. Puede verificarnos en el sitio web del estado. Nuestro número de licencia es [NÚMERO]. ¿Le gustaría verificarlo mientras hablamos?'
+    key: 'No quiero por teléfono',
+    en: 'Not by phone',
+    text: 'ES: Entiendo totalmente su posición. No necesito ninguna información personal porque yo le voy a mostrar la información que ya está impresa en la factura, avísame una vez que la tengas.\n\nEN: I totally understand where you coming from. I don\'t need any personal information, I\'m gonna show you the information that is already printed on the bill, let me know once you have it.'
   },
   {
-    key: 'Llame después',
-    text: 'Por supuesto, ¿cuándo sería el mejor momento para hablar? ¿Esta tarde o mañana? Quiero asegurarme de llamarle cuando sea conveniente para usted.'
+    key: 'Llámame después',
+    en: 'Call me next week',
+    text: 'ES: Entiendo. Hemos intentado ponernos en contacto con usted durante un par de semanas y se ha convertido en un asunto importante. Si necesita un par de minutos para encontrar la factura, tómese su tiempo, yo espero.\n\nEN: I understand that. We\'ve been trying to get in touch with you for a couple of weeks and now it\'s become a present matter. If you need a couple of minutes to find the bill take your time, I\'ll hold.'
   },
   {
-    key: 'Contrato largo',
-    text: 'Nuestro contrato es de [X] meses, pero le protege de los aumentos de precio durante ese tiempo. Si decide cancelar antes hay una tarifa de salida de $5 por mes restante, lo cual es mucho menos que los aumentos que tendría con tarifa variable. ¿Le explico cómo funciona?'
+    key: '¿De dónde llamas?',
+    en: 'Where are you calling from?',
+    text: 'ES: Llamo del Energy Choice Program en el estado, nosotros somos los que manejamos todos los proveedores en el estado, de donde (NOMBRE DE LA UTILIDAD) obtiene su energía. Tome una copia de la factura, yo lo espero.\n\nEN: I\'m calling from the ENERGY CHOICE PROGRAM, we manage all the suppliers in the state, where (UTILITY NAME) gets your power from. Grab a copy of the bill, I\'ll show you.'
+  },
+  {
+    key: 'No confío en ti',
+    en: 'I don\'t believe you',
+    text: 'ES: Y usted no tiene que creer en mí, porque la información ya se le imprimió en la página #1, avíseme cuando tenga la factura, yo lo espero.\n\nEN: And you don\'t have to, because all the information is printed on page #1, let me know when you\'re there.'
+  },
+  {
+    key: 'Sácame de tu lista',
+    en: 'Put me on DNC list',
+    text: 'ES: Entiendo tu posición. No hay una lista porque se trata de una empresa y usted es un cliente residencial. Es por eso que necesito que ubiques una copia de la factura. Yo puedo esperar en la línea.\n\nEN: I know where you coming from, I understand your position. There isn\'t a "do not call list" because this is a business. That\'s why I need you to grab a copy of the bill, I\'ll Hold.'
+  },
+  {
+    key: '¿Qué es desactualizado?',
+    en: 'What means outdated?',
+    text: 'ES: Significa que podría estar pagando alrededor de un 30% de más en la parte del proveedor. Tome una copia de la factura, yo lo espero.\n\nEN: It means that you could be paying around 30% more that you should be paying. Grab a copy of the bill, I\'ll show you.'
+  },
+  {
+    key: 'Envíame por email',
+    en: 'Send by email',
+    text: 'ES: Tome una copia de la factura y le explico exactamente qué información enviamos. Toda la información que necesitamos ya está impresa en su factura, yo lo espero.\n\nEN: Grab a copy of the bill and I\'ll explain exactly what information we send over. All the information we need is already printed on your bill, I\'ll hold.'
   }
 ];
 
