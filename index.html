@@ -3023,10 +3023,15 @@ function renderTemplateStep(stepNum, state, util, sup) {
   var supName  = sup ? sup.name : '';
   var stateVal = state ? state.name + ' (' + state.code + ')' : '';
 
-  // Collect selected utilities for ACC INFO
-  var selUtils = sel.utilIds.map(function(id){
+  // Collect selected utilities — use both utilIds and utilId for compatibility
+  var _utilIdSet = {};
+  (sel.utilIds||[]).forEach(function(id){ _utilIdSet[id] = true; });
+  if(sel.utilId && !_utilIdSet[sel.utilId]) _utilIdSet[sel.utilId] = true;
+  var selUtils = Object.keys(_utilIdSet).map(function(id){
     return db.utilities.find(function(x){return x.id===id;});
   }).filter(Boolean);
+  // Also passed util as fallback
+  if(selUtils.length === 0 && util) selUtils = [util];
 
   var utilVal = selUtils.map(function(u){return u.name;}).join(' / ');
 
@@ -3251,8 +3256,11 @@ function copyTemplate() {
   var state    = db.states.find(function(s){return s.id===sel.stateId;});
   var sup      = db.suppliers.find(function(s){return s.id===sel.supId;});
   var authVal  = g('tpl_auth');
-  // Build selUtils here (same as in renderTemplateStep)
-  var selUtils = sel.utilIds.map(function(id){
+  // Build selUtils — use both utilIds and utilId
+  var _utilIdSet2 = {};
+  (sel.utilIds||[]).forEach(function(id){ _utilIdSet2[id] = true; });
+  if(sel.utilId && !_utilIdSet2[sel.utilId]) _utilIdSet2[sel.utilId] = true;
+  var selUtils = Object.keys(_utilIdSet2).map(function(id){
     return db.utilities.find(function(x){return x.id===id;});
   }).filter(Boolean);
   var isMAEv  = state && state.code==='MA' && selUtils.some(function(u){
@@ -3833,7 +3841,8 @@ function validateTemplate() {
   checkField('tpl_repid', 'REP ID');
 
   // ACC INFO — exact char count required
-  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+  var accInputs = document.querySelectorAll('.acc-info-input');
+  accInputs.forEach(function(inp) {
     if(inp.closest('[style*="display:none"]')) return;
     var min = parseInt(inp.getAttribute('minlength')||'0');
     var len = inp.value.replace(/\s/g,'').length;
