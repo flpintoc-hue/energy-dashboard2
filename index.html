@@ -3259,38 +3259,30 @@ function copyTemplate() {
     return u && u.name.includes('Eversource');
   });
 
-  // Build ACC INFO lines — read directly from DOM inputs
+  // Build ACC INFO lines — read directly from each input's value and placeholder
   var accLines = [];
-  // Group inputs by data-util
-  var accGroups = {};
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
-    var utilId = inp.getAttribute('data-util');
-    var part   = inp.getAttribute('data-part');
-    if(!utilId) return;
-    if(!accGroups[utilId]) accGroups[utilId] = { parts:{}, single:'' };
-    if(part) {
-      accGroups[utilId].parts[part] = inp.value.trim();
+    var val = inp.value.trim();
+    if(!val) return; // skip empty
+    var utilId    = inp.getAttribute('data-util') || '';
+    var part      = inp.getAttribute('data-part');
+    var u         = db.utilities.find(function(x){ return x.id === utilId; });
+    var info      = u ? getAccInfo(u.name) : null;
+    var icon      = (u && u.type==='gas') ? '🔥' : '⚡';
+    var utilShort = u ? u.name.split('(')[0].trim() : '';
+    // Label: use ACC INFO map label, or parse from placeholder
+    var label;
+    if(part === '1') {
+      label = info ? info.label.split('+')[0].trim() : 'ACC #';
+    } else if(part === '2') {
+      label = info ? (info.label.split('+')[1]||'SERVICE REF').trim() : 'SERVICE REF';
     } else {
-      accGroups[utilId].single = inp.value.trim();
+      label = info ? info.label : inp.placeholder.split('(')[0].trim();
     }
-  });
-  // Build one line per utility using the group data
-  Object.keys(accGroups).forEach(function(utilId) {
-    var u = db.utilities.find(function(x){ return x.id === utilId; });
-    var grp = accGroups[utilId];
-    var icon = u && u.type==='gas' ? '🔥' : '⚡';
-    var info = u ? getAccInfo(u.name) : null;
-    var label = info ? info.label : 'ACC INFO';
-    var utilShort = u ? u.name.split('(')[0].trim() : utilId;
-
-    if(grp.single) {
-      accLines.push(icon + ' ' + label + ' (' + utilShort + '): ' + grp.single);
-    } else if(Object.keys(grp.parts).length > 0) {
-      var p1 = grp.parts['1'] || '';
-      var p2 = grp.parts['2'] || '';
-      if(p1) accLines.push(icon + ' ACC # (' + utilShort + '): ' + p1);
-      if(p2) accLines.push(icon + ' SERVICE REF (' + utilShort + '): ' + p2);
-    }
+    var line = icon + ' ' + label;
+    if(utilShort) line += ' (' + utilShort + ')';
+    line += ': ' + val;
+    accLines.push(line);
   });
 
   // Build holder/auth lines
@@ -4040,42 +4032,56 @@ function setupAddressAutocomplete() {
 var _savedTemplateValues = {};
 
 function saveTemplateValues() {
-  var ids = ['tpl_lang','tpl_auth','tpl_holder','tpl_auth_name','tpl_state','tpl_phone',
-             'tpl_address','tpl_apt','tpl_city','tpl_zip','tpl_util','tpl_dob',
-             'tpl_namekey','tpl_repid','tpl_tarifa'];
-  ids.forEach(function(id) {
+  _savedTemplateValues = {};
+  // Standard fields
+  ['tpl_lang','tpl_auth','tpl_holder','tpl_auth_name','tpl_state','tpl_phone',
+   'tpl_address','tpl_apt','tpl_city','tpl_zip','tpl_util','tpl_dob',
+   'tpl_namekey','tpl_repid','tpl_tarifa'].forEach(function(id) {
     var el = document.getElementById(id);
     if(el) _savedTemplateValues[id] = el.value;
   });
-  // Save ACC INFO inputs
+  // ACC INFO inputs — save by data-util + data-part
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    var key = 'acc__' + (inp.getAttribute('data-util')||'') + '__' + (inp.getAttribute('data-part')||'0');
+    _savedTemplateValues[key] = inp.value;
+    // Also save by id as fallback
     if(inp.id) _savedTemplateValues[inp.id] = inp.value;
   });
-  // Save auth dynamic fields state
   _savedTemplateValues['_authVal'] = _savedTemplateValues['tpl_auth'] || '';
 }
 
 function restoreTemplateValues() {
-  // First trigger auth change to render dynamic fields
+  // Restore auth first to render dynamic fields
   var authVal = _savedTemplateValues['_authVal'];
   if(authVal) {
     var authEl = document.getElementById('tpl_auth');
     if(authEl) { authEl.value = authVal; onAuthChange(); }
   }
-  // Restore all saved values
-  Object.keys(_savedTemplateValues).forEach(function(id) {
-    if(id.startsWith('_')) return;
+  // Restore standard fields
+  ['tpl_lang','tpl_holder','tpl_auth_name','tpl_state','tpl_phone',
+   'tpl_address','tpl_apt','tpl_city','tpl_zip','tpl_util','tpl_dob',
+   'tpl_namekey','tpl_repid','tpl_tarifa'].forEach(function(id) {
     var el = document.getElementById(id);
-    if(el) el.value = _savedTemplateValues[id];
+    if(el && _savedTemplateValues[id] !== undefined) el.value = _savedTemplateValues[id];
   });
-  // Restore rep chip selection
+  // Restore ACC INFO by data-util + data-part
+  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    var key = 'acc__' + (inp.getAttribute('data-util')||'') + '__' + (inp.getAttribute('data-part')||'0');
+    if(_savedTemplateValues[key] !== undefined) {
+      inp.value = _savedTemplateValues[key];
+      markAccInfoValidity(inp);
+    } else if(inp.id && _savedTemplateValues[inp.id] !== undefined) {
+      inp.value = _savedTemplateValues[inp.id];
+      markAccInfoValidity(inp);
+    }
+  });
+  // Restore rep chip highlight
   var repId = _savedTemplateValues['tpl_repid'];
   if(repId) {
     document.querySelectorAll('.rep-chip').forEach(function(c) {
       c.classList.toggle('selected', c.textContent.trim() === repId);
     });
   }
-  // Re-run validation to update button state
   setTimeout(validateTemplate, 50);
 }
 
