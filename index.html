@@ -3004,102 +3004,176 @@ function renderCheckItems() {
 }
 
 function renderTemplateStep(stepNum, state, util, sup) {
-  const stateVal  = state ? state.name + ' (' + state.code + ')' : '';
-  const utilVal   = sel.utilIds.length > 0
-    ? sel.utilIds.map(function(id) { var u=db.utilities.find(function(x){return x.id===id;}); return u?u.name:''; }).join(' / ')
-    : (util ? util.name : '');
-  const phoneVal  = (document.getElementById('dncPhone') || {}).value || '';
-  const supName   = sup ? sup.name : '';
+  var phoneVal = (document.getElementById('dncPhone')||{}).value || '';
+  var supName  = sup ? sup.name : '';
+  var stateVal = state ? state.name + ' (' + state.code + ')' : '';
 
-  var rateVal = Object.values(sel.rateInfos).join(' / ');
+  // Collect selected utilities for ACC INFO
+  var selUtils = sel.utilIds.map(function(id){
+    return db.utilities.find(function(x){return x.id===id;});
+  }).filter(Boolean);
+
+  var utilVal = selUtils.map(function(u){return u.name;}).join(' / ');
+
+  // Rate value
+  var rateVal = Object.values(sel.rateInfos||{}).join(' / ');
   if(!rateVal && sup) {
     var rates = db.rates.filter(function(r){return r.supId===sup.id;});
-    if(rates.length > 0) {
-      var r = rates[0];
-      var uomShort = (r.uom||'').replace('Dollars/','').replace('dollars/','');
-      rateVal = supName + ' — ' + r.price + ' ' + uomShort + ' | Term: ' + r.months + ' mo | ETF: ' + r.etf;
+    if(rates.length>0){
+      var r0=rates[0];
+      rateVal=supName+' — '+r0.price+' '+(r0.uom||'')+' | Term: '+r0.months+' mo | ETF: '+r0.etf;
     }
   }
 
-  var REP_IDS = { 'INDRA': ['NLS1064','NLS1065','NLS1066','NLS1062','NLS1060','NLS1063','NLS1068'], 'NG&E': ['BNSC1003'] };
+  // REP IDs
+  var REP_IDS = {'INDRA':['NLS1064','NLS1065','NLS1066','NLS1062','NLS1060','NLS1063','NLS1068'],'NG&E':['BNSC1003']};
   var repIds = (sup && REP_IDS[sup.name]) ? REP_IDS[sup.name] : [];
 
-  var stateOptions = db.states.map(function(s) {
-    var sel_ = stateVal.includes(s.code) ? ' selected' : '';
-    return '<option value="' + s.name + ' (' + s.code + ')"' + sel_ + '>' + s.name + ' (' + s.code + ')</option>';
+  // State options
+  var stateOptions = db.states.map(function(s){
+    return '<option value="'+s.name+' ('+s.code+')"'+(stateVal.includes(s.code)?' selected':'')+'>'+s.name+' ('+s.code+')</option>';
   }).join('');
 
-  var repSelector = repIds.length > 0
-    ? '<div class="tpl-row tpl-full"><label class="tpl-label">' + t('tpl_repid') + ' — ' + t('tpl_repid_hint') + '</label>' +
-      '<div class="rep-selector" id="repSelectorChips">' +
-      repIds.map(function(r){ return '<button class="rep-chip" onclick="selectRepId(\'' + r + '\')">' + r + '</button>'; }).join('') +
-      '</div><input class="tpl-input" id="tpl_repid" placeholder="' + t('tpl_repid_hint') + '" style="margin-top:6px;display:none" readonly></div>'
-    : '<div class="tpl-row"><label class="tpl-label">' + t('tpl_repid') + '</label><input class="tpl-input" id="tpl_repid" placeholder="' + t('tpl_repid_hint') + '"></div>';
-
-  var showDobNamekey = state && state.code === 'MA' && sel.utilIds.some(function(id){
-    var u = db.utilities.find(function(x){return x.id===id;});
+  // MA/Eversource check
+  var isMAEversource = state && state.code==='MA' && sel.utilIds.some(function(id){
+    var u=db.utilities.find(function(x){return x.id===id;});
     return u && u.name.includes('Eversource');
   });
 
-  var dobField = showDobNamekey
-    ? '<div class="tpl-row"><label class="tpl-label">' + t('tpl_dob') + ' <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label><input class="tpl-input" type="date" id="tpl_dob" max="' + new Date().toISOString().split('T')[0] + '"></div>'
+  // ACC INFO fields per utility
+  var accFields = selUtils.map(function(u){
+    var info = getAccInfo(u.name);
+    if(!info) return '';
+    var chars = info.chars;
+    var icon  = u.type==='gas' ? '🔥' : '⚡';
+    var reqAttr = '';
+    var maxAttr = '';
+    var pattern = '';
+    if(typeof chars === 'number'){
+      reqAttr = 'minlength="'+chars+'" maxlength="'+chars+'"';
+      maxAttr = chars;
+      pattern = '.{'+chars+','+chars+'}';
+    } else if(typeof chars === 'string' && chars.includes('+')){
+      // e.g. "11+8" — two fields
+      var parts = chars.split('+');
+      var c1=parseInt(parts[0]), c2=parseInt(parts[1]);
+      return '<div class="tpl-row tpl-full acc-info-group" data-util="'+u.id+'">'
+        +'<label class="tpl-label">'+icon+' '+info.label+' — '+u.name.split('(')[0].trim()
+        +' <span style="color:var(--orange);font-weight:900">('+chars+' car.) *</span></label>'
+        +'<div style="display:flex;gap:8px">'
+        +'<input class="tpl-input acc-info-input" data-util="'+u.id+'" data-part="1" '
+        +'id="acc_'+u.id+'_1" placeholder="ACC # ('+c1+' car.)" maxlength="'+c1+'" minlength="'+c1+'" required '
+        +'oninput="validateTemplate()" style="flex:1">'
+        +'<input class="tpl-input acc-info-input" data-util="'+u.id+'" data-part="2" '
+        +'id="acc_'+u.id+'_2" placeholder="SERVICE REF ('+c2+' car.)" maxlength="'+c2+'" minlength="'+c2+'" required '
+        +'oninput="validateTemplate()" style="flex:1">'
+        +'</div></div>';
+    }
+    return '<div class="tpl-row tpl-full acc-info-group" data-util="'+u.id+'">'
+      +'<label class="tpl-label">'+icon+' '+info.label+' — '+u.name.split('(')[0].trim()
+      +(chars?' <span style="color:var(--orange);font-weight:900">('+chars+' car.) *</span>':'')+'</label>'
+      +'<input class="tpl-input acc-info-input" data-util="'+u.id+'" '
+      +'id="acc_'+u.id+'" placeholder="'+info.label+(chars?' ('+chars+' car.)':'')
+      +'" '+reqAttr+' required oninput="validateTemplate()" style="width:100%">'
+      +'</div>';
+  }).join('');
+
+  // REP selector
+  var repSelector = repIds.length>0
+    ? '<div class="tpl-row tpl-full"><label class="tpl-label">'+t('tpl_repid')+' — '+t('tpl_repid_hint')+' *</label>'
+      +'<div class="rep-selector" id="repSelectorChips">'
+      +repIds.map(function(r){return '<button class="rep-chip" onclick="selectRepId(\'' + r + '\')">'+r+'</button>';}).join('')
+      +'</div>'
+      +'<input class="tpl-input" id="tpl_repid" placeholder="'+t('tpl_repid_hint')+'" required readonly oninput="validateTemplate()" style="margin-top:6px">'
+      +'</div>'
+    : '<div class="tpl-row"><label class="tpl-label">'+t('tpl_repid')+' *</label>'
+      +'<input class="tpl-input" id="tpl_repid" placeholder="REP ID" required oninput="validateTemplate()"></div>';
+
+  // DOB + Name Key only for MA/Eversource
+  var dobField = isMAEversource
+    ? '<div class="tpl-row"><label class="tpl-label">'+t('tpl_dob')+' <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource) *</span></label>'
+      +'<input class="tpl-input" type="date" id="tpl_dob" max="'+new Date().toISOString().split('T')[0]+'" required oninput="validateTemplate()"></div>'
     : '<div style="display:none"><input id="tpl_dob"></div>';
 
-  var nameKeyField = showDobNamekey
-    ? '<div class="tpl-row"><label class="tpl-label">' + t('tpl_namekey') + ' <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource)</span></label><input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre"></div>'
+  var nameKeyField = isMAEversource
+    ? '<div class="tpl-row"><label class="tpl-label">'+t('tpl_namekey')+' <span style="color:var(--orange);font-size:0.6rem">(MA — Eversource) *</span></label>'
+      +'<input class="tpl-input" id="tpl_namekey" placeholder="Clave del nombre" required oninput="validateTemplate()"></div>'
     : '<div style="display:none"><input id="tpl_namekey"></div>';
 
-  return '<div class="check-item template-step">' +
-    '<div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>' +
-    '<div class="check-content" style="flex:1">' +
-      '<div class="check-step">' + t('check_step') + ' ' + stepNum + '</div>' +
-      '<div class="check-title">' + t('check_tpl_title') + '</div>' +
-      '<div class="check-desc" style="margin-bottom:14px">' + t('check_tpl_desc') + '</div>' +
-      '<div class="tpl-grid">' +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_lang') + '</label>' +
-          '<select class="tpl-input" id="tpl_lang">' +
-            '<option value="">Selecciona...</option>' +
-            '<option value="English">🇺🇸 English</option>' +
-            '<option value="Spanish">🇪🇸 Spanish</option>' +
-          '</select></div>' +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_auth') + '</label>' +
-          '<select class="tpl-input" id="tpl_auth">' +
-            '<option value="">Selecciona...</option>' +
-            '<option value="Yes — Account Holder">✅ Yes — Account Holder</option>' +
-            '<option value="Yes — Authorized User">✅ Yes — Authorized User</option>' +
-            '<option value="No">❌ No</option>' +
-          '</select></div>' +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_state') + '</label>' +
-          '<select class="tpl-input" id="tpl_state"><option value="">Selecciona...</option>' + stateOptions + '</select></div>' +
-        dobField +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_phone') + '</label>' +
-          '<input class="tpl-input" id="tpl_phone" value="' + phoneVal + '" placeholder="(555) 123-4567"></div>' +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_holder') + '</label>' +
-          '<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular"></div>' +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_address') + '</label>' +
-          '<input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio"></div>' +
-        '<div class="tpl-row"><label class="tpl-label">' + t('tpl_city') + '</label>' +
-          '<input class="tpl-input" id="tpl_city" placeholder="Ciudad"></div>' +
-        '<div class="tpl-row tpl-full" id="accInfoFields"></div>' +
-        '<div class="tpl-row tpl-full"><label class="tpl-label">' + t('tpl_util') + '</label>' +
-          '<input class="tpl-input" id="tpl_util" value="' + utilVal + '" placeholder="Utilidad"></div>' +
-        nameKeyField +
-        repSelector +
-        '<div class="tpl-row tpl-full"><label class="tpl-label">' + t('tpl_tarifa') + '</label>' +
-          '<input class="tpl-input" id="tpl_tarifa" value="' + rateVal + '" placeholder="Supplier — Rate | Term | ETF"></div>' +
-      '</div>' +
-      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">' +
-        '<button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn" style="margin-top:0;flex:1">' +
-          '<span>📋</span> ' + t('btn_copy') +
-        '</button>' +
-        '<button onclick="sendTemplateToWhatsApp()" ' +
-          'style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.82rem;flex:1;justify-content:center">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
-          ' WhatsApp' +
-        '</button>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
+  return '<div class="check-item template-step">'
+    +'<div class="check-box" style="background:#E3F2FD;border-color:var(--blue)">📋</div>'
+    +'<div class="check-content" style="flex:1">'
+      +'<div class="check-step">'+t('check_step')+' '+stepNum+'</div>'
+      +'<div class="check-title">'+t('check_tpl_title')+'</div>'
+      +'<div class="check-desc" style="margin-bottom:14px">'+t('check_tpl_desc')+'</div>'
+      +'<div class="tpl-grid">'
+
+        // LANGUAGE
+        +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_lang')+' *</label>'
+        +'<select class="tpl-input" id="tpl_lang" required onchange="validateTemplate()">'
+        +'<option value="">Selecciona...</option>'
+        +'<option value="English">🇺🇸 English</option>'
+        +'<option value="Spanish">🇪🇸 Spanish</option>'
+        +'</select></div>'
+
+        // AUTHORIZED — dynamic fields
+        +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_auth')+' *</label>'
+        +'<select class="tpl-input" id="tpl_auth" required onchange="onAuthChange();validateTemplate()">'
+        +'<option value="">Selecciona...</option>'
+        +'<option value="Yes — Account Holder">✅ Yes — Account Holder</option>'
+        +'<option value="Yes — Authorized User">✅ Yes — Authorized User</option>'
+        +'<option value="No">❌ No</option>'
+        +'</select></div>'
+
+        // STATE
+        +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_state')+' *</label>'
+        +'<select class="tpl-input" id="tpl_state" required onchange="validateTemplate()">'
+        +'<option value="">Selecciona...</option>'+stateOptions
+        +'</select></div>'
+
+        // PHONE
+        +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_phone')+' *</label>'
+        +'<input class="tpl-input" id="tpl_phone" value="'+phoneVal+'" placeholder="(555) 123-4567" required oninput="validateTemplate()"></div>'
+
+        // DYNAMIC AUTH FIELDS (Account Holder / Authorized User names)
+        +'<div id="authDynamicFields" style="display:contents"></div>'
+
+        // ADDRESS
+        +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio" required oninput="validateTemplate()"></div>'
+
+        // CITY
+        +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
+        +'<input class="tpl-input" id="tpl_city" placeholder="Ciudad" required oninput="validateTemplate()"></div>'
+
+        // ACC INFO
+        +'<div class="tpl-row tpl-full" id="accInfoFields">'+accFields+'</div>'
+
+        // UTILITY
+        +'<div class="tpl-row tpl-full"><label class="tpl-label">'+t('tpl_util')+'</label>'
+        +'<input class="tpl-input" id="tpl_util" value="'+utilVal+'" placeholder="Utilidad" oninput="validateTemplate()"></div>'
+
+        // DOB + NAME KEY (MA/Eversource only)
+        +dobField+nameKeyField
+
+        // REP ID
+        +repSelector
+
+        // RATE
+        +'<div class="tpl-row tpl-full"><label class="tpl-label">'+t('tpl_tarifa')+'</label>'
+        +'<input class="tpl-input" id="tpl_tarifa" value="'+rateVal+'" placeholder="Supplier — Rate | Term | ETF" oninput="validateTemplate()"></div>'
+
+      +'</div>'
+
+      // COPY + WA buttons
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
+        +'<button class="tpl-copy-btn" onclick="copyTemplate()" id="tplCopyBtn" style="margin-top:0;flex:1;opacity:0.5;cursor:not-allowed" disabled>'
+          +'<span>📋</span> '+t('btn_copy')
+        +'</button>'
+      +'</div>'
+      +'<div id="tplValidationMsg" style="margin-top:8px;font-size:0.72rem;color:#E65100;font-weight:700;display:none">⚠ Completa todos los campos obligatorios (*)</div>'
+    +'</div>'
+  +'</div>';
 }
 
 function restoreTemplateValues() {
@@ -3152,53 +3226,80 @@ function buildAccInfoFields() {
 }
 
 function copyTemplate() {
-  const g = id => {
-    const el = document.getElementById('tpl_'+id);
-    if(!el) return '—';
-    if(el.type === 'date' && el.value) {
-      // Format date as MM/DD/YYYY
-      const [y,m,d] = el.value.split('-');
-      return `${m}/${d}/${y}`;
+  if(!validateTemplate()) return;
+
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  var state   = db.states.find(function(s){return s.id===sel.stateId;});
+  var sup     = db.suppliers.find(function(s){return s.id===sel.supId;});
+  var authVal = g('tpl_auth');
+  var isMAEv  = state && state.code==='MA' && sel.utilIds.some(function(id){
+    var u=db.utilities.find(function(x){return x.id===id;});
+    return u && u.name.includes('Eversource');
+  });
+
+  // Build ACC INFO lines
+  var accLines = [];
+  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    if(inp.value.trim()) {
+      var label = inp.closest('.acc-info-group') ? inp.closest('.acc-info-group').querySelector('label').textContent.split('*')[0].trim() : 'ACC';
+      accLines.push(label + ': ' + inp.value.trim());
     }
-    return el.value || '—';
-  };
-  const text = [
-    t('tpl_state') + ': '  + g('state'),
-    t('tpl_lang') + ': '   + g('lang'),
-    t('tpl_phone') + ': '  + g('phone'),
-    t('tpl_auth') + ': '   + g('auth'),
-    t('tpl_holder') + ': ' + g('holder'),
-    t('tpl_address') + ': '+ g('address'),
-    t('tpl_city') + ': '   + g('city'),
-    // Dynamic ACC INFO fields
-    ...(() => {
-      const fields = [];
-      let i = 0;
-      while(document.getElementById('tpl_acc_'+i)) {
-        const el = document.getElementById('tpl_acc_'+i);
-        const label = el.previousElementSibling?.textContent?.replace(/\(.*?\)/g,'').trim() || 'ACC INFO';
-        fields.push(label + ': ' + (el.value || '—'));
-        i++;
-      }
-      return fields.length ? fields : ['ACC INFO: —'];
-    })(),
-    t('tpl_util') + ': '   + g('util'),
-    t('tpl_dob') + ': '    + g('dob'),
-    t('tpl_namekey') + ': '+ g('namekey'),
-    t('tpl_repid') + ': '  + g('repid'),
-    t('tpl_tarifa') + ': ' + g('tarifa'),
-  ].join('\n');
+  });
 
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('tplCopyBtn');
-    if(btn){ btn.innerHTML='<span>...</span> '+t('btn_copied'); btn.style.background='var(--green-dark)'; }
-    setTimeout(()=>{
-      if(btn){ btn.innerHTML='<span>...</span> '+t('btn_copy'); btn.style.background=''; }
-    }, 2500);
-    toast('✓ Plantilla copiada al portapapeles','success');
-  }).catch(()=>{ toast('⚠ No se pudo copiar','warn'); });
+  // Build holder/auth lines
+  var holderLine = '';
+  if(authVal === 'Yes — Account Holder') {
+    holderLine = t('tpl_holder') + ': ' + g('tpl_holder');
+  } else if(authVal === 'Yes — Authorized User') {
+    holderLine = 'Authorized User: ' + g('tpl_auth_name') + '\n' + t('tpl_holder') + ': ' + g('tpl_holder');
+  }
+
+  var lines = [
+    t('tpl_lang')    + ': ' + g('tpl_lang'),
+    t('tpl_auth')    + ': ' + authVal,
+    holderLine,
+    t('tpl_state')   + ': ' + g('tpl_state'),
+    t('tpl_phone')   + ': ' + g('tpl_phone'),
+    t('tpl_address') + ': ' + g('tpl_address'),
+    t('tpl_city')    + ': ' + g('tpl_city'),
+  ].concat(accLines).concat([
+    t('tpl_util')    + ': ' + g('tpl_util'),
+    isMAEv ? t('tpl_dob')     + ': ' + g('tpl_dob')     : '',
+    isMAEv ? t('tpl_namekey') + ': ' + g('tpl_namekey') : '',
+    t('tpl_repid')   + ': ' + g('tpl_repid'),
+    t('tpl_tarifa')  + ': ' + g('tpl_tarifa'),
+  ]).filter(Boolean);
+
+  var text = lines.join('\n');
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('tplCopyBtn');
+    if(btn) {
+      btn.innerHTML = '<span>✅</span> ' + t('btn_copied');
+      btn.style.background = 'var(--green-dark)';
+      setTimeout(function(){ btn.innerHTML = '<span>📋</span> ' + t('btn_copy'); btn.style.background=''; }, 3000);
+    }
+    toast(currentLang==='en' ? '✓ Template copied!' : '✓ Plantilla copiada', 'success');
+  });
+
+  // Send to WhatsApp automatically
+  var agent = currentUser ? currentUser.name : '';
+  var sup_name = sup ? sup.name : '';
+  var waText = '📋 VENTA — ' + agent + '\n'
+    + '━━━━━━━━━━━━━━━\n'
+    + text.replace(/\n/g, '\n')
+    + '\n━━━━━━━━━━━━━━━\n'
+    + 'Supplier: ' + sup_name + '\n'
+    + 'Energy Dashboard';
+
+  fetch(SESSIONS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'send_whatsapp', message: waText })
+  }).catch(function(){});
+
+  addLog('template', agent + ' copió plantilla — ' + sup_name);
 }
-
 
 function getScriptKey(supName, stateCode, lang) {
   return supName + '|' + stateCode + '|' + lang;
@@ -3604,6 +3705,84 @@ function saveWANumber() {
   // Test link
   const testUrl = 'https://wa.me/' + num + '?text=' + encodeURIComponent('✅ Test desde Energy Dashboard');
   toast('✓ Número guardado — ' + num, 'success');
+}
+
+
+// ════════════════════════════════════════════
+// TEMPLATE VALIDATION + AUTH DYNAMIC FIELDS
+// ════════════════════════════════════════════
+function onAuthChange() {
+  var val = (document.getElementById('tpl_auth')||{}).value || '';
+  var container = document.getElementById('authDynamicFields');
+  if(!container) return;
+
+  if(val === 'Yes — Account Holder') {
+    container.innerHTML =
+      '<div class="tpl-row tpl-full"><label class="tpl-label">Account Holder Name *</label>'
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="validateTemplate()"></div>';
+  } else if(val === 'Yes — Authorized User') {
+    container.innerHTML =
+      '<div class="tpl-row"><label class="tpl-label">Authorized User Name *</label>'
+      +'<input class="tpl-input" id="tpl_auth_name" placeholder="Nombre del autorizado" required oninput="validateTemplate()"></div>'
+      +'<div class="tpl-row"><label class="tpl-label">Account Holder Name *</label>'
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="validateTemplate()"></div>';
+  } else {
+    container.innerHTML = '<div style="display:none"><input id="tpl_holder"><input id="tpl_auth_name"></div>';
+  }
+  validateTemplate();
+}
+
+function validateTemplate() {
+  var btn = document.getElementById('tplCopyBtn');
+  var msg = document.getElementById('tplValidationMsg');
+  if(!btn) return;
+
+  var missing = [];
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+
+  // Required fields
+  if(!g('tpl_lang'))    missing.push('Language');
+  if(!g('tpl_auth'))    missing.push('Authorized');
+  if(!g('tpl_state'))   missing.push('State');
+  if(!g('tpl_phone'))   missing.push('Phone');
+  if(!g('tpl_address')) missing.push('Address');
+  if(!g('tpl_city'))    missing.push('City');
+
+  // Auth-dependent fields
+  var authVal = g('tpl_auth');
+  if(authVal === 'Yes — Account Holder' || authVal === 'Yes — Authorized User') {
+    if(!g('tpl_holder')) missing.push('Account Holder');
+  }
+  if(authVal === 'Yes — Authorized User') {
+    if(!g('tpl_auth_name')) missing.push('Authorized Name');
+  }
+
+  // REP ID
+  if(!g('tpl_repid')) missing.push('REP ID');
+
+  // ACC INFO — validate char counts
+  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    var min = parseInt(inp.getAttribute('minlength')||'0');
+    if(min > 0 && inp.value.replace(/\s/g,'').length < min) {
+      missing.push(inp.placeholder || 'ACC INFO');
+    }
+  });
+
+  // MA/Eversource fields
+  var dobEl = document.getElementById('tpl_dob');
+  var nameKeyEl = document.getElementById('tpl_namekey');
+  if(dobEl && dobEl.closest('[style*="display:none"]') === null && dobEl.offsetParent !== null) {
+    if(!g('tpl_dob')) missing.push('Date of Birth');
+    if(!g('tpl_namekey')) missing.push('Name Key');
+  }
+
+  var valid = missing.length === 0;
+  btn.disabled = !valid;
+  btn.style.opacity = valid ? '1' : '0.5';
+  btn.style.cursor  = valid ? 'pointer' : 'not-allowed';
+  if(msg) msg.style.display = (!valid && document.activeElement && document.activeElement.closest('.template-step')) ? 'block' : 'none';
+
+  return valid;
 }
 
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
