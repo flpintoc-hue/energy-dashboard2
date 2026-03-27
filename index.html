@@ -3872,7 +3872,7 @@ function dncFormatInput(el) {
   el.value = digits;
   dncClearResult();
   const btn = document.getElementById('dncCheckBtn');
-  if(btn) btn.disabled = digits.length < 7;
+  if(btn) btn.disabled = digits.length !== 10;
 }
 
 async function renderDNC() {
@@ -3913,7 +3913,7 @@ async function checkDNC() {
   const raw = document.getElementById('dncPhone').value.trim();
   if(!raw) { toast('⚠ Ingresa un número','warn'); return; }
   const clean = cleanPhone(raw);
-  if(clean.length < 7) { toast('⚠ Número muy corto','warn'); return; }
+  if(clean.length !== 10) { toast(currentLang==='en'?'⚠ Phone must be 10 digits':'⚠ El número debe tener 10 dígitos','warn'); return; }
 
   // Clear previous result and WA status
   dncClearResult();
