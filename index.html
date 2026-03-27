@@ -1293,7 +1293,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 
 </style>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd05Tpk1Jkg5ITlZFCvJrQl2ZGOdi0LiA&libraries=places&callback=initGooglePlaces" async defer></script>
+
 </head>
 <body>
 
@@ -3153,7 +3153,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="validateTemplate()" onfocus="setupAddressAutocomplete()"></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
 
         // CITY
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
@@ -3872,85 +3872,122 @@ function markAllFields() {
 
 
 // ════════════════════════════════════════════
-// GOOGLE PLACES AUTOCOMPLETE
+// ADDRESS AUTOCOMPLETE — OpenStreetMap Nominatim (free, no API key)
 // ════════════════════════════════════════════
-var _placesAutocomplete = null;
+var _addrTimeout = null;
+var _addrDropdown = null;
 
-function initGooglePlaces() {
-  // Called by Google Maps API once loaded
-  console.log('Google Places API ready');
+function setupAddressAutocomplete() {}  // kept for compatibility
+
+function initAddressAutocomplete() {
+  var input = document.getElementById('tpl_address');
+  if(!input || input._addrInit) return;
+  input._addrInit = true;
+
+  // Create dropdown
+  var wrap = input.parentElement;
+  wrap.style.position = 'relative';
+  _addrDropdown = document.createElement('div');
+  _addrDropdown.id = 'addrDropdown';
+  _addrDropdown.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);z-index:9999;max-height:220px;overflow-y:auto;display:none';
+  wrap.appendChild(_addrDropdown);
+
+  input.addEventListener('input', function() {
+    clearTimeout(_addrTimeout);
+    var q = input.value.trim();
+    if(q.length < 4) { _addrDropdown.style.display='none'; return; }
+    _addrTimeout = setTimeout(function(){ fetchAddresses(q); }, 400);
+  });
+
+  document.addEventListener('click', function(e) {
+    if(!_addrDropdown.contains(e.target) && e.target !== input) {
+      _addrDropdown.style.display = 'none';
+    }
+  });
 }
 
-function setupAddressAutocomplete() {
-  var input = document.getElementById('tpl_address');
-  if(!input || !window.google || !window.google.maps || !window.google.maps.places) return;
-  if(_placesAutocomplete) return; // already set up
+function fetchAddresses(query) {
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=us&q=' + encodeURIComponent(query);
+  fetch(url, { headers: { 'Accept-Language': 'en' } })
+    .then(function(r){ return r.json(); })
+    .then(function(results){ showAddressSuggestions(results); })
+    .catch(function(){ _addrDropdown.style.display='none'; });
+}
 
-  _placesAutocomplete = new google.maps.places.Autocomplete(input, {
-    types: ['address'],
-    componentRestrictions: { country: 'us' },
-    fields: ['formatted_address', 'address_components']
-  });
+function showAddressSuggestions(results) {
+  if(!_addrDropdown || !results.length) { if(_addrDropdown) _addrDropdown.style.display='none'; return; }
+  _addrDropdown.innerHTML = '';
+  results.forEach(function(r) {
+    var addr = r.address || {};
+    var street = (addr.house_number ? addr.house_number + ' ' : '') + (addr.road || '');
+    var city   = addr.city || addr.town || addr.village || addr.county || '';
+    var state  = addr.state || '';
+    var zip    = addr.postcode || '';
+    var stCode = getStateCode(state);
+    if(!street) return;
 
-  _placesAutocomplete.addListener('place_changed', function() {
-    var place = _placesAutocomplete.getPlace();
-    if(!place || !place.formatted_address) return;
-
-    // Extract components
-    var city = '', state = '', zip = '';
-    (place.address_components || []).forEach(function(c) {
-      if(c.types.includes('locality'))                    city  = c.long_name;
-      if(c.types.includes('administrative_area_level_1')) state = c.short_name;
-      if(c.types.includes('postal_code'))                 zip   = c.long_name;
+    var item = document.createElement('div');
+    item.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.82rem;transition:background 0.15s';
+    item.innerHTML = '<div style="font-weight:800;color:#1a1a2e">'+street+'</div>'
+      +'<div style="color:#666;font-size:0.75rem">'+city+(stCode?' — '+stCode:'')+(zip?' '+zip:'')+'</div>';
+    item.addEventListener('mouseenter', function(){ this.style.background='#f5f7ff'; });
+    item.addEventListener('mouseleave', function(){ this.style.background=''; });
+    item.addEventListener('click', function() {
+      selectAddress(street, city, stCode, zip);
+      _addrDropdown.style.display = 'none';
     });
+    _addrDropdown.appendChild(item);
+  });
+  _addrDropdown.style.display = 'block';
+}
 
-    // Fill address (street only)
-    var streetParts = (place.address_components || []).filter(function(c) {
-      return c.types.includes('street_number') || c.types.includes('route') || c.types.includes('subpremise');
-    }).map(function(c){ return c.long_name; });
-    input.value = streetParts.join(' ') || place.formatted_address.split(',')[0];
+function getStateCode(stateName) {
+  var map = {
+    'New Jersey':'NJ','Massachusetts':'MA','Pennsylvania':'PA','Delaware':'DE',
+    'Maryland':'MD','Ohio':'OH','Michigan':'MI','New York':'NY','Virginia':'VA',
+    'Indiana':'IN','District of Columbia':'DC','Illinois':'IL','California':'CA',
+    'Georgia':'GA','Florida':'FL','Texas':'TX','Connecticut':'CT','Rhode Island':'RI'
+  };
+  return map[stateName] || stateName.substring(0,2).toUpperCase();
+}
 
-    // Auto-fill city and ZIP
-    var cityInput = document.getElementById('tpl_city');
-    if(cityInput && city) cityInput.value = city;
-    var zipInput = document.getElementById('tpl_zip');
-    if(zipInput && zip) zipInput.value = zip;
+function selectAddress(street, city, stateCode, zip) {
+  var input = document.getElementById('tpl_address');
+  if(input) input.value = street;
 
-    // ── State mismatch check ──
-    var selectedState = sel.stateId ? db.states.find(function(s){ return s.id === sel.stateId; }) : null;
-    var mismatchDiv   = document.getElementById('addressStateMismatch');
+  var cityInput = document.getElementById('tpl_city');
+  if(cityInput && city) cityInput.value = city;
 
-    if(selectedState && state && state !== selectedState.code) {
-      // MISMATCH — create warning if needed
-      if(!mismatchDiv) {
-        mismatchDiv = document.createElement('div');
-        mismatchDiv.id = 'addressStateMismatch';
-        mismatchDiv.style.cssText = 'margin-top:8px;padding:10px 14px;background:#FFF3E0;border:2px solid #E65100;border-radius:10px;font-size:0.8rem;font-weight:800;color:#BF360C;display:flex;align-items:flex-start;gap:8px';
-        input.parentElement.appendChild(mismatchDiv);
-      }
-      mismatchDiv.innerHTML = '⚠️ La dirección seleccionada pertenece al estado <strong>' + state + '</strong>, pero en el Paso 2 seleccionaste <strong>' + selectedState.name + ' (' + selectedState.code + ')</strong>. Por favor verifica la dirección.';
-      mismatchDiv.style.display = 'flex';
-      input.style.borderColor = '#E65100';
-      input.style.boxShadow   = '0 0 0 2px rgba(230,81,0,0.25)';
-    } else {
-      // Match — clear warning
-      if(mismatchDiv) mismatchDiv.style.display = 'none';
-      input.style.borderColor = '';
-      input.style.boxShadow   = '';
-      // Auto-select state in dropdown
-      var stateSelect = document.getElementById('tpl_state');
-      if(stateSelect && state) {
-        var opts = stateSelect.options;
-        for(var i=0; i<opts.length; i++) {
-          if(opts[i].value.includes('('+state+')')) {
-            stateSelect.value = opts[i].value;
-            break;
-          }
-        }
+  var zipInput = document.getElementById('tpl_zip');
+  if(zipInput && zip) zipInput.value = zip;
+
+  // State mismatch check
+  var selectedState = sel.stateId ? db.states.find(function(s){ return s.id === sel.stateId; }) : null;
+  var mismatchDiv   = document.getElementById('addressStateMismatch');
+
+  if(selectedState && stateCode && stateCode !== selectedState.code) {
+    if(!mismatchDiv) {
+      mismatchDiv = document.createElement('div');
+      mismatchDiv.id = 'addressStateMismatch';
+      mismatchDiv.style.cssText = 'margin-top:8px;padding:10px 14px;background:#FFF3E0;border:2px solid #E65100;border-radius:10px;font-size:0.8rem;font-weight:800;color:#BF360C;display:flex;align-items:flex-start;gap:8px';
+      if(input) input.parentElement.appendChild(mismatchDiv);
+    }
+    mismatchDiv.innerHTML = '⚠️ La dirección seleccionada es del estado <strong>'+stateCode+'</strong>, pero en el Paso 2 seleccionaste <strong>'+selectedState.name+' ('+selectedState.code+')</strong>. Por favor verifica.';
+    mismatchDiv.style.display = 'flex';
+    if(input) { input.style.borderColor='#E65100'; input.style.boxShadow='0 0 0 2px rgba(230,81,0,0.25)'; }
+  } else {
+    if(mismatchDiv) mismatchDiv.style.display = 'none';
+    if(input) { input.style.borderColor=''; input.style.boxShadow=''; }
+    // Auto-select state in dropdown
+    var stateSelect = document.getElementById('tpl_state');
+    if(stateSelect && stateCode) {
+      var opts = stateSelect.options;
+      for(var i=0; i<opts.length; i++) {
+        if(opts[i].value.includes('('+stateCode+')')) { stateSelect.value = opts[i].value; break; }
       }
     }
-    validateTemplate();
-  });
+  }
+  validateTemplate();
 }
 
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
