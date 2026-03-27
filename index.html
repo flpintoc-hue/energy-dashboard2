@@ -3259,31 +3259,37 @@ function copyTemplate() {
     return u && u.name.includes('Eversource');
   });
 
-  // Build ACC INFO lines — grouped by utility
+  // Build ACC INFO lines — read directly from DOM inputs
   var accLines = [];
+  // Group inputs by data-util
   var accGroups = {};
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
     var utilId = inp.getAttribute('data-util');
-    var part   = inp.getAttribute('data-part'); // '1' or '2' for split fields, null for single
-    if(!accGroups[utilId]) accGroups[utilId] = {};
+    var part   = inp.getAttribute('data-part');
+    if(!utilId) return;
+    if(!accGroups[utilId]) accGroups[utilId] = { parts:{}, single:'' };
     if(part) {
-      accGroups[utilId][part] = inp.value.trim();
+      accGroups[utilId].parts[part] = inp.value.trim();
     } else {
-      accGroups[utilId]['single'] = inp.value.trim();
+      accGroups[utilId].single = inp.value.trim();
     }
   });
-  // Build lines per utility
-  selUtils.forEach(function(u) {
-    var info = getAccInfo(u.name);
-    if(!info) return;
-    var g2 = accGroups[u.id] || {};
-    var icon = u.type==='gas' ? '🔥' : '⚡';
-    var utilShort = u.name.split('(')[0].trim();
-    if(g2['single']) {
-      accLines.push(icon + ' ' + info.label + ' (' + utilShort + '): ' + g2['single']);
-    } else if(g2['1'] || g2['2']) {
-      accLines.push(icon + ' ACC # (' + utilShort + '): ' + (g2['1']||''));
-      accLines.push(icon + ' SERVICE REF (' + utilShort + '): ' + (g2['2']||''));
+  // Build one line per utility using the group data
+  Object.keys(accGroups).forEach(function(utilId) {
+    var u = db.utilities.find(function(x){ return x.id === utilId; });
+    var grp = accGroups[utilId];
+    var icon = u && u.type==='gas' ? '🔥' : '⚡';
+    var info = u ? getAccInfo(u.name) : null;
+    var label = info ? info.label : 'ACC INFO';
+    var utilShort = u ? u.name.split('(')[0].trim() : utilId;
+
+    if(grp.single) {
+      accLines.push(icon + ' ' + label + ' (' + utilShort + '): ' + grp.single);
+    } else if(Object.keys(grp.parts).length > 0) {
+      var p1 = grp.parts['1'] || '';
+      var p2 = grp.parts['2'] || '';
+      if(p1) accLines.push(icon + ' ACC # (' + utilShort + '): ' + p1);
+      if(p2) accLines.push(icon + ' SERVICE REF (' + utilShort + '): ' + p2);
     }
   });
 
