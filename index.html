@@ -3739,32 +3739,13 @@ function showDNCResult(type, icon, title, sub) {
   document.getElementById('dncResultIcon').textContent  = icon;
   document.getElementById('dncResultTitle').textContent = title;
   document.getElementById('dncResultSub').textContent   = sub;
-  // Show WA status and send via CallMeBot from browser
+  // Show WA status indicator — Apps Script sends the actual WhatsApp notification
   const waStatus = document.getElementById('dncWAStatus');
   const waText   = document.getElementById('dncWAStatusText');
   if(waStatus) {
     waStatus.style.display = 'flex';
-    if(waText) waText.textContent = '📱 Notificando supervisor...';
-  }
-  // Build and send message directly from browser
-  const phone2   = (document.getElementById('dncPhone')||{}).value || '';
-  const agent2   = currentUser ? currentUser.name : 'Agente';
-  const state2   = (() => { const s = db.states.find(x => x.id === sel.stateId); return s ? s.name + ' (' + s.code + ')' : ''; })();
-  const status2  = type === 'blocked' ? '🚫 EN DNC - NO LLAMAR' : '✅ LIBRE - Puede continuar';
-  const emoji2   = type === 'blocked' ? '🚨' : '✅';
-  const now2     = new Date().toLocaleString('es-CO', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-  const msg2 = emoji2 + ' *CONSULTA DNC*%0A'
-    + '━━━━━━━━━━━━━━━%0A'
-    + '📞 Número: *' + phone2 + '*%0A'
-    + '📊 Resultado: *' + status2 + '*%0A'
-    + '👤 Agente: ' + agent2 + '%0A'
-    + '📍 Estado: ' + state2 + '%0A'
-    + '🕐 ' + now2 + '%0A'
-    + '━━━━━━━━━━━━━━━%0A'
-    + '_Energy Dashboard_';
-  callMeBot(msg2).then(() => {
     if(waText) waText.textContent = '✅ Supervisor notificado por WhatsApp';
-  });
+  }
 }
 
 function dncClearResult() {
