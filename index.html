@@ -1293,6 +1293,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 
 </style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7DqFwBOIiVUXKJ8sQ2Yq3KXOZPbPnQvE&libraries=places&callback=initGooglePlaces" async defer></script>
 </head>
 <body>
 
@@ -3086,7 +3087,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
       +(chars?' <span style="color:var(--orange);font-weight:900">('+chars+' car.) *</span>':'')+'</label>'
       +'<input class="tpl-input acc-info-input" data-util="'+u.id+'" '
       +'id="acc_'+u.id+'" placeholder="'+info.label+(chars?' ('+chars+' car.)':'')
-      +'" '+reqAttr+' required oninput="validateTemplate()" style="width:100%">'
+      +'" '+reqAttr+' required oninput="markAccInfoValidity(this);validateTemplate()" style="width:100%">'
       +'</div>';
   }).join('');
 
@@ -3152,7 +3153,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Dirección de servicio" required oninput="validateTemplate()"></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="validateTemplate()" onfocus="setupAddressAutocomplete()"></div>'
 
         // CITY
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
@@ -3862,6 +3863,67 @@ function markAllFields() {
   });
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
     markAccInfoValidity(inp);
+  });
+}
+
+
+// ════════════════════════════════════════════
+// GOOGLE PLACES AUTOCOMPLETE
+// ════════════════════════════════════════════
+var _placesAutocomplete = null;
+
+function initGooglePlaces() {
+  // Called by Google Maps API once loaded
+  console.log('Google Places API ready');
+}
+
+function setupAddressAutocomplete() {
+  var input = document.getElementById('tpl_address');
+  if(!input || !window.google || !window.google.maps || !window.google.maps.places) return;
+  if(_placesAutocomplete) return; // already set up
+
+  _placesAutocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['address'],
+    componentRestrictions: { country: 'us' },
+    fields: ['formatted_address', 'address_components']
+  });
+
+  _placesAutocomplete.addListener('place_changed', function() {
+    var place = _placesAutocomplete.getPlace();
+    if(!place || !place.formatted_address) return;
+
+    // Extract city from components
+    var city = '';
+    var state = '';
+    var zip   = '';
+    (place.address_components || []).forEach(function(c) {
+      if(c.types.includes('locality'))               city  = c.long_name;
+      if(c.types.includes('administrative_area_level_1')) state = c.short_name;
+      if(c.types.includes('postal_code'))            zip   = c.long_name;
+    });
+
+    // Fill address field with street only (without city/state/zip)
+    var streetParts = (place.address_components || []).filter(function(c) {
+      return c.types.includes('street_number') || c.types.includes('route') || c.types.includes('subpremise');
+    }).map(function(c){ return c.long_name; });
+    input.value = streetParts.join(' ') || place.formatted_address.split(',')[0];
+
+    // Auto-fill city
+    var cityInput = document.getElementById('tpl_city');
+    if(cityInput && city) cityInput.value = city;
+
+    // Auto-select state if matches
+    var stateSelect = document.getElementById('tpl_state');
+    if(stateSelect && state) {
+      var opts = stateSelect.options;
+      for(var i=0; i<opts.length; i++) {
+        if(opts[i].value.includes('('+state+')')) {
+          stateSelect.value = opts[i].value;
+          break;
+        }
+      }
+    }
+    validateTemplate();
   });
 }
 
