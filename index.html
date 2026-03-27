@@ -3154,6 +3154,8 @@ function renderTemplateStep(stepNum, state, util, sup) {
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
         +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
+        +'<div class="tpl-row"><label class="tpl-label">Apt / Unit / Floor <span style="color:var(--text-muted);font-weight:600;font-size:0.7rem">(opcional)</span></label>'
+        +'<input class="tpl-input" id="tpl_apt" placeholder="Ej: Apt 2B, Unit 3, 2FL" oninput="validateTemplate()"></div>'
 
         // CITY
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
@@ -3252,12 +3254,31 @@ function copyTemplate() {
     return u && u.name.includes('Eversource');
   });
 
-  // Build ACC INFO lines
+  // Build ACC INFO lines — grouped by utility
   var accLines = [];
+  var accGroups = {};
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
-    if(inp.value.trim()) {
-      var label = inp.closest('.acc-info-group') ? inp.closest('.acc-info-group').querySelector('label').textContent.split('*')[0].trim() : 'ACC';
-      accLines.push(label + ': ' + inp.value.trim());
+    var utilId = inp.getAttribute('data-util');
+    var part   = inp.getAttribute('data-part'); // '1' or '2' for split fields, null for single
+    if(!accGroups[utilId]) accGroups[utilId] = {};
+    if(part) {
+      accGroups[utilId][part] = inp.value.trim();
+    } else {
+      accGroups[utilId]['single'] = inp.value.trim();
+    }
+  });
+  // Build lines per utility
+  selUtils.forEach(function(u) {
+    var info = getAccInfo(u.name);
+    if(!info) return;
+    var g2 = accGroups[u.id] || {};
+    var icon = u.type==='gas' ? '🔥' : '⚡';
+    var utilShort = u.name.split('(')[0].trim();
+    if(g2['single']) {
+      accLines.push(icon + ' ' + info.label + ' (' + utilShort + '): ' + g2['single']);
+    } else if(g2['1'] || g2['2']) {
+      accLines.push(icon + ' ACC # (' + utilShort + '): ' + (g2['1']||''));
+      accLines.push(icon + ' SERVICE REF (' + utilShort + '): ' + (g2['2']||''));
     }
   });
 
@@ -3275,7 +3296,7 @@ function copyTemplate() {
     holderLine,
     t('tpl_state')   + ': ' + g('tpl_state'),
     t('tpl_phone')   + ': ' + g('tpl_phone'),
-    t('tpl_address') + ': ' + g('tpl_address'),
+    t('tpl_address') + ': ' + g('tpl_address') + (g('tpl_apt') ? ', ' + g('tpl_apt') : ''),
     t('tpl_city')    + ': ' + g('tpl_city'),
     'ZIP: ' + g('tpl_zip'),
   ].concat(accLines).concat([
@@ -3788,16 +3809,19 @@ function validateTemplate() {
   // REP ID
   checkField('tpl_repid', 'REP ID');
 
-  // ACC INFO — exact char count
+  // ACC INFO — exact char count required
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
     if(inp.closest('[style*="display:none"]')) return;
     var min = parseInt(inp.getAttribute('minlength')||'0');
-    var max = parseInt(inp.getAttribute('maxlength')||'999');
     var len = inp.value.replace(/\s/g,'').length;
-    var valid = min === 0 ? len > 0 : (len >= min && len <= max);
+    // If min is set, field must be EXACTLY min chars
+    var valid = min === 0 ? len > 0 : len === min;
     inp.style.borderColor = valid ? '' : '#E53935';
     inp.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
-    if(!valid) missing.push(inp.placeholder || 'ACC INFO');
+    if(!valid) {
+      var label = min > 0 ? inp.placeholder + ' (necesita ' + min + ' car., tienes ' + len + ')' : inp.placeholder;
+      missing.push(label);
+    }
   });
 
   // MA/Eversource
@@ -3846,11 +3870,22 @@ function markFieldValidity(id) {
 // Mark ACC INFO field based on exact char count
 function markAccInfoValidity(inp) {
   var min = parseInt(inp.getAttribute('minlength')||'0');
-  var max = parseInt(inp.getAttribute('maxlength')||'999');
   var len = inp.value.replace(/\s/g,'').length;
-  var valid = min === 0 ? len > 0 : (len === min);
+  var valid = min === 0 ? len > 0 : len === min;
   inp.style.borderColor = valid ? '' : '#E53935';
   inp.style.boxShadow   = valid ? '' : '0 0 0 2px rgba(229,57,53,0.2)';
+  // Show char counter
+  var hint = inp.nextElementSibling;
+  if(!hint || !hint.classList.contains('char-hint')) {
+    hint = document.createElement('div');
+    hint.className = 'char-hint';
+    hint.style.cssText = 'font-size:0.68rem;font-weight:700;margin-top:2px';
+    inp.parentNode.insertBefore(hint, inp.nextSibling);
+  }
+  if(min > 0) {
+    hint.textContent = len + ' / ' + min + ' caracteres';
+    hint.style.color = valid ? '#27ae60' : '#E53935';
+  }
 }
 
 function markAllFields() {
