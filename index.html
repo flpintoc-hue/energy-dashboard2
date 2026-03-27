@@ -3158,6 +3158,8 @@ function renderTemplateStep(stepNum, state, util, sup) {
         // CITY
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
         +'<input class="tpl-input" id="tpl_city" placeholder="Ciudad" required oninput="validateTemplate()"></div>'
+        +'<div class="tpl-row"><label class="tpl-label">ZIP Code *</label>'
+        +'<input class="tpl-input" id="tpl_zip" placeholder="12345" maxlength="5" required oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,5);validateTemplate()"></div>'
 
         // ACC INFO
         +'<div class="tpl-row tpl-full" id="accInfoFields">'+accFields+'</div>'
@@ -3275,6 +3277,7 @@ function copyTemplate() {
     t('tpl_phone')   + ': ' + g('tpl_phone'),
     t('tpl_address') + ': ' + g('tpl_address'),
     t('tpl_city')    + ': ' + g('tpl_city'),
+    'ZIP: ' + g('tpl_zip'),
   ].concat(accLines).concat([
     t('tpl_util')    + ': ' + g('tpl_util'),
     isMAEv ? t('tpl_dob')     + ': ' + g('tpl_dob')     : '',
@@ -3771,6 +3774,7 @@ function validateTemplate() {
   checkField('tpl_phone', 'Phone (10 dígitos)', phoneDigits.length === 10);
   checkField('tpl_address', 'Address');
   checkField('tpl_city',    'City');
+  checkField('tpl_zip',     'ZIP Code', g('tpl_zip').length === 5);
 
   // Auth-dependent
   var authVal = g('tpl_auth');
@@ -3892,34 +3896,56 @@ function setupAddressAutocomplete() {
     var place = _placesAutocomplete.getPlace();
     if(!place || !place.formatted_address) return;
 
-    // Extract city from components
-    var city = '';
-    var state = '';
-    var zip   = '';
+    // Extract components
+    var city = '', state = '', zip = '';
     (place.address_components || []).forEach(function(c) {
-      if(c.types.includes('locality'))               city  = c.long_name;
+      if(c.types.includes('locality'))                    city  = c.long_name;
       if(c.types.includes('administrative_area_level_1')) state = c.short_name;
-      if(c.types.includes('postal_code'))            zip   = c.long_name;
+      if(c.types.includes('postal_code'))                 zip   = c.long_name;
     });
 
-    // Fill address field with street only (without city/state/zip)
+    // Fill address (street only)
     var streetParts = (place.address_components || []).filter(function(c) {
       return c.types.includes('street_number') || c.types.includes('route') || c.types.includes('subpremise');
     }).map(function(c){ return c.long_name; });
     input.value = streetParts.join(' ') || place.formatted_address.split(',')[0];
 
-    // Auto-fill city
+    // Auto-fill city and ZIP
     var cityInput = document.getElementById('tpl_city');
     if(cityInput && city) cityInput.value = city;
+    var zipInput = document.getElementById('tpl_zip');
+    if(zipInput && zip) zipInput.value = zip;
 
-    // Auto-select state if matches
-    var stateSelect = document.getElementById('tpl_state');
-    if(stateSelect && state) {
-      var opts = stateSelect.options;
-      for(var i=0; i<opts.length; i++) {
-        if(opts[i].value.includes('('+state+')')) {
-          stateSelect.value = opts[i].value;
-          break;
+    // ── State mismatch check ──
+    var selectedState = sel.stateId ? db.states.find(function(s){ return s.id === sel.stateId; }) : null;
+    var mismatchDiv   = document.getElementById('addressStateMismatch');
+
+    if(selectedState && state && state !== selectedState.code) {
+      // MISMATCH — create warning if needed
+      if(!mismatchDiv) {
+        mismatchDiv = document.createElement('div');
+        mismatchDiv.id = 'addressStateMismatch';
+        mismatchDiv.style.cssText = 'margin-top:8px;padding:10px 14px;background:#FFF3E0;border:2px solid #E65100;border-radius:10px;font-size:0.8rem;font-weight:800;color:#BF360C;display:flex;align-items:flex-start;gap:8px';
+        input.parentElement.appendChild(mismatchDiv);
+      }
+      mismatchDiv.innerHTML = '⚠️ La dirección seleccionada pertenece al estado <strong>' + state + '</strong>, pero en el Paso 2 seleccionaste <strong>' + selectedState.name + ' (' + selectedState.code + ')</strong>. Por favor verifica la dirección.';
+      mismatchDiv.style.display = 'flex';
+      input.style.borderColor = '#E65100';
+      input.style.boxShadow   = '0 0 0 2px rgba(230,81,0,0.25)';
+    } else {
+      // Match — clear warning
+      if(mismatchDiv) mismatchDiv.style.display = 'none';
+      input.style.borderColor = '';
+      input.style.boxShadow   = '';
+      // Auto-select state in dropdown
+      var stateSelect = document.getElementById('tpl_state');
+      if(stateSelect && state) {
+        var opts = stateSelect.options;
+        for(var i=0; i<opts.length; i++) {
+          if(opts[i].value.includes('('+state+')')) {
+            stateSelect.value = opts[i].value;
+            break;
+          }
         }
       }
     }
