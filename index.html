@@ -1294,6 +1294,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 </style>
 
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd05Tpk1Jkg5ITlZFCvJrQl2ZGOdi0LiA&libraries=places&callback=initGooglePlaces" async defer></script>
 </head>
 <body>
 
@@ -3907,12 +3908,9 @@ function markAllFields() {
 
 
 // ════════════════════════════════════════════
-// ADDRESS AUTOCOMPLETE — OpenStreetMap Nominatim (free, no API key)
+// GOOGLE PLACES AUTOCOMPLETE
 // ════════════════════════════════════════════
-var _addrTimeout = null;
-var _addrDropdown = null;
-
-function setupAddressAutocomplete() {}  // kept for compatibility
+var _placesAutocomplete = null;
 
 function clearAddressMismatch() {
   var div = document.getElementById('addressStateMismatch');
@@ -3921,141 +3919,90 @@ function clearAddressMismatch() {
   if(inp) { inp.style.borderColor = ''; inp.style.boxShadow = ''; }
 }
 
+function initGooglePlaces() {
+  setupAddressAutocomplete();
+}
+
 function initAddressAutocomplete() {
+  setupAddressAutocomplete();
+}
+
+function setupAddressAutocomplete() {
   var input = document.getElementById('tpl_address');
-  if(!input || input._addrInit) return;
-  input._addrInit = true;
-
-  // Create dropdown
-  var wrap = input.parentElement;
-  wrap.style.position = 'relative';
-  _addrDropdown = document.createElement('div');
-  _addrDropdown.id = 'addrDropdown';
-  _addrDropdown.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);z-index:9999;max-height:220px;overflow-y:auto;display:none';
-  wrap.appendChild(_addrDropdown);
-
-  input.addEventListener('input', function() {
-    clearTimeout(_addrTimeout);
-    var q = input.value.trim();
-    if(q.length < 3) { _addrDropdown.style.display='none'; return; }
-    _addrTimeout = setTimeout(function(){ fetchAddresses(q); }, 400);
-  });
-
-  document.addEventListener('click', function(e) {
-    if(!_addrDropdown.contains(e.target) && e.target !== input) {
-      _addrDropdown.style.display = 'none';
-    }
-  });
-}
-
-function fetchAddresses(query) {
-  // Add selected state to improve results
-  var stateHint = '';
-  if(sel.stateId) {
-    var st = db.states.find(function(s){ return s.id===sel.stateId; });
-    if(st) stateHint = ', ' + st.name;
+  if(!input || _placesAutocomplete) return;
+  if(!window.google || !window.google.maps || !window.google.maps.places) {
+    setTimeout(setupAddressAutocomplete, 500);
+    return;
   }
-  var q = query + stateHint;
-  var url = 'https://nominatim.openstreetmap.org/search'
-    + '?format=json&addressdetails=1&limit=8&countrycodes=us'
-    + '&featuretype=house&dedupe=1'
-    + '&q=' + encodeURIComponent(q);
-  fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'EnergyDashboard/1.0' } })
-    .then(function(r){ return r.json(); })
-    .then(function(results){ showAddressSuggestions(results); })
-    .catch(function(){ _addrDropdown.style.display='none'; });
-}
 
-function showAddressSuggestions(results) {
-  if(!_addrDropdown) return;
-  _addrDropdown.innerHTML = '';
-  var added = 0;
-  results.forEach(function(r) {
-    var addr = r.address || {};
-    var houseNum = addr.house_number || '';
-    var road     = addr.road || addr.pedestrian || addr.footway || '';
-    var street   = (houseNum ? houseNum + ' ' : '') + road;
-    var city     = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || '';
-    var state    = addr.state || '';
-    var zip      = addr.postcode || '';
-    var stCode   = getStateCode(state);
+  _placesAutocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['address'],
+    componentRestrictions: { country: 'us' },
+    fields: ['formatted_address', 'address_components']
+  });
 
-    // Skip results without a proper street address
-    if(!street || !road) return;
+  // Prevent form submit on Enter
+  input.addEventListener('keydown', function(e) {
+    if(e.key === 'Enter') e.preventDefault();
+  });
 
-    var item = document.createElement('div');
-    item.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.82rem;transition:background 0.15s';
-    item.innerHTML = '<div style="font-weight:800;color:#1a1a2e">'+street+'</div>'
-      +'<div style="color:#888;font-size:0.75rem">'+city+(city&&stCode?', ':'')+stCode+(zip?' '+zip:'')+'</div>';
-    item.addEventListener('mouseenter', function(){ this.style.background='#f0f4ff'; });
-    item.addEventListener('mouseleave', function(){ this.style.background=''; });
-    item.addEventListener('mousedown', function(e) {
-      e.preventDefault(); // prevent input blur before click fires
-      selectAddress(street, city, stCode, zip);
-      _addrDropdown.style.display = 'none';
+  _placesAutocomplete.addListener('place_changed', function() {
+    var place = _placesAutocomplete.getPlace();
+    if(!place || !place.address_components) return;
+
+    var city='', state='', zip='';
+    place.address_components.forEach(function(c) {
+      if(c.types.includes('locality'))                    city  = c.long_name;
+      if(c.types.includes('sublocality_level_1') && !city) city = c.long_name;
+      if(c.types.includes('administrative_area_level_1')) state = c.short_name;
+      if(c.types.includes('postal_code'))                 zip   = c.long_name;
     });
-    _addrDropdown.appendChild(item);
-    added++;
-  });
 
-  if(added === 0) {
-    var noResult = document.createElement('div');
-    noResult.style.cssText = 'padding:10px 14px;font-size:0.8rem;color:#888;text-align:center';
-    noResult.textContent = 'No se encontraron direcciones. Intenta con más detalles.';
-    _addrDropdown.appendChild(noResult);
-  }
-  _addrDropdown.style.display = 'block';
-}
+    // Street only
+    var num  = '', road = '';
+    place.address_components.forEach(function(c) {
+      if(c.types.includes('street_number')) num  = c.long_name;
+      if(c.types.includes('route'))         road = c.long_name;
+    });
+    input.value = (num ? num + ' ' : '') + road || place.formatted_address.split(',')[0];
 
-function getStateCode(stateName) {
-  var map = {
-    'New Jersey':'NJ','Massachusetts':'MA','Pennsylvania':'PA','Delaware':'DE',
-    'Maryland':'MD','Ohio':'OH','Michigan':'MI','New York':'NY','Virginia':'VA',
-    'Indiana':'IN','District of Columbia':'DC','Illinois':'IL','California':'CA',
-    'Georgia':'GA','Florida':'FL','Texas':'TX','Connecticut':'CT','Rhode Island':'RI'
-  };
-  return map[stateName] || stateName.substring(0,2).toUpperCase();
-}
+    // Fill city and zip
+    var cityEl = document.getElementById('tpl_city');
+    if(cityEl && city) cityEl.value = city;
+    var zipEl = document.getElementById('tpl_zip');
+    if(zipEl && zip) zipEl.value = zip;
 
-function selectAddress(street, city, stateCode, zip) {
-  var input = document.getElementById('tpl_address');
-  if(input) input.value = street;
+    // State mismatch check
+    var selectedState = sel.stateId ? db.states.find(function(s){ return s.id===sel.stateId; }) : null;
+    var mismatchDiv   = document.getElementById('addressStateMismatch');
 
-  var cityInput = document.getElementById('tpl_city');
-  if(cityInput && city) cityInput.value = city;
-
-  var zipInput = document.getElementById('tpl_zip');
-  if(zipInput && zip) zipInput.value = zip;
-
-  // State mismatch check
-  var selectedState = sel.stateId ? db.states.find(function(s){ return s.id === sel.stateId; }) : null;
-  var mismatchDiv   = document.getElementById('addressStateMismatch');
-
-  if(selectedState && stateCode && stateCode !== selectedState.code) {
-    if(!mismatchDiv) {
-      mismatchDiv = document.createElement('div');
-      mismatchDiv.id = 'addressStateMismatch';
-      mismatchDiv.style.cssText = 'margin-top:8px;padding:10px 14px;background:#FFF3E0;border:2px solid #E65100;border-radius:10px;font-size:0.8rem;font-weight:800;color:#BF360C;display:flex;align-items:flex-start;gap:8px';
-      if(input) input.parentElement.appendChild(mismatchDiv);
-    }
-    mismatchDiv.innerHTML = '⚠️ La dirección seleccionada es del estado <strong>'+stateCode+'</strong>, pero en el Paso 2 seleccionaste <strong>'+selectedState.name+' ('+selectedState.code+')</strong>. Por favor verifica.';
-    mismatchDiv.style.display = 'flex';
-    if(input) { input.style.borderColor='#E65100'; input.style.boxShadow='0 0 0 2px rgba(230,81,0,0.25)'; }
-  } else {
-    if(mismatchDiv) mismatchDiv.style.display = 'none';
-    if(input) { input.style.borderColor=''; input.style.boxShadow=''; }
-    // Auto-select state in dropdown
-    var stateSelect = document.getElementById('tpl_state');
-    if(stateSelect && stateCode) {
-      var opts = stateSelect.options;
-      for(var i=0; i<opts.length; i++) {
-        if(opts[i].value.includes('('+stateCode+')')) { stateSelect.value = opts[i].value; break; }
+    if(selectedState && state && state !== selectedState.code) {
+      if(!mismatchDiv) {
+        mismatchDiv = document.createElement('div');
+        mismatchDiv.id = 'addressStateMismatch';
+        mismatchDiv.style.cssText = 'margin-top:8px;padding:10px 14px;background:#FFF3E0;border:2px solid #E65100;border-radius:10px;font-size:0.8rem;font-weight:800;color:#BF360C';
+        input.parentElement.appendChild(mismatchDiv);
+      }
+      mismatchDiv.innerHTML = '⚠️ Dirección del estado <strong>'+state+'</strong> pero en Paso 2 seleccionaste <strong>'+selectedState.name+' ('+selectedState.code+')</strong>.';
+      mismatchDiv.style.display = 'block';
+      input.style.borderColor = '#E65100';
+      input.style.boxShadow   = '0 0 0 2px rgba(230,81,0,0.25)';
+    } else {
+      if(mismatchDiv) mismatchDiv.style.display = 'none';
+      input.style.borderColor = '';
+      input.style.boxShadow   = '';
+      var stateSelect = document.getElementById('tpl_state');
+      if(stateSelect && state) {
+        for(var i=0; i<stateSelect.options.length; i++) {
+          if(stateSelect.options[i].value.includes('('+state+')')) {
+            stateSelect.value = stateSelect.options[i].value; break;
+          }
+        }
       }
     }
-  }
-  validateTemplate();
+    validateTemplate();
+  });
 }
-
 function toggleCheck(id){checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();}
 function resetChecklist(){checkedItems.clear();renderCheckItems();}
 
