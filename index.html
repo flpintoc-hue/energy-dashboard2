@@ -3248,11 +3248,14 @@ function copyTemplate() {
   if(!validateTemplate()) return;
 
   var g = function(id){ return (document.getElementById(id)||{}).value||''; };
-  var state   = db.states.find(function(s){return s.id===sel.stateId;});
-  var sup     = db.suppliers.find(function(s){return s.id===sel.supId;});
-  var authVal = g('tpl_auth');
-  var isMAEv  = state && state.code==='MA' && sel.utilIds.some(function(id){
-    var u=db.utilities.find(function(x){return x.id===id;});
+  var state    = db.states.find(function(s){return s.id===sel.stateId;});
+  var sup      = db.suppliers.find(function(s){return s.id===sel.supId;});
+  var authVal  = g('tpl_auth');
+  // Build selUtils here (same as in renderTemplateStep)
+  var selUtils = sel.utilIds.map(function(id){
+    return db.utilities.find(function(x){return x.id===id;});
+  }).filter(Boolean);
+  var isMAEv  = state && state.code==='MA' && selUtils.some(function(u){
     return u && u.name.includes('Eversource');
   });
 
