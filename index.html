@@ -1292,6 +1292,125 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   box-shadow: 0 0 0 2px rgba(229,57,53,0.2) !important;
 }
 
+
+/* ═══════════════════════════════════════════
+   FLOATING CHAT BUBBLE
+═══════════════════════════════════════════ */
+#chatFab {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  border: none; cursor: pointer; font-size: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+#chatFab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(0,0,0,0.35); }
+#chatFab .chat-unread {
+  position: absolute; top: -4px; right: -4px;
+  background: #E53935; color: #fff; border-radius: 50%;
+  width: 20px; height: 20px; font-size: 0.65rem; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  display: none;
+}
+#chatFab .chat-unread.show { display: flex; }
+
+#chatPanel {
+  position: fixed; bottom: 90px; right: 24px; z-index: 9998;
+  width: 360px; max-height: 520px;
+  background: var(--card); border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+  display: flex; flex-direction: column;
+  transform: scale(0.85) translateY(20px); opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+}
+#chatPanel.open {
+  transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
+}
+.chat-header {
+  background: var(--accent); color: #fff;
+  padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.chat-header-title { font-weight: 800; font-size: 0.95rem; flex: 1; }
+.chat-header-sub { font-size: 0.7rem; opacity: 0.85; }
+.chat-tab-bar {
+  display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-tab {
+  flex: 1; padding: 8px 4px; font-size: 0.72rem; font-weight: 700;
+  text-align: center; cursor: pointer; color: var(--text-muted);
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.chat-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 0;
+}
+.chat-msg {
+  max-width: 80%; padding: 8px 12px; border-radius: 14px;
+  font-size: 0.8rem; line-height: 1.4; word-break: break-word;
+}
+.chat-msg.mine {
+  align-self: flex-end; background: var(--accent); color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.theirs {
+  align-self: flex-start; background: var(--surface); color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.system {
+  align-self: center; background: transparent;
+  color: var(--text-muted); font-size: 0.68rem; font-style: italic;
+  padding: 2px 8px;
+}
+.chat-msg-meta { font-size: 0.62rem; opacity: 0.7; margin-top: 3px; }
+.chat-input-row {
+  display: flex; gap: 8px; padding: 10px 12px;
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.chat-input {
+  flex: 1; padding: 8px 12px; border-radius: 20px;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text); font-size: 0.82rem; outline: none;
+  transition: border-color 0.15s;
+}
+.chat-input:focus { border-color: var(--accent); }
+.chat-send-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none;
+  cursor: pointer; font-size: 1rem; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.chat-send-btn:hover { transform: scale(1.1); }
+.chat-empty {
+  text-align: center; color: var(--text-muted);
+  font-size: 0.78rem; padding: 24px 16px;
+}
+
+/* DNC Approval banner */
+#dncApprovalBanner {
+  display: none; margin: 10px 0 0 0;
+  background: #FFF8E1; border: 1.5px solid #FFB300;
+  border-radius: 10px; padding: 10px 14px;
+}
+#dncApprovalBanner.show { display: block; }
+.dab-title { font-weight: 800; font-size: 0.82rem; color: #E65100; margin-bottom: 6px; }
+.dab-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.dab-btn {
+  flex: 1; padding: 8px; border-radius: 8px; border: none;
+  font-weight: 800; font-size: 0.78rem; cursor: pointer; transition: opacity 0.15s;
+}
+.dab-btn:hover { opacity: 0.85; }
+.dab-btn.approved { background: #4CAF50; color: #fff; }
+.dab-btn.waiting  { background: var(--surface); color: var(--text-muted); border: 1.5px solid var(--border); cursor: default; }
+.dab-btn.rejected { background: #E53935; color: #fff; }
+.dab-status { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; }
 </style>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd05Tpk1Jkg5ITlZFCvJrQl2ZGOdi0LiA&libraries=places&callback=initGooglePlaces" async defer></script>
@@ -1429,6 +1548,17 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
             <span id="dncWAStatusText">📱 Notificando supervisor...</span>
           </div>
+          <!-- DNC Approval Banner -->
+          <div id="dncApprovalBanner">
+            <div class="dab-title">⏳ Esperando aprobación del supervisor</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Se envió notificación por WhatsApp. El supervisor puede responder <strong>APROBADO</strong> o <strong>RECHAZADO</strong>.</div>
+            <div class="dab-btns">
+              <button class="dab-btn waiting" id="dabWaitBtn">⏳ Esperando WA...</button>
+              <button class="dab-btn approved" onclick="dncManualApprove()">✅ Supervisor aprobó</button>
+            </div>
+            <div class="dab-status" id="dabStatus"></div>
+          </div>
+
           <button class="dnc-proceed-btn" id="dncProceedBtn" onclick="goStep(1)">
             ✓ Número libre — Continuar con la venta →
           </button>
@@ -2577,6 +2707,7 @@ let sel = { stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{} }; //
 let rateFilter = 'all';
 let checkedItems = new Set();
 let currentStep = 0;
+let dncVerifiedClear = false; // true only when DNC check returns CLEAR
 let openSupId = null;
 
 const MONTHS = [
@@ -3835,6 +3966,9 @@ function validateTemplate() {
     checkField('tpl_namekey', 'Name Key');
   }
 
+  // DNC must be verified CLEAR before copy
+  if(!dncVerifiedClear) missing.push(currentLang==="en" ? "DNC Verified (must be CLEAR ✅)" : "DNC Verificado (debe estar LIBRE ✅)");
+
   var valid = missing.length === 0;
   btn.disabled = !valid;
   btn.style.opacity = valid ? '1' : '0.5';
@@ -4412,10 +4546,14 @@ async function checkDNC() {
 
     if(result.found) {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
+      dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.remove('show');
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
+      // Don't auto-approve — require supervisor sign-off
+      dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.add('show');
+      requestDNCApproval(clean);
     }
   } catch(err) {
     btn.disabled = false;
@@ -4440,6 +4578,11 @@ function showDNCResult(type, icon, title, sub) {
 }
 
 function dncClearResult() {
+  dncVerifiedClear = false;
+  dncApprovalPending = false;
+  if(dncApprovalPolling) { clearInterval(dncApprovalPolling); dncApprovalPolling = null; }
+  const banner = document.getElementById('dncApprovalBanner');
+  if(banner) banner.classList.remove('show');
   const r = document.getElementById('dncResult');
   if(r) r.className = 'dnc-result';
   const p = document.getElementById('dncProceedBtn');
@@ -4693,6 +4836,9 @@ function finishLogin() {
   // Initialize floating avatar
   updateStepAvatar();
   renderStates();
+  // Start chat polling and update header
+  updateChatHeader();
+  startChatPolling();
 }
 
 function updateHeader() {
@@ -5289,5 +5435,272 @@ window.addEventListener('beforeunload', () => {
 });
 
 </script>
+
+<!-- ═══ FLOATING CHAT ═══ -->
+<button id="chatFab" onclick="toggleChat()" title="Chat interno">
+  💬
+  <span class="chat-unread" id="chatUnread">0</span>
+</button>
+
+<div id="chatPanel">
+  <div class="chat-header">
+    <div>
+      <div class="chat-header-title">💬 Chat Interno</div>
+      <div class="chat-header-sub" id="chatHeaderSub">Conectando...</div>
+    </div>
+    <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px">✕</button>
+  </div>
+  <div class="chat-tab-bar">
+    <div class="chat-tab active" id="tabPrivate" onclick="switchChatTab('private')">🔒 Supervisor</div>
+    <div class="chat-tab" id="tabGroup" onclick="switchChatTab('group')">👥 Equipo</div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-empty">No hay mensajes aún.<br>Di hola 👋</div>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Escribe un mensaje..."
+      onkeydown="if(event.key==='Enter')sendChatMsg()">
+    <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
+  </div>
+</div>
+
+// ═══════════════════════════════════════════
+// INTERNAL CHAT SYSTEM
+// ═══════════════════════════════════════════
+let chatOpen = false;
+let chatTab = 'private'; // 'private' | 'group'
+let chatPollingInterval = null;
+let chatLastTs = { private: 0, group: 0 };
+let chatUnreadCount = { private: 0, group: 0 };
+let chatMessages = { private: [], group: [] };
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const panel = document.getElementById('chatPanel');
+  if(chatOpen) {
+    panel.classList.add('open');
+    // Reset unread for current tab
+    chatUnreadCount[chatTab] = 0;
+    updateChatUnreadBadge();
+    scrollChatToBottom();
+    startChatPolling();
+  } else {
+    panel.classList.remove('open');
+  }
+}
+
+function switchChatTab(tab) {
+  chatTab = tab;
+  document.getElementById('tabPrivate').classList.toggle('active', tab === 'private');
+  document.getElementById('tabGroup').classList.toggle('active', tab === 'group');
+  chatUnreadCount[tab] = 0;
+  updateChatUnreadBadge();
+  renderChatMessages();
+}
+
+function updateChatUnreadBadge() {
+  const total = chatUnreadCount.private + chatUnreadCount.group;
+  const badge = document.getElementById('chatUnread');
+  if(!badge) return;
+  badge.textContent = total > 9 ? '9+' : total;
+  badge.classList.toggle('show', total > 0);
+}
+
+function renderChatMessages() {
+  const msgs = chatMessages[chatTab] || [];
+  const container = document.getElementById('chatMessages');
+  if(!container) return;
+  if(msgs.length === 0) {
+    container.innerHTML = '<div class="chat-empty">No hay mensajes aún.<br>Di hola 👋</div>';
+    return;
+  }
+  const myName = currentUser ? currentUser.name : '';
+  container.innerHTML = msgs.map(function(m) {
+    if(m.type === 'system') return '<div class="chat-msg system">' + escHtml(m.text) + '</div>';
+    const isMe = m.sender === myName;
+    return '<div class="chat-msg ' + (isMe ? 'mine' : 'theirs') + '">' +
+      (!isMe ? '<div style="font-size:0.68rem;font-weight:800;margin-bottom:3px;opacity:0.8">' + escHtml(m.sender) + '</div>' : '') +
+      escHtml(m.text) +
+      '<div class="chat-msg-meta">' + formatChatTime(m.ts) + '</div>' +
+    '</div>';
+  }).join('');
+  scrollChatToBottom();
+}
+
+function scrollChatToBottom() {
+  const c = document.getElementById('chatMessages');
+  if(c) setTimeout(function(){ c.scrollTop = c.scrollHeight; }, 50);
+}
+
+function formatChatTime(ts) {
+  if(!ts) return '';
+  var d = new Date(ts);
+  return d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+}
+
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function sendChatMsg() {
+  if(!currentUser) return;
+  const input = document.getElementById('chatInput');
+  const text = (input.value || '').trim();
+  if(!text) return;
+  input.value = '';
+
+  const msg = {
+    type: 'msg',
+    sender: currentUser.name,
+    role: currentUser.role,
+    channel: chatTab,
+    text: text,
+    ts: Date.now()
+  };
+
+  // Optimistic local add
+  chatMessages[chatTab].push(msg);
+  renderChatMessages();
+
+  try {
+    await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'chat_send', message: msg })
+    });
+  } catch(e) {
+    console.log('Chat send error:', e);
+  }
+}
+
+async function pollChat() {
+  if(!currentUser) return;
+  try {
+    const resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'chat_fetch',
+        since_private: chatLastTs.private,
+        since_group: chatLastTs.group,
+        user: currentUser.name,
+        role: currentUser.role
+      })
+    });
+    const data = JSON.parse(await resp.text());
+    if(data.error) return;
+
+    ['private','group'].forEach(function(ch) {
+      const incoming = (data[ch] || []);
+      if(incoming.length === 0) return;
+      const myName = currentUser ? currentUser.name : '';
+      incoming.forEach(function(m) {
+        // Deduplicate by ts + sender
+        const exists = chatMessages[ch].some(function(x){ return x.ts === m.ts && x.sender === m.sender; });
+        if(!exists) {
+          chatMessages[ch].push(m);
+          chatLastTs[ch] = Math.max(chatLastTs[ch], m.ts);
+          // Count unread if tab not active or chat closed
+          if(!chatOpen || chatTab !== ch) {
+            if(m.sender !== myName) chatUnreadCount[ch]++;
+          }
+        }
+      });
+    });
+
+    updateChatUnreadBadge();
+    if(chatOpen) renderChatMessages();
+
+    // Handle DNC approval from supervisor
+    if(data.dncApproval) {
+      handleDNCApprovalFromWA(data.dncApproval);
+    }
+  } catch(e) {
+    // silent fail
+  }
+}
+
+function startChatPolling() {
+  if(chatPollingInterval) return;
+  chatPollingInterval = setInterval(pollChat, 4000);
+  pollChat(); // immediate first poll
+}
+
+function stopChatPolling() {
+  if(chatPollingInterval) { clearInterval(chatPollingInterval); chatPollingInterval = null; }
+}
+
+// Update chat header subtitle
+function updateChatHeader() {
+  const sub = document.getElementById('chatHeaderSub');
+  if(!sub || !currentUser) return;
+  const isAdmin = currentUser.role === 'admin';
+  sub.textContent = isAdmin ? 'Vista supervisor — agentes conectados' : 'Conectado como ' + currentUser.name;
+}
+
+// ═══════════════════════════════════════════
+// DNC APPROVAL SYSTEM
+// ═══════════════════════════════════════════
+let dncApprovalPending = false;
+let dncApprovalPhone = '';
+let dncApprovalPolling = null;
+
+function requestDNCApproval(phone) {
+  dncApprovalPending = true;
+  dncApprovalPhone = phone;
+  const banner = document.getElementById('dncApprovalBanner');
+  if(banner) banner.classList.add('show');
+  const waitBtn = document.getElementById('dabWaitBtn');
+  if(waitBtn) { waitBtn.textContent = '⏳ Esperando respuesta WA...'; waitBtn.className = 'dab-btn waiting'; }
+  const status = document.getElementById('dabStatus');
+  if(status) status.textContent = 'Notificación enviada a supervisores. Polling cada 5s...';
+
+  // Start polling for approval
+  if(dncApprovalPolling) clearInterval(dncApprovalPolling);
+  dncApprovalPolling = setInterval(pollDNCApproval, 5000);
+}
+
+async function pollDNCApproval() {
+  if(!dncApprovalPending) { clearInterval(dncApprovalPolling); return; }
+  try {
+    const resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'check_dnc_approval', phone: dncApprovalPhone })
+    });
+    const data = JSON.parse(await resp.text());
+    if(data.approval === 'approved') {
+      handleDNCApprovalFromWA('approved');
+    } else if(data.approval === 'rejected') {
+      handleDNCApprovalFromWA('rejected');
+    }
+  } catch(e) {}
+}
+
+function handleDNCApprovalFromWA(decision) {
+  dncApprovalPending = false;
+  clearInterval(dncApprovalPolling);
+  const waitBtn = document.getElementById('dabWaitBtn');
+  const status = document.getElementById('dabStatus');
+  if(decision === 'approved') {
+    if(waitBtn) { waitBtn.textContent = '✅ Aprobado por WA'; waitBtn.className = 'dab-btn approved'; }
+    if(status) status.textContent = '✅ Supervisor aprobó vía WhatsApp';
+    toast('✅ Supervisor aprobó la venta por WhatsApp!', 'success');
+    dncVerifiedClear = true;
+    validateTemplate();
+  } else {
+    if(waitBtn) { waitBtn.textContent = '🚫 Rechazado por WA'; waitBtn.className = 'dab-btn rejected'; }
+    if(status) status.textContent = '🚫 Supervisor rechazó — no continuar con esta venta';
+    toast('🚫 Supervisor rechazó la venta', 'warn');
+  }
+}
+
+function dncManualApprove() {
+  dncApprovalPending = false;
+  clearInterval(dncApprovalPolling);
+  const banner = document.getElementById('dncApprovalBanner');
+  const status = document.getElementById('dabStatus');
+  if(status) status.textContent = '✅ Marcado manualmente — asegúrate de tener aprobación del supervisor';
+  dncVerifiedClear = true;
+  validateTemplate();
+  toast(currentLang==='en' ? '✅ Marked as approved manually' : '✅ Marcado como aprobado manualmente', 'success');
+}
 </body>
 </html>
