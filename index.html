@@ -2698,6 +2698,13 @@ function doLogout() {
   currentUser = null;
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  // Hide chat
+  var fab2 = document.getElementById('chatFab');
+  if(fab2) fab2.style.display = 'none';
+  var panel = document.getElementById('chatPanel');
+  if(panel) panel.classList.remove('open');
+  chatOpen = false;
+  stopChatPolling();
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
   document.getElementById('adminBtn').style.display = 'none';
@@ -4554,7 +4561,7 @@ async function renderDNC() {
       _dncImg.onload = function() {
         avatarDisplay.innerHTML = '<img src="' + _dncImg.src + '" style="width:100%;height:100%;object-fit:cover">';
       };
-      _dncImg.src = 'https://api.dicebear.com/9.x/micah/svg?seed=' + av.seed + '&backgroundColor=' + av.bg.replace('#','');
+      _dncImg.src = 'https://api.dicebear.com/9.x/avataaars/svg?backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&seed=' + av.seed + '&backgroundColor=' + av.bg.replace('#','');
     }
     if(agentName)  agentName.textContent  = currentUser.name;
     if(agentLabel) agentLabel.textContent = currentLang==='en' ? 'Agent' : 'Agente';
@@ -4757,24 +4764,24 @@ var currentAvatar = localStorage.getItem('esd_avatar') || 'avatar1';
 
 // iPhone-style cartoon avatars using DiceBear Adventurer
 var AVATAR_SEEDS = [
-  { id:'av1',  seed:'Zoe',      bg:'#FF6B6B', name:'Zoe'      },
-  { id:'av2',  seed:'Liam',     bg:'#4ECDC4', name:'Liam'     },
-  { id:'av3',  seed:'Mia',      bg:'#A29BFE', name:'Mia'      },
-  { id:'av4',  seed:'Noah',     bg:'#55EFC4', name:'Noah'     },
-  { id:'av5',  seed:'Ava',      bg:'#FD79A8', name:'Ava'      },
-  { id:'av6',  seed:'Ethan',    bg:'#74B9FF', name:'Ethan'    },
-  { id:'av7',  seed:'Sophia',   bg:'#FFEAA7', name:'Sophia'   },
-  { id:'av8',  seed:'Lucas',    bg:'#81ECEC', name:'Lucas'    },
-  { id:'av9',  seed:'Emma',     bg:'#FAB1A0', name:'Emma'     },
-  { id:'av10', seed:'Oliver',   bg:'#DFE6E9', name:'Oliver'   },
-  { id:'av11', seed:'Isabella', bg:'#B2BEC3', name:'Isabella' },
-  { id:'av12', seed:'James',    bg:'#636E72', name:'James'    },
+  { id:'av1',  seed:'Zoe',       bg:'#E8D5FF', name:'Zoe'      },
+  { id:'av2',  seed:'Liam',      bg:'#D5EEFF', name:'Liam'     },
+  { id:'av3',  seed:'Mia',       bg:'#FFD5E8', name:'Mia'      },
+  { id:'av4',  seed:'Noah',      bg:'#D5FFE8', name:'Noah'     },
+  { id:'av5',  seed:'Ava',       bg:'#FFE8D5', name:'Ava'      },
+  { id:'av6',  seed:'Ethan',     bg:'#D5F0FF', name:'Ethan'    },
+  { id:'av7',  seed:'Sophia',    bg:'#FFF0D5', name:'Sophia'   },
+  { id:'av8',  seed:'Lucas',     bg:'#D5FFD5', name:'Lucas'    },
+  { id:'av9',  seed:'Emma',      bg:'#FFD5D5', name:'Emma'     },
+  { id:'av10', seed:'Carlos',    bg:'#E8FFD5', name:'Carlos'   },
+  { id:'av11', seed:'Isabella',  bg:'#D5D5FF', name:'Isabella' },
+  { id:'av12', seed:'Gianella',  bg:'#FFE5D5', name:'Gianella' },
 ];
 
 var AVATARS = {};
 try {
   AVATAR_SEEDS.forEach(a => {
-    AVATARS[a.id] = { ...a, url: 'https://api.dicebear.com/9.x/micah/svg?seed='+a.seed+'&backgroundColor='+a.bg.replace('#','') };
+    AVATARS[a.id] = { ...a, url: 'https://api.dicebear.com/9.x/avataaars/svg?backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&seed='+a.seed+'&backgroundColor='+a.bg.replace('#','') };
   });
 } catch(e) { console.error('Avatar init error:', e); }
 
@@ -4799,7 +4806,7 @@ function getAvatarHtml(avatarKey, size) {
   const av = AVATARS[avatarKey];
   const initial = currentUser ? currentUser.name.charAt(0).toUpperCase() : '?';
   if(!av) return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:#F47C20;display:flex;align-items:center;justify-content:center;font-size:'+(size*0.45)+'px;font-weight:900;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0">'+initial+'</div>';
-  const url = 'https://api.dicebear.com/9.x/micah/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
+  const url = 'https://api.dicebear.com/9.x/avataaars/svg?backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
   const _gi = currentUser ? currentUser.name.charAt(0).toUpperCase() : '?';
   return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+av.bg+';box-shadow:0 3px 14px rgba(0,0,0,0.2);flex-shrink:0;overflow:hidden;border:2.5px solid rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center" class="av-lazy" data-src="'+url+'" data-initial="'+_gi+'"><span style="font-size:'+(Math.round(size*0.42))+'px;font-weight:900;color:#fff">'+_gi+'</span></div>';
 }
@@ -4872,7 +4879,7 @@ function selectLoginAvatar(key) {
   const preview = document.getElementById('loginAvatarPreview');
   const img = document.getElementById('avatarPreviewImg');
   if(preview) { preview.style.background = av.bg; preview.style.transform = 'scale(1.12)'; setTimeout(()=>preview.style.transform='scale(1)',300); }
-  if(img) img.src = `https://api.dicebear.com/9.x/micah/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}`;
+  if(img) img.src = `https://api.dicebear.com/9.x/avataaars/svg?backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}`;
   // Update grid selection
   document.querySelectorAll('.avatar-option').forEach((el, i) => {
     const k = Object.keys(AVATARS)[i];
@@ -4906,7 +4913,9 @@ function finishLogin() {
   renderStates();
   // Render DNC panel immediately so objections and avatar load on first visit
   setTimeout(function(){ renderDNC(); }, 100);
-  // Start chat polling and update header
+  // Show chat bubble and start polling
+  var fab = document.getElementById('chatFab');
+  if(fab) fab.style.display = 'flex';
   updateChatHeader();
   startChatPolling();
 }
@@ -5023,7 +5032,7 @@ function toggleAvatarPicker() {
            style="width:100%;aspect-ratio:1;border-radius:10px;cursor:pointer;overflow:hidden;
                   border:2px solid ${currentAvatar===av.id?'#FFD54F':'transparent'};
                   background:${av.bg}33;transition:all 0.2s;padding:2px">
-        <img src="https://api.dicebear.com/9.x/micah/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}"
+        <img src="https://api.dicebear.com/9.x/avataaars/svg?backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}"
              style="width:100%;height:100%;object-fit:cover;border-radius:8px" loading="lazy">
       </div>`).join('');
   }
@@ -5058,7 +5067,7 @@ function updateStepAvatar() {
     float.innerHTML = '<div style="width:64px;height:64px;border-radius:50%;background:#F47C20;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid #fff;cursor:pointer">'+initial+'</div>';
     return;
   }
-  const url = 'https://api.dicebear.com/9.x/micah/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
+  const url = 'https://api.dicebear.com/9.x/avataaars/svg?backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
   const _initial = currentUser ? currentUser.name.charAt(0).toUpperCase() : '?';
   // Show initial as placeholder immediately
   float.innerHTML = '<div style="width:64px;height:64px;border-radius:50%;background:'+av.bg+';box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff">'+_initial+'</div>';
@@ -5515,7 +5524,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 
 <!-- ═══ FLOATING CHAT ═══ -->
-<button id="chatFab" onclick="toggleChat()" title="Chat interno">
+<button id="chatFab" onclick="toggleChat()" title="Chat interno" style="display:none">
   💬
   <span class="chat-unread" id="chatUnread">0</span>
 </button>
