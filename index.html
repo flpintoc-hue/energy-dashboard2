@@ -1754,6 +1754,20 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="checklistBody"></div>
         <!-- ── BOTTOM ACTION BAR ── -->
         <div style="padding:16px 20px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
+
+          <!-- TPV # field — enabled only after Copy Template -->
+          <div id="tpvNumRow" style="display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border)">
+            <span style="font-size:1.1rem">🔢</span>
+            <div style="flex:1">
+              <label style="font-size:0.68rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:4px">TPV Confirmation #</label>
+              <input id="tpl_tpv_num" placeholder="Ingresa el número de confirmación TPV..." disabled
+                style="width:100%;border:none;background:transparent;font-family:Nunito,sans-serif;
+                font-size:0.88rem;font-weight:700;color:var(--text);outline:none;opacity:0.4;cursor:not-allowed"
+                oninput="validateTpvNum()">
+            </div>
+            <span id="tpvNumStatus" style="font-size:0.75rem;font-weight:800;color:var(--text-muted)">🔒 Bloqueado</span>
+          </div>
+
           <!-- Fila 1: Copy Template — full width -->
           <div id="copyBtnRow" style="display:flex;gap:10px"></div>
 
@@ -3488,6 +3502,8 @@ function copyTemplate() {
       setTimeout(function(){ btn.innerHTML = '<span>📋</span> ' + t('btn_copy'); btn.style.background=''; }, 3000);
     }
     toast(currentLang==='en' ? '✓ Template copied!' : '✓ Plantilla copiada', 'success');
+    // Unlock TPV # field
+    enableTpvField();
   };
 
   if(navigator.clipboard && window.isSecureContext) {
@@ -3756,6 +3772,36 @@ function saveScript(supplierName) {
 // ════════════════════════════════════════════
 // SUBMIT SALE TO GOOGLE SHEETS
 // ════════════════════════════════════════════
+function enableTpvField() {
+  var inp = document.getElementById('tpl_tpv_num');
+  var row = document.getElementById('tpvNumRow');
+  var status = document.getElementById('tpvNumStatus');
+  if(!inp) return;
+  inp.disabled = false;
+  inp.style.opacity = '1';
+  inp.style.cursor = 'text';
+  if(row) {
+    row.style.borderColor = 'var(--accent)';
+    row.style.background = 'var(--card)';
+    row.style.boxShadow = '0 0 0 2px rgba(244,124,32,0.15)';
+  }
+  if(status) { status.textContent = '✏️ Listo'; status.style.color = '#27ae60'; }
+  inp.focus();
+}
+
+function validateTpvNum() {
+  var val = (document.getElementById('tpl_tpv_num')||{}).value || '';
+  var status = document.getElementById('tpvNumStatus');
+  if(!status) return;
+  if(val.trim().length > 0) {
+    status.textContent = '✅ ' + val.trim();
+    status.style.color = '#27ae60';
+  } else {
+    status.textContent = '✏️ Listo';
+    status.style.color = 'var(--text-muted)';
+  }
+}
+
 async function submitSale() {
   const btn     = document.getElementById('submitSaleBtn');
   const btnText = document.getElementById('submitSaleBtnText');
@@ -3770,19 +3816,42 @@ async function submitSale() {
     return u ? u.name : '';
   }).filter(Boolean).join(' / ');
 
+  // Build ACC INFO per utility type
+  var accElectric = '', accGas = '';
+  document.querySelectorAll('.acc-info-input').forEach(function(inp) {
+    var uid = inp.getAttribute('data-util') || '';
+    var u = db.utilities.find(function(x){ return x.id === uid; });
+    if(u && u.type === 'gas') accGas = accGas || inp.value;
+    else accElectric = accElectric || inp.value;
+  });
+  var electricUtil = '', gasUtil = '';
+  sel.utilIds.forEach(function(uid) {
+    var u = db.utilities.find(function(x){ return x.id === uid; });
+    if(u && u.type === 'gas') gasUtil = gasUtil || u.name;
+    else electricUtil = electricUtil || u.name;
+  });
+
   const sale = {
-    agent:      currentUser ? currentUser.name : '',
-    repId:      g('tpl_repid'),
-    holder:     g('tpl_holder'),
-    phone:      g('tpl_phone') || (document.getElementById('dncPhone')||{}).value || '',
-    address:    g('tpl_address'),
-    city:       g('tpl_city'),
-    state:      state ? state.name + ' (' + state.code + ')' : g('tpl_state'),
-    utility:    utilNames,
-    supplier:   sup ? sup.name : '',
-    rate:       g('tpl_tarifa'),
-    language:   g('tpl_lang'),
-    authorized: g('tpl_auth'),
+    agent:          currentUser ? currentUser.name : '',
+    repId:          g('tpl_repid'),
+    holder:         g('tpl_holder') || g('tpl_auth_name') || '',
+    phone:          g('tpl_phone') || (document.getElementById('dncPhone')||{}).value || '',
+    address:        g('tpl_address') + (g('tpl_apt') ? ', ' + g('tpl_apt') : ''),
+    city:           g('tpl_city'),
+    state:          state ? state.name + ' (' + state.code + ')' : g('tpl_state'),
+    zip:            g('tpl_zip'),
+    utility:        utilNames,
+    electricUtil:   electricUtil,
+    electricAcc:    accElectric,
+    gasUtil:        gasUtil,
+    gasAcc:         accGas,
+    commodity:      (electricUtil && gasUtil) ? 'Electric & Gas' : (gasUtil ? 'Gas' : 'Electric'),
+    supplier:       sup ? sup.name : '',
+    rate:           g('tpl_tarifa'),
+    language:       g('tpl_lang'),
+    authorized:     g('tpl_auth'),
+    typeOfClient:   'Residential',
+    tpvNum:         g('tpl_tpv_num'),
   };
 
   // Validate required fields
