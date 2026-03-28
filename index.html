@@ -1297,15 +1297,16 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
    FLOATING CHAT BUBBLE
 ═══════════════════════════════════════════ */
 #chatFab {
-  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  border: none; cursor: pointer; font-size: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  position: fixed; bottom: 100px; right: 20px; z-index: 9999;
+  width: 68px; height: 68px; border-radius: 50%;
+  background: linear-gradient(135deg, #F47C20, #e55d00);
+  color: #fff;
+  border: none; cursor: pointer; font-size: 1.9rem;
+  box-shadow: 0 6px 24px rgba(244,124,32,0.45);
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-#chatFab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(0,0,0,0.35); }
+#chatFab:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(244,124,32,0.55); }
 #chatFab .chat-unread {
   position: absolute; top: -4px; right: -4px;
   background: #E53935; color: #fff; border-radius: 50%;
@@ -4502,7 +4503,7 @@ async function renderDNC() {
     const av = AVATARS[currentAvatar];
     if(av) {
       avatarDisplay.style.background = av.bg;
-      avatarDisplay.innerHTML = `<img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}" style="width:100%;height:100%;object-fit:cover">`;
+      avatarDisplay.innerHTML = `<img src="https://api.dicebear.com/9.x/micah/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}" style="width:100%;height:100%;object-fit:cover">`;
     }
     if(agentName)  agentName.textContent  = currentUser.name;
     if(agentLabel) agentLabel.textContent = currentLang==='en' ? 'Agent' : 'Agente';
@@ -4706,24 +4707,24 @@ var currentAvatar = localStorage.getItem('esd_avatar') || 'avatar1';
 
 // iPhone-style cartoon avatars using DiceBear Adventurer
 var AVATAR_SEEDS = [
-  { id:'av1',  seed:'Felix',    bg:'#FF6B6B', name:'Felix'    },
-  { id:'av2',  seed:'Luna',     bg:'#4ECDC4', name:'Luna'     },
-  { id:'av3',  seed:'Max',      bg:'#45B7D1', name:'Max'      },
-  { id:'av4',  seed:'Sofia',    bg:'#F7B731', name:'Sofia'    },
-  { id:'av5',  seed:'Leo',      bg:'#FC5C65', name:'Leo'      },
-  { id:'av6',  seed:'Mia',      bg:'#778CA3', name:'Mia'      },
-  { id:'av7',  seed:'Carlos',   bg:'#A55EEA', name:'Carlos'   },
-  { id:'av8',  seed:'Elena',    bg:'#2D98DA', name:'Elena'    },
-  { id:'av9',  seed:'Diego',    bg:'#E17055', name:'Diego'    },
-  { id:'av10', seed:'Valeria',  bg:'#FDCB6E', name:'Valeria'  },
-  { id:'av11', seed:'Andres',   bg:'#D63031', name:'Andrés'   },
-  { id:'av12', seed:'Isabella', bg:'#0984E3', name:'Isabella' },
+  { id:'av1',  seed:'Zoe',      bg:'#FF6B6B', name:'Zoe'      },
+  { id:'av2',  seed:'Liam',     bg:'#4ECDC4', name:'Liam'     },
+  { id:'av3',  seed:'Mia',      bg:'#A29BFE', name:'Mia'      },
+  { id:'av4',  seed:'Noah',     bg:'#55EFC4', name:'Noah'     },
+  { id:'av5',  seed:'Ava',      bg:'#FD79A8', name:'Ava'      },
+  { id:'av6',  seed:'Ethan',    bg:'#74B9FF', name:'Ethan'    },
+  { id:'av7',  seed:'Sophia',   bg:'#FFEAA7', name:'Sophia'   },
+  { id:'av8',  seed:'Lucas',    bg:'#81ECEC', name:'Lucas'    },
+  { id:'av9',  seed:'Emma',     bg:'#FAB1A0', name:'Emma'     },
+  { id:'av10', seed:'Oliver',   bg:'#DFE6E9', name:'Oliver'   },
+  { id:'av11', seed:'Isabella', bg:'#B2BEC3', name:'Isabella' },
+  { id:'av12', seed:'James',    bg:'#636E72', name:'James'    },
 ];
 
 var AVATARS = {};
 try {
   AVATAR_SEEDS.forEach(a => {
-    AVATARS[a.id] = { ...a, url: 'https://api.dicebear.com/7.x/adventurer/svg?seed='+a.seed+'&backgroundColor='+a.bg.replace('#','') };
+    AVATARS[a.id] = { ...a, url: 'https://api.dicebear.com/9.x/micah/svg?seed='+a.seed+'&backgroundColor='+a.bg.replace('#','') };
   });
 } catch(e) { console.error('Avatar init error:', e); }
 
@@ -4732,8 +4733,8 @@ function getAvatarHtml(avatarKey, size) {
   const av = AVATARS[avatarKey];
   const initial = currentUser ? currentUser.name.charAt(0).toUpperCase() : '?';
   if(!av) return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:#F47C20;display:flex;align-items:center;justify-content:center;font-size:'+(size*0.45)+'px;font-weight:900;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0">'+initial+'</div>';
-  const url = 'https://api.dicebear.com/7.x/adventurer/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
-  return '<img src="'+url+'" style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+av.bg+';box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-shrink:0;object-fit:cover">';
+  const url = 'https://api.dicebear.com/9.x/micah/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+av.bg+';box-shadow:0 3px 14px rgba(0,0,0,0.2);flex-shrink:0;overflow:hidden;border:2.5px solid rgba(255,255,255,0.7)"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover"></div>';
 }
 
 function setAvatar(key) {
@@ -4804,7 +4805,7 @@ function selectLoginAvatar(key) {
   const preview = document.getElementById('loginAvatarPreview');
   const img = document.getElementById('avatarPreviewImg');
   if(preview) { preview.style.background = av.bg; preview.style.transform = 'scale(1.12)'; setTimeout(()=>preview.style.transform='scale(1)',300); }
-  if(img) img.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}`;
+  if(img) img.src = `https://api.dicebear.com/9.x/micah/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}`;
   // Update grid selection
   document.querySelectorAll('.avatar-option').forEach((el, i) => {
     const k = Object.keys(AVATARS)[i];
@@ -4953,7 +4954,7 @@ function toggleAvatarPicker() {
            style="width:100%;aspect-ratio:1;border-radius:10px;cursor:pointer;overflow:hidden;
                   border:2px solid ${currentAvatar===av.id?'#FFD54F':'transparent'};
                   background:${av.bg}33;transition:all 0.2s;padding:2px">
-        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}"
+        <img src="https://api.dicebear.com/9.x/micah/svg?seed=${av.seed}&backgroundColor=${av.bg.replace('#','')}"
              style="width:100%;height:100%;object-fit:cover;border-radius:8px" loading="lazy">
       </div>`).join('');
   }
@@ -4988,7 +4989,7 @@ function updateStepAvatar() {
     float.innerHTML = '<div style="width:64px;height:64px;border-radius:50%;background:#F47C20;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid #fff;cursor:pointer">'+initial+'</div>';
     return;
   }
-  const url = 'https://api.dicebear.com/7.x/adventurer/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
+  const url = 'https://api.dicebear.com/9.x/micah/svg?seed='+av.seed+'&backgroundColor='+av.bg.replace('#','');
   float.innerHTML = '<img src="'+url+'" style="width:64px;height:64px;border-radius:50%;background:'+av.bg+';box-shadow:0 4px 16px rgba(0,0,0,0.25);border:3px solid #fff;display:block;object-fit:cover">';
 }
 
