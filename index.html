@@ -1563,7 +1563,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <div class="dab-status" id="dabStatus"></div>
           </div>
 
-          <button class="dnc-proceed-btn" id="dncProceedBtn" onclick="goStep(1)">
+          <button class="dnc-proceed-btn" id="dncProceedBtn" onclick="dncVerifiedClear=true;goStep(1)">
             ✓ Número libre — Continuar con la venta →
           </button>
           <!-- Objection bubbles -->
@@ -4560,10 +4560,9 @@ async function checkDNC() {
       document.getElementById('dncProceedBtn').classList.remove('show');
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
-      // Don't auto-approve — require supervisor sign-off
-      dncVerifiedClear = false;
+      dncVerifiedClear = true; // CLEAR — agente puede continuar
       document.getElementById('dncProceedBtn').classList.add('show');
-      requestDNCApproval(clean);
+      requestDNCApproval(clean); // Notifica supervisor en paralelo
     }
   } catch(err) {
     btn.disabled = false;
