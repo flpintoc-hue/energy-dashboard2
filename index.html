@@ -1755,21 +1755,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <!-- ── BOTTOM ACTION BAR ── -->
         <div style="padding:16px 20px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px">
           <!-- Fila 1: Copy Template — full width -->
-          <div style="display:flex;gap:10px">
-            <div id="copyBtnRow" style="flex:1;display:flex;gap:10px"></div>
-            <a href="https://app.tpv360.com" target="_blank" rel="noopener"
-              id="tpv360Btn"
-              onclick="saveTpv360Data()"
-              style="display:flex;align-items:center;justify-content:center;gap:8px;
-                padding:15px 18px;border-radius:12px;
-                background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;
-                font-family:Nunito,sans-serif;font-weight:900;font-size:0.88rem;
-                white-space:nowrap;box-shadow:0 3px 12px rgba(21,101,192,0.4);
-                text-decoration:none;transition:all 0.18s"
-              title="Abrir TPV360 con datos guardados">
-              🔗 TPV360
-            </a>
-          </div>
+          <div id="copyBtnRow" style="display:flex;gap:10px"></div>
 
           <!-- Fila 2: 3 botones homogéneos -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -3192,30 +3178,7 @@ function injectCopyButton() {
     ; // TPV360 button is now static HTML
 }
 
-function saveTpv360Data() {
-  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
-  var stateRaw = g('tpl_state');
-  var stateCode = (stateRaw.match(/\(([A-Z]{2})\)/) || [])[1] || stateRaw;
-  var accInput = document.querySelector('.acc-info-input');
-  var tpvData = {
-    holder:  g('tpl_holder') || g('tpl_auth_name') || '',
-    phone:   g('tpl_phone'),
-    address: g('tpl_address'),
-    apt:     g('tpl_apt'),
-    city:    g('tpl_city'),
-    zip:     g('tpl_zip'),
-    state:   stateCode,
-    acc:     accInput ? accInput.value : '',
-    lang:    g('tpl_lang'),
-    ts:      Date.now()
-  };
-  localStorage.setItem('esd_tpv360_data', JSON.stringify(tpvData));
-  toast('&#x1F517; Datos guardados. En TPV360 usa el bookmarklet para llenar el formulario.', 'success');
-  return true; // allow anchor navigation
-}
 
-// Keep backward compat
-function openTPV360() { saveTpv360Data(); }
 
 function renderCheckItems() {
   const state  = db.states.find(s=>s.id===sel.stateId);
