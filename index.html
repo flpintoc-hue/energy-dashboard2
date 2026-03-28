@@ -3031,6 +3031,8 @@ function renderTemplateStep(stepNum, state, util, sup) {
   }).filter(Boolean);
   // Also passed util as fallback
   if(selUtils.length === 0 && util) selUtils = [util];
+  console.log("[renderTemplateStep] sel.utilIds:", JSON.stringify(sel.utilIds), "sel.utilId:", sel.utilId, "selUtils:", selUtils.map(function(u){return u.name;}));
+  selUtils.forEach(function(u){ console.log("[ACC INFO check] util:", u.name, "getAccInfo:", JSON.stringify(getAccInfo(u.name))); });
 
   var utilVal = selUtils.map(function(u){return u.name;}).join(' / ');
 
