@@ -1293,6 +1293,77 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 
 
+/* ── SALE SUCCESS OVERLAY ───────────────────── */
+#saleSuccessOverlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 99999;
+  background: linear-gradient(135deg, #0a2540 0%, #1a3a5c 50%, #0f2035 100%);
+  flex-direction: column; align-items: center; justify-content: center;
+  animation: overlayFadeIn 0.4s ease;
+}
+#saleSuccessOverlay.show { display: flex; }
+@keyframes overlayFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.sale-success-icon {
+  font-size: 5rem; margin-bottom: 24px;
+  animation: iconBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+}
+@keyframes iconBounce {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.sale-success-title {
+  font-size: 2.4rem; font-weight: 900; color: #fff;
+  text-align: center; line-height: 1.2; margin-bottom: 12px;
+  animation: slideUp 0.5s ease 0.3s both;
+}
+.sale-success-sub {
+  font-size: 1.05rem; color: rgba(255,255,255,0.7);
+  text-align: center; margin-bottom: 32px; font-weight: 600;
+  animation: slideUp 0.5s ease 0.4s both;
+}
+.sale-success-details {
+  background: rgba(255,255,255,0.08); border-radius: 16px;
+  padding: 20px 32px; margin-bottom: 36px; text-align: center;
+  animation: slideUp 0.5s ease 0.5s both; min-width: 280px;
+}
+.sale-success-details .det-row {
+  display: flex; justify-content: space-between; gap: 24px;
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 0.88rem;
+}
+.sale-success-details .det-row:last-child { border-bottom: none; }
+.sale-success-details .det-label { color: rgba(255,255,255,0.5); font-weight: 700; }
+.sale-success-details .det-val   { color: #fff; font-weight: 800; text-align: right; }
+.sale-success-timer {
+  font-size: 0.82rem; color: rgba(255,255,255,0.45);
+  margin-bottom: 20px; animation: slideUp 0.5s ease 0.6s both;
+}
+.sale-success-newbtn {
+  background: #F47C20; color: #fff; border: none; border-radius: 14px;
+  padding: 16px 36px; font-family: Nunito, sans-serif;
+  font-weight: 900; font-size: 1rem; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(244,124,32,0.5);
+  transition: all 0.2s; animation: slideUp 0.5s ease 0.65s both;
+  letter-spacing: 0.03em;
+}
+.sale-success-newbtn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(244,124,32,0.6); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.confetti-dot {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  animation: confettiFall linear forwards;
+  pointer-events: none;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
 /* ── BOTTOM ACTION BAR BUTTONS ─────────────── */
 .action-bar-btn {
   display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -1731,13 +1802,17 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           <div id="tpvNumRow" style="display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border)">
             <span style="font-size:1.1rem">🔢</span>
             <div style="flex:1">
-              <label style="font-size:0.68rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:4px">TPV Confirmation #</label>
-              <input id="tpl_tpv_num" placeholder="Ingresa el número de confirmación TPV..." disabled
-                style="width:100%;border:none;background:transparent;font-family:Nunito,sans-serif;
-                font-size:0.88rem;font-weight:700;color:var(--text);outline:none;opacity:0.4;cursor:not-allowed"
-                oninput="validateTpvNum()">
+              <label style="font-size:0.68rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:4px">
+                TPV Confirmation #
+                <span id="tpvNumHint" style="display:none;color:var(--orange);font-weight:900;margin-left:6px;text-transform:none"></span>
+              </label>
+              <input id="tpl_tpv_num" placeholder="Primero copia la plantilla..." disabled
+                style="width:100%;border:none;border-bottom:2px solid transparent;background:transparent;font-family:Nunito,sans-serif;
+                font-size:0.92rem;font-weight:700;color:var(--text);outline:none;opacity:0.4;cursor:not-allowed;
+                transition:border-color 0.2s;padding-bottom:2px"
+                oninput="this.value=this.value.replace(/[^0-9a-zA-Z\-]/g,'');validateTpvNum()">
             </div>
-            <span id="tpvNumStatus" style="font-size:0.75rem;font-weight:800;color:var(--text-muted)">🔒 Bloqueado</span>
+            <span id="tpvNumStatus" style="font-size:0.75rem;font-weight:800;color:var(--text-muted);white-space:nowrap">🔒 Bloqueado</span>
           </div>
 
           <!-- Fila 1: Copy Template — full width -->
@@ -1814,6 +1889,19 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </div><!-- /main -->
   <!-- Floating step avatar -->
   <div class="step-avatar-float" id="stepAvatarFloat" style="display:none" onclick="bounceAvatar()"></div>
+
+<!-- ── SALE SUCCESS OVERLAY ── -->
+<div id="saleSuccessOverlay">
+  <div class="sale-success-icon">🎉</div>
+  <div class="sale-success-title" id="saleSuccessTitle">¡Venta Enviada!</div>
+  <div class="sale-success-sub" id="saleSuccessSub">La venta fue registrada exitosamente</div>
+  <div class="sale-success-details" id="saleSuccessDetails"></div>
+  <div class="sale-success-timer" id="saleSuccessTimer">Redirigiendo en 5 segundos...</div>
+  <button class="sale-success-newbtn" onclick="hideSaleSuccess()">
+    🏠 Nueva Consulta DNC
+  </button>
+</div>
+
 </div><!-- /appScreen -->
 
 <!-- ════════════════════════════════
@@ -3744,14 +3832,121 @@ function saveScript(supplierName) {
 // ════════════════════════════════════════════
 // SUBMIT SALE TO GOOGLE SHEETS
 // ════════════════════════════════════════════
+function getTpvNumLength() {
+  var sup = db.suppliers.find(function(s){ return s.id === sel.supId; });
+  if(!sup) return null;
+  var name = sup.name || '';
+  if(name === 'INDRA') return 14;
+  if(name === 'NG&E' || name === 'Rushmore') return 9;
+  return null; // no restriction for other suppliers
+}
+
+function showSaleSuccess(sale) {
+  var overlay = document.getElementById('saleSuccessOverlay');
+  var title   = document.getElementById('saleSuccessTitle');
+  var sub     = document.getElementById('saleSuccessSub');
+  var details = document.getElementById('saleSuccessDetails');
+  var timer   = document.getElementById('saleSuccessTimer');
+  if(!overlay) return;
+
+  // Set content
+  if(title) title.textContent = currentLang==='en' ? '🎉 Sale Submitted!' : '🎉 ¡Venta Enviada!';
+  if(sub)   sub.textContent   = currentLang==='en'
+    ? 'The sale was successfully registered'
+    : 'La venta fue registrada exitosamente';
+
+  if(details) {
+    var rows = [
+      ['Cliente', sale.holder || '—'],
+      ['Teléfono', sale.phone || '—'],
+      ['Supplier', sale.supplier || '—'],
+      ['Estado', sale.state || '—'],
+      ['TPV #', sale.tpvNum || '—'],
+      ['Agente', sale.agent || '—'],
+    ];
+    details.innerHTML = rows.map(function(r) {
+      return '<div class="det-row"><span class="det-label">' + r[0] + '</span><span class="det-val">' + r[1] + '</span></div>';
+    }).join('');
+  }
+
+  // Launch confetti
+  launchConfetti();
+
+  // Show overlay
+  overlay.classList.add('show');
+
+  // Countdown timer
+  var secs = 6;
+  var countdown = setInterval(function() {
+    secs--;
+    if(timer) timer.textContent = currentLang==='en'
+      ? 'Redirecting in ' + secs + ' seconds...'
+      : 'Redirigiendo en ' + secs + ' segundos...';
+    if(secs <= 0) {
+      clearInterval(countdown);
+      hideSaleSuccess();
+    }
+  }, 1000);
+  overlay._countdown = countdown;
+}
+
+function hideSaleSuccess() {
+  var overlay = document.getElementById('saleSuccessOverlay');
+  if(!overlay) return;
+  if(overlay._countdown) clearInterval(overlay._countdown);
+  overlay.classList.remove('show');
+  // Remove confetti
+  document.querySelectorAll('.confetti-dot').forEach(function(el){ el.remove(); });
+  // Go to DNC
+  volverInicio();
+}
+
+function launchConfetti() {
+  var colors = ['#F47C20','#27ae60','#3498db','#e74c3c','#f1c40f','#9b59b6','#1abc9c'];
+  for(var i = 0; i < 60; i++) {
+    (function(i) {
+      setTimeout(function() {
+        var dot = document.createElement('div');
+        dot.className = 'confetti-dot';
+        dot.style.left = Math.random() * 100 + 'vw';
+        dot.style.top = '-10px';
+        dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+        dot.style.width = (6 + Math.random() * 8) + 'px';
+        dot.style.height = dot.style.width;
+        dot.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        dot.style.animationDuration = (2 + Math.random() * 3) + 's';
+        dot.style.animationDelay = '0s';
+        document.body.appendChild(dot);
+        setTimeout(function(){ dot.remove(); }, 5000);
+      }, i * 50);
+    })(i);
+  }
+}
+
 function enableTpvField() {
   var inp = document.getElementById('tpl_tpv_num');
   var row = document.getElementById('tpvNumRow');
   var status = document.getElementById('tpvNumStatus');
+  var hint = document.getElementById('tpvNumHint');
   if(!inp) return;
+
+  var len = getTpvNumLength();
   inp.disabled = false;
   inp.style.opacity = '1';
   inp.style.cursor = 'text';
+  inp.value = '';
+
+  // Set maxlength and placeholder based on supplier
+  if(len) {
+    inp.maxLength = len;
+    inp.placeholder = 'TPV # (' + len + ' dígitos)';
+    if(hint) { hint.textContent = '(' + len + ' dígitos requeridos)'; hint.style.display = 'inline'; }
+  } else {
+    inp.maxLength = 30;
+    inp.placeholder = 'Número de confirmación TPV...';
+    if(hint) hint.style.display = 'none';
+  }
+
   if(row) {
     row.style.borderColor = 'var(--accent)';
     row.style.background = 'var(--card)';
@@ -3762,15 +3957,30 @@ function enableTpvField() {
 }
 
 function validateTpvNum() {
-  var val = (document.getElementById('tpl_tpv_num')||{}).value || '';
+  var inp = document.getElementById('tpl_tpv_num');
+  var val = (inp||{}).value || '';
   var status = document.getElementById('tpvNumStatus');
   if(!status) return;
-  if(val.trim().length > 0) {
+  var len = getTpvNumLength();
+  var digits = val.replace(/[^0-9a-zA-Z]/g,'').length;
+  if(len && val.trim().length > 0) {
+    if(val.trim().length === len) {
+      status.textContent = '✅ ' + val.trim();
+      status.style.color = '#27ae60';
+      if(inp) { inp.style.borderBottom = '2px solid #27ae60'; }
+    } else {
+      status.textContent = '⚠ ' + val.trim().length + '/' + len + ' dígitos';
+      status.style.color = '#E65100';
+      if(inp) { inp.style.borderBottom = '2px solid #E65100'; }
+    }
+  } else if(val.trim().length > 0) {
     status.textContent = '✅ ' + val.trim();
     status.style.color = '#27ae60';
+    if(inp) { inp.style.borderBottom = '2px solid #27ae60'; }
   } else {
     status.textContent = '✏️ Listo';
     status.style.color = 'var(--text-muted)';
+    if(inp) inp.style.borderBottom = '';
   }
 }
 
@@ -3869,14 +4079,8 @@ async function submitSale() {
         + '_Energy Dashboard_';
       callMeBot(saleMsg).catch(()=>{});
 
-      // Success state
-      if(btn) {
-        btn.style.background = 'linear-gradient(135deg,#1565C0,#0D47A1)';
-        btn.disabled = true;
-      }
-      if(btnText) btnText.textContent = currentLang==='en' ? '✅ Sale submitted!' : '✅ ¡Venta enviada!';
-      toast(currentLang==='en' ? '✅ Sale saved + supervisor notified 📱' : '✅ Venta guardada + supervisor notificado 📱', 'success');
       addLog('sale', (currentUser?currentUser.name:'') + ' — ' + sale.holder + ' — ' + sale.supplier + ' — ' + sale.state);
+      showSaleSuccess(sale);
     } else {
       throw new Error(result.error || 'Unknown error');
     }
