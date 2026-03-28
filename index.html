@@ -3440,9 +3440,20 @@ function renderTemplateStep(stepNum, state, util, sup) {
         // ACC INFO
         +'<div class="tpl-row tpl-full" id="accInfoFields">'+accFields+'</div>'
 
-        // UTILITY
-        +'<div class="tpl-row tpl-full"><label class="tpl-label">'+t('tpl_util')+'</label>'
-        +'<input class="tpl-input" id="tpl_util" value="'+utilVal+'" placeholder="Utilidad" oninput="validateTemplate()"></div>'
+        // UTILITY DROPDOWN
+        +(function(){
+          var stateUtils = db.utilities.filter(function(u){ return u.stateId === sel.stateId; });
+          if(stateUtils.length === 0) return '<div class="tpl-row tpl-full"><label class="tpl-label">'+t('tpl_util')+'</label><input class="tpl-input" id="tpl_util" value="'+utilVal+'" placeholder="Utilidad" oninput="validateTemplate()"></div>';
+          var utilOpts = stateUtils.map(function(u){
+            var icon = u.type==='gas' ? '🔥' : '⚡';
+            var isSel = sel.utilIds.includes(u.id) ? ' selected' : '';
+            return '<option value="'+u.id+'"'+isSel+'>'+icon+' '+u.name+'</option>';
+          }).join('');
+          return '<div class="tpl-row tpl-full"><label class="tpl-label">'+t('tpl_util')+' <span style="color:var(--orange);font-size:0.68rem;font-weight:800">✎ editable</span></label>'
+            +'<select class="tpl-input" id="tpl_util_select" onchange="changeChecklistUtil(this.value)" style="cursor:pointer">'
+            +utilOpts+'</select>'
+            +'<input type="hidden" id="tpl_util" value="'+utilVal+'"></div>';
+        })()
 
         // DOB + NAME KEY (MA/Eversource only)
         +dobField+nameKeyField
@@ -3841,6 +3852,57 @@ function getTpvNumLength() {
   return null; // no restriction for other suppliers
 }
 
+function changeChecklistUtil(utilId) {
+  if(!utilId) return;
+  var u = db.utilities.find(function(x){ return x.id === utilId; });
+  if(!u) return;
+
+  // Update sel
+  sel.utilId  = utilId;
+  sel.utilIds = [utilId];
+
+  // Update hidden tpl_util field
+  var hiddenUtil = document.getElementById('tpl_util');
+  if(hiddenUtil) hiddenUtil.value = u.name;
+
+  // Update ACC INFO fields for new utility
+  var accContainer = document.getElementById('accInfoFields');
+  if(accContainer) {
+    var info = getAccInfo(u.name);
+    if(info) {
+      var chars = info.chars;
+      var icon  = u.type==='gas' ? '🔥' : '⚡';
+      var reqAttr = typeof chars === 'number' ? 'minlength="'+chars+'" maxlength="'+chars+'" required' : '';
+      var hint    = chars ? ' ('+chars+' car.)' : '';
+      if(typeof chars === 'string' && chars.includes('+')) {
+        var parts = chars.split('+');
+        var c1=parseInt(parts[0]), c2=parseInt(parts[1]);
+        accContainer.innerHTML = '<div class="tpl-row tpl-full acc-info-group" data-util="'+utilId+'">'          +'<label class="tpl-label">'+icon+' '+info.label+' — '+u.name.split('(')[0].trim()          +' <span style="color:var(--orange);font-weight:900">('+chars+' car.) *</span></label>'          +'<div style="display:flex;gap:8px">'          +'<input class="tpl-input acc-info-input" data-util="'+utilId+'" data-part="1" '          +'id="acc_'+utilId+'_1" placeholder="ACC # ('+c1+' car.)" maxlength="'+c1+'" minlength="'+c1+'" required '          +'oninput="markAccInfoValidity(this);validateTemplate()" style="flex:1">'          +'<input class="tpl-input acc-info-input" data-util="'+utilId+'" data-part="2" '          +'id="acc_'+utilId+'_2" placeholder="SERVICE REF ('+c2+' car.)" maxlength="'+c2+'" minlength="'+c2+'" required '          +'oninput="markAccInfoValidity(this);validateTemplate()" style="flex:1">'          +'</div></div>';
+      } else {
+        accContainer.innerHTML = '<div class="tpl-row tpl-full acc-info-group" data-util="'+utilId+'">'          +'<label class="tpl-label">'+icon+' '+info.label+' — '+u.name.split('(')[0].trim()          +(chars?' <span style="color:var(--orange);font-weight:900">('+chars+' car.) *</span>':'')+'</label>'          +'<input class="tpl-input acc-info-input" data-util="'+utilId+'" '          +'id="acc_'+utilId+'" placeholder="'+info.label+hint+'" '+reqAttr          +' oninput="markAccInfoValidity(this);validateTemplate()" style="width:100%"></div>';
+      }
+    } else {
+      accContainer.innerHTML = '<div class="tpl-row tpl-full"><label class="tpl-label">ACC INFO</label>'        +'<input class="tpl-input acc-info-input" data-util="'+utilId+'" id="acc_'+utilId+'" placeholder="Account #" oninput="validateTemplate()" style="width:100%"></div>';
+    }
+  }
+
+  // Update rate if supplier already selected
+  var rateEl = document.getElementById('tpl_tarifa');
+  if(rateEl) {
+    var sup = db.suppliers.find(function(s){ return s.id === sel.supId; });
+    if(sup) {
+      var rates = db.rates.filter(function(r){ return r.supId === sup.id; });
+      if(rates.length > 0) {
+        var r0 = rates[0];
+        rateEl.value = sup.name+' — '+r0.price+' '+(r0.uom||'')+' | Term: '+r0.months+' mo | ETF: '+r0.etf;
+      }
+    }
+  }
+
+  validateTemplate();
+  toast('⚡ Utilidad actualizada: ' + u.name, 'success');
+}
+
 function showSaleSuccess(sale) {
   var overlay = document.getElementById('saleSuccessOverlay');
   var title   = document.getElementById('saleSuccessTitle');
@@ -4060,25 +4122,6 @@ async function submitSale() {
     const result = JSON.parse(await resp.text());
 
     if(result.success) {
-      // Notify supervisor via CallMeBot directly from browser
-      const now3 = new Date().toLocaleString('es-CO', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-      const saleMsg = '💰 *VENTA REGISTRADA*\n'
-        + '━━━━━━━━━━━━━━━\n'
-        + '👤 Agente: *' + sale.agent + '*\n'
-        + '🏷 REP ID: ' + sale.repId + '\n'
-        + '━━━━━━━━━━━━━━━\n'
-        + '👤 Cliente: *' + sale.holder + '*\n'
-        + '📞 Tel: ' + sale.phone + '\n'
-        + '📍 Estado: ' + sale.state + '\n'
-        + '⚡ Utilidad: ' + sale.utility + '\n'
-        + '🏢 Supplier: *' + sale.supplier + '*\n'
-        + '💰 Tarifa: ' + sale.rate + '\n'
-        + '🌐 Idioma: ' + sale.language + '\n'
-        + '━━━━━━━━━━━━━━━\n'
-        + '🕐 ' + now3 + '\n'
-        + '_Energy Dashboard_';
-      callMeBot(saleMsg).catch(()=>{});
-
       addLog('sale', (currentUser?currentUser.name:'') + ' — ' + sale.holder + ' — ' + sale.supplier + ' — ' + sale.state);
       showSaleSuccess(sale);
     } else {
@@ -4481,6 +4524,14 @@ function restoreTemplateValues() {
     var el = document.getElementById(id);
     if(el && _savedTemplateValues[id] !== undefined) el.value = _savedTemplateValues[id];
   });
+  // Re-apply address after short delay (Google Places may overwrite it)
+  var savedAddr = _savedTemplateValues['tpl_address'];
+  if(savedAddr) {
+    setTimeout(function() {
+      var addrEl = document.getElementById('tpl_address');
+      if(addrEl && !addrEl.value) addrEl.value = savedAddr;
+    }, 200);
+  }
   // Restore ACC INFO by data-util + data-part
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
     var key = 'acc__' + (inp.getAttribute('data-util')||'') + '__' + (inp.getAttribute('data-part')||'0');
