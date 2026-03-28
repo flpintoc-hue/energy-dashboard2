@@ -4776,9 +4776,7 @@ function toast(msg,type=''){
 // ════════════════════════════════════════════
 // DNC — GOOGLE SHEETS REAL-TIME CHECK
 // ════════════════════════════════════════════
-// DNC_SHEET_URL removed — DNC checks now via Apps Script (private sheet)
-
-// DNC checked server-side via Apps Script
+// DNC list loaded into browser memory at login for instant local lookups
 let dncCount = 0;
 
 async function loadDNCFromSheets() {
@@ -4786,22 +4784,21 @@ async function loadDNCFromSheets() {
   dncLoading = true;
   dncLoadError = false;
   try {
-    const resp = await fetch(DNC_SHEET_URL + '&t=' + Date.now(), {cache:'no-store'});
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    const text = await resp.text();
-    const lines = text.split(/[\r\n]+/).filter(l => l.trim());
-    dncSet = new Set();
-    // Read ALL columns from ALL rows — numbers spread across columns A to AO
-    for(const line of lines) {
-      const cols = parseCSVLine(line);
-      for(const col of cols) {
-        const num = cleanPhone(col.trim().replace(/"/g,''));
-        if(num.length >= 7) dncSet.add(num);
-      }
-    }
+    const resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'load_dnc' })
+    });
+    const result = JSON.parse(await resp.text());
+    if(result.error) throw new Error(result.error);
+    dncSet = new Set(result.numbers || []);
     dncLoaded = true;
     dncCount  = dncSet.size;
-    console.log('DNC loaded:', dncCount, 'numbers from', lines.length, 'rows');
+    console.log('DNC loaded into memory:', dncCount, 'numbers');
+    // Update status bar
+    const dot  = document.getElementById('dncStatusDot');
+    const text = document.getElementById('dncStatusText');
+    if(dot)  dot.className = 'dnc-status-dot loaded';
+    if(text) text.innerHTML = '<strong>DNC INDRA</strong> &nbsp;·&nbsp; ' + dncCount.toLocaleString() + ' números cargados ✅';
   } catch(err) {
     dncLoadError = true;
     console.error('DNC load error:', err);
@@ -4875,13 +4872,31 @@ async function checkDNC() {
   const clean = cleanPhone(raw);
   if(clean.length !== 10) { toast(currentLang==='en'?'⚠ Phone must be 10 digits':'⚠ El número debe tener 10 dígitos','warn'); return; }
 
-  // Clear previous result and WA status
-  dncClearResult();
   dncClearResult();
   const btn = document.getElementById('dncCheckBtn');
   btn.disabled = true;
   btn.textContent = t('btn_verifying');
 
+  // ── LOCAL lookup — instantaneous ────────────────────────
+  if(dncSet && dncSet.size > 0) {
+    const found = dncSet.has(clean);
+    btn.disabled = false;
+    btn.textContent = t('btn_verify');
+    if(found) {
+      showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
+      dncVerifiedClear = false;
+      document.getElementById('dncProceedBtn').classList.remove('show');
+    } else {
+      showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
+      dncVerifiedClear = true;
+      document.getElementById('dncProceedBtn').classList.add('show');
+    }
+    // Send WA notification in background — don't await
+    sendDNCNotificationBackground(clean, found);
+    return;
+  }
+
+  // ── FALLBACK: DNC not loaded yet — use server ───────────
   try {
     const dncState = db.states.find(s => s.id === sel.stateId);
     const resp = await fetch(SESSIONS_URL, {
@@ -4897,20 +4912,17 @@ async function checkDNC() {
     const result = JSON.parse(await resp.text());
     btn.disabled = false;
     btn.textContent = t('btn_verify');
-
     if(result.error) {
-      showDNCResult('unknown','⚠️','No se pudo verificar',
-        'Error al consultar la lista DNC: ' + result.error);
+      showDNCResult('unknown','⚠️','No se pudo verificar', 'Error: ' + result.error);
       return;
     }
-
     if(result.found) {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
       dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.remove('show');
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
-      dncVerifiedClear = true; // CLEAR — agente puede continuar
+      dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
     }
   } catch(err) {
@@ -4918,6 +4930,24 @@ async function checkDNC() {
     btn.textContent = t('btn_verify');
     showDNCResult('unknown','⚠️', t('dnc_error'), t('dnc_error_sub'));
   }
+}
+
+function sendDNCNotificationBackground(phone, found) {
+  // Fire and forget — agent doesn't wait for this
+  const dncState = db.states.find(s => s.id === sel.stateId);
+  const agent = currentUser ? currentUser.name : 'Agente';
+  const state = dncState ? dncState.name + ' (' + dncState.code + ')' : '';
+  fetch(SESSIONS_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      _secret: _APP_SECRET,
+      action: 'notify_dnc',
+      phone:  phone,
+      found:  found,
+      agent:  agent,
+      state:  state
+    })
+  }).catch(function(){});
 }
 
 function showDNCResult(type, icon, title, sub) {
@@ -5215,6 +5245,8 @@ function finishLogin() {
   if(fab) fab.style.display = 'flex';
   updateChatHeader();
   startChatPolling();
+  // Load DNC list into memory for instant lookups
+  loadDNCFromSheets();
 }
 
 function updateHeader() {
