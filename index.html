@@ -2699,7 +2699,7 @@ async function doLogin() {
     if(btn) { btn.textContent = t('btn_verifying'); }
     const authResp = await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action:'authenticate', username: u, password: p }),
+      body: JSON.stringify({ _secret: _APP_SECRET, action:'authenticate', username: u, password: p }),
     });
     // Follow redirects — Apps Script may redirect once
     const text = await authResp.text();
@@ -3608,7 +3608,7 @@ function copyTemplate() {
 
   fetch(SESSIONS_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'send_whatsapp', message: waText })
+    body: JSON.stringify({ _secret: _APP_SECRET, action: 'send_whatsapp', message: waText })
   }).catch(function(){});
 
   addLog('template', agent + ' copió plantilla — ' + sup_name);
@@ -4117,7 +4117,7 @@ async function submitSale() {
   try {
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'save_sale', sale })
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'save_sale', sale })
     });
     const result = JSON.parse(await resp.text());
 
@@ -4148,7 +4148,7 @@ async function callMeBot(message) {
   try {
     await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'send_whatsapp', message: message })
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'send_whatsapp', message: message })
     });
   } catch(e) {
     console.log('WA notification error:', e);
@@ -4887,6 +4887,7 @@ async function checkDNC() {
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
       body: JSON.stringify({
+        _secret: _APP_SECRET,
         action: 'check_dnc',
         phone:  clean,
         agent:  currentUser ? currentUser.name : 'Agente',
@@ -4963,12 +4964,13 @@ async function reloadDNC() {
 // SINGLE SESSION CONTROL — Google Apps Script
 // ════════════════════════════════════════════
 const SESSIONS_URL = 'https://script.google.com/macros/s/AKfycbwgGPt16nqYuw0FOwIdSHfjlj_0A4C-tl-EPXLK_5v_h75VBvSlevE0M8fanCifUiwt/exec';
+const _APP_SECRET = '4524546fef1b780c2be1cb37d95fe130568836d98d402c6fa66a4b6c547a2e82';
 
 async function checkAndRegisterSession(username, token) {
   try {
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action:'login', username, token }),
+      body: JSON.stringify({ _secret: _APP_SECRET, action:'login', username, token }),
     });
     const data = JSON.parse(await resp.text());
     return data;
@@ -4982,7 +4984,7 @@ async function releaseSession(username, token) {
   try {
     await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action:'logout', username, token }),
+      body: JSON.stringify({ _secret: _APP_SECRET, action:'logout', username, token }),
     });
   } catch(err) {
     console.warn('Session release failed:', err);
@@ -4997,7 +4999,7 @@ function startHeartbeat(username, token) {
     try {
       await fetch(SESSIONS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action:'heartbeat', username, token }),
+        body: JSON.stringify({ _secret: _APP_SECRET, action:'heartbeat', username, token }),
       });
     } catch(e) {}
   }, 5 * 60 * 1000);
@@ -5947,7 +5949,7 @@ async function sendChatMsg() {
   try {
     await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'chat_send', message: msg })
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'chat_send', message: msg })
     });
   } catch(e) {
     console.log('Chat send error:', e);
@@ -5959,7 +5961,7 @@ async function pollChat() {
   try {
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({
+      body: JSON.stringify({ _secret: _APP_SECRET,
         action: 'chat_fetch',
         since_private: chatLastTs.private,
         since_group: chatLastTs.group,
