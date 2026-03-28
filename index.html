@@ -4879,6 +4879,23 @@ async function checkDNC() {
 
   // ── LOCAL lookup — instantaneous ────────────────────────
   if(dncSet && dncSet.size > 0) {
+    // 1. Send WA FIRST — fire & forget, don't wait
+    const dncState2 = db.states.find(s => s.id === sel.stateId);
+    const agent2 = currentUser ? currentUser.name : 'Agente';
+    const state2 = dncState2 ? dncState2.name + ' (' + dncState2.code + ')' : '';
+    fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        _secret: _APP_SECRET,
+        action: 'notify_dnc',
+        phone:  clean,
+        found:  dncSet.has(clean),
+        agent:  agent2,
+        state:  state2
+      })
+    }).catch(function(){});
+
+    // 2. Show result immediately after
     const found = dncSet.has(clean);
     btn.disabled = false;
     btn.textContent = t('btn_verify');
@@ -4891,8 +4908,6 @@ async function checkDNC() {
       dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
     }
-    // Send WA notification in background — don't await
-    sendDNCNotificationBackground(clean, found);
     return;
   }
 
@@ -4932,23 +4947,7 @@ async function checkDNC() {
   }
 }
 
-function sendDNCNotificationBackground(phone, found) {
-  // Fire and forget — agent doesn't wait for this
-  const dncState = db.states.find(s => s.id === sel.stateId);
-  const agent = currentUser ? currentUser.name : 'Agente';
-  const state = dncState ? dncState.name + ' (' + dncState.code + ')' : '';
-  fetch(SESSIONS_URL, {
-    method: 'POST',
-    body: JSON.stringify({
-      _secret: _APP_SECRET,
-      action: 'notify_dnc',
-      phone:  phone,
-      found:  found,
-      agent:  agent,
-      state:  state
-    })
-  }).catch(function(){});
-}
+
 
 function showDNCResult(type, icon, title, sub) {
   const r = document.getElementById('dncResult');
