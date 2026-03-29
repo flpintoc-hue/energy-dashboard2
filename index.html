@@ -1476,6 +1476,37 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .action-bar-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 .action-bar-btn:active { transform: translateY(0); filter: brightness(0.95); }
 
+/* ── QUICK LINKS SIDEBAR ─────────────────────── */
+#quickLinks {
+  position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+  z-index: 888; display: none; flex-direction: column; gap: 6px;
+  padding: 8px 0;
+}
+#quickLinks.show { display: flex; }
+.qlink-btn {
+  display: flex; align-items: center;
+  width: 44px; overflow: hidden;
+  color: #fff; text-decoration: none;
+  border-radius: 0 10px 10px 0;
+  padding: 10px 10px 10px 10px;
+  box-shadow: 2px 2px 12px rgba(0,0,0,0.25);
+  transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+  white-space: nowrap; cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800; font-size: 0.74rem;
+  gap: 8px; border: none;
+}
+.qlink-btn:hover {
+  width: 155px;
+  box-shadow: 4px 4px 20px rgba(0,0,0,0.3);
+}
+.qlink-btn .qlink-icon { font-size: 1.15rem; flex-shrink: 0; line-height: 1; }
+.qlink-btn .qlink-label { opacity: 0; transition: opacity 0.15s 0.1s; pointer-events:none; }
+.qlink-btn:hover .qlink-label { opacity: 1; }
+.qlink-tpv   { background: linear-gradient(135deg,#1565C0,#0D47A1); }
+.qlink-five9 { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
+.qlink-xoom  { background: linear-gradient(135deg,#E65100,#BF360C); }
+
 /* ═══════════════════════════════════════════
    FLOATING CHAT BUBBLE
 ═══════════════════════════════════════════ */
@@ -2919,6 +2950,8 @@ function doLogout() {
   // Hide chat
   var fab2 = document.getElementById('chatFab');
   if(fab2) fab2.style.display = 'none';
+  var ql2 = document.getElementById('quickLinks');
+  if(ql2) ql2.classList.remove('show');
   var panel = document.getElementById('chatPanel');
   if(panel) panel.classList.remove('open');
   chatOpen = false;
@@ -5421,6 +5454,8 @@ function finishLogin() {
   // Show chat bubble and start polling
   var fab = document.getElementById('chatFab');
   if(fab) { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }
+  var ql = document.getElementById('quickLinks');
+  if(ql) ql.classList.add('show');
   updateChatHeader();
   startChatPolling();
   // DNC checked server-side with cache
@@ -6028,6 +6063,22 @@ window.addEventListener('beforeunload', () => {
 });
 
 </script>
+
+<!-- ── QUICK LINKS SIDEBAR ── -->
+<div id="quickLinks">
+  <a class="qlink-btn qlink-tpv" href="https://app.tpv360.com/login" target="_blank" rel="noopener" title="TPV360">
+    <span class="qlink-icon">📋</span>
+    <span class="qlink-label">TPV360</span>
+  </a>
+  <a class="qlink-btn qlink-five9" href="https://app-scl.five9.com/index.html?loginError=true&role=Agent" target="_blank" rel="noopener" title="Five9">
+    <span class="qlink-icon">📞</span>
+    <span class="qlink-label">Five9</span>
+  </a>
+  <a class="qlink-btn qlink-xoom" href="https://xoomenergy.com/es" target="_blank" rel="noopener" title="XOOM Energy">
+    <span class="qlink-icon">⚡</span>
+    <span class="qlink-label">XOOM Energy</span>
+  </a>
+</div>
 
 <!-- ═══ FLOATING CHAT ═══ -->
 <button id="chatFab" onclick="toggleChat()" title="Chat interno" style="display:none" class="chat-fab-btn">
