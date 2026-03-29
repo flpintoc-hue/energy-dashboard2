@@ -4888,24 +4888,7 @@ async function checkDNC() {
   btn.disabled = true;
   btn.textContent = t('btn_verifying');
 
-  // ── LOCAL lookup — instantaneous ────────────────────────
-  if(dncSet && dncSet.size > 0) {
-    const found = dncSet.has(clean);
-    btn.disabled = false;
-    btn.textContent = t('btn_verify');
-    if(found) {
-      showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
-      dncVerifiedClear = false;
-      document.getElementById('dncProceedBtn').classList.remove('show');
-    } else {
-      showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
-      dncVerifiedClear = true;
-      document.getElementById('dncProceedBtn').classList.add('show');
-    }
-    return;
-  }
-
-  // ── FALLBACK: DNC not loaded yet — use server ───────────
+  // ── Server check with cache — fast after first query ────
   try {
     const dncState = db.states.find(s => s.id === sel.stateId);
     const resp = await fetch(SESSIONS_URL, {
@@ -5299,8 +5282,7 @@ function finishLogin() {
   if(fab) fab.style.display = 'flex';
   updateChatHeader();
   startChatPolling();
-  // Load DNC list into memory for instant lookups
-  loadDNCFromSheets();
+  // DNC checked server-side with cache
 }
 
 function updateHeader() {
