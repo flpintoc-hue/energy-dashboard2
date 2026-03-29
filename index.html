@@ -1506,7 +1506,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .qlink-tpv      { background: linear-gradient(135deg,#1565C0,#0D47A1); }
 .qlink-five9    { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
 .qlink-xoom     { background: linear-gradient(135deg,#E65100,#BF360C); }
-.qlink-tempedge { background: linear-gradient(135deg,#0288D1,#0277BD); }
+.qlink-tempedge { background: linear-gradient(135deg,#00D4C8,#00B5AB); }
 
 /* ═══════════════════════════════════════════
    FLOATING CHAT BUBBLE
@@ -1735,7 +1735,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <span id="dncUploadLink" style="display:none"></span>
           </div>
           <div class="dnc-input-row">
-            <input class="dnc-input" id="dncPhone" type="tel" placeholder="-" maxlength="10"
+            <input class="dnc-input" id="dncPhone" type="tel" placeholder="-" maxlength="10" value=""
               oninput="dncFormatInput(this)" onkeydown="if(event.key==='Enter')checkDNC()">
             <button class="dnc-check-btn" onclick="checkDNC()" id="dncCheckBtn">Verificar</button>
           </div>
@@ -4991,7 +4991,7 @@ async function renderDNC() {
   // Always reset input and button state
   const phoneInput = document.getElementById('dncPhone');
   const checkBtn   = document.getElementById('dncCheckBtn');
-  if(phoneInput) phoneInput.value = '';
+  if(phoneInput) { phoneInput.value = ''; phoneInput.placeholder = '-'; }
   if(checkBtn)  { checkBtn.disabled = true; checkBtn.textContent = t('btn_verify'); }
   dncClearResult();
 
@@ -6091,7 +6091,7 @@ window.addEventListener('beforeunload', () => {
   </a>
   <a class="qlink-btn qlink-tempedge" href="https://tempedge.readymode.com/login_new/?then=/" target="_blank" rel="noopener" title="TempEdge">
     <span class="qlink-icon">👥</span>
-    <span class="qlink-label">TempEdge</span>
+    <span class="qlink-label">Readymode</span>
   </a>
 </div>
 
