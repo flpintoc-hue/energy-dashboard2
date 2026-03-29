@@ -174,15 +174,17 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .user-badge .role-dot.agent { background:var(--green); }
 
 .hbtn {
-  background:rgba(255,255,255,0.18);
-  border:1px solid rgba(255,255,255,0.3);
+  background: linear-gradient(135deg,#1565C0,#0D47A1);
+  border: none;
   color:#fff; padding:6px 14px;
   border-radius:7px; cursor:pointer;
   font-family:'Nunito',sans-serif; font-weight:800;
   font-size:0.75rem; transition:all 0.2s;
+  box-shadow: 0 2px 8px rgba(13,71,161,0.35);
 }
-.hbtn:hover { background:rgba(255,255,255,0.32); }
-.hbtn.danger:hover { background:rgba(229,57,53,0.7); border-color:transparent; }
+.hbtn:hover { background: linear-gradient(135deg,#1976D2,#1565C0); transform:translateY(-1px); }
+.hbtn.danger { background: linear-gradient(135deg,#E53935,#C62828); box-shadow:0 2px 8px rgba(229,57,53,0.35); }
+.hbtn.danger:hover { background: linear-gradient(135deg,#F44336,#E53935); }
 
 /* STEP NAV */
 .step-nav {
@@ -1653,7 +1655,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="userLabel" style="display:flex;align-items:center;gap:6px">—</div>
       </div>
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
-      <button class="hbtn" id="historyBtn" onclick="openHistory()" style="background:var(--surface);color:var(--text);border:1.5px solid var(--border)">📊 Mi Historial</button>
+      <button class="hbtn" id="historyBtn" onclick="openHistory()">📊 Mi Historial</button>
       <button class="hbtn danger" onclick="doLogout()">Salir</button>
     </div>
     <!-- Avatar Picker Dropdown -->
