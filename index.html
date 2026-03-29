@@ -1476,6 +1476,64 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .action-bar-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 .action-bar-btn:active { transform: translateY(0); filter: brightness(0.95); }
 
+/* ── SALES COUNTER ───────────────────────────── */
+#salesCounter {
+  display: none; align-items: center; gap: 6px;
+  background: linear-gradient(135deg,#1B5E20,#2E7D32);
+  border-radius: 8px; padding: 5px 12px;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+#salesCounter:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+#salesCounter.show { display: flex; }
+.sc-label { font-size: 0.65rem; font-weight: 900; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.05em; }
+.sc-num   { font-size: 1.1rem; font-weight: 900; color: #fff; line-height: 1; }
+.sc-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 4px; }
+
+/* ── SALES STATS OVERLAY ─────────────────────── */
+#salesStatsOverlay {
+  display: none; position: fixed; inset: 0; z-index: 9980;
+  background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+}
+#salesStatsOverlay.show { display: flex; }
+.sstats-panel {
+  background: var(--card); border-radius: 20px; padding: 28px;
+  width: 90%; max-width: 480px; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.sstats-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.sstats-title { font-size: 1.1rem; font-weight: 900; color: var(--text); }
+.sstats-close {
+  background: var(--surface); border: none; border-radius: 50%;
+  width: 32px; height: 32px; cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.sstats-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;
+}
+.sstat-box {
+  background: var(--surface); border-radius: 12px; padding: 14px;
+  text-align: center; border: 1px solid var(--border);
+}
+.sstat-box .sb-num   { font-size: 2rem; font-weight: 900; color: #27ae60; }
+.sstat-box .sb-label { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; }
+.sstats-agents { margin-top: 8px; }
+.sstats-agents-title { font-size: 0.72rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.sagent-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; background: var(--surface); border-radius: 10px;
+  margin-bottom: 6px; border: 1px solid var(--border);
+}
+.sagent-name { font-weight: 800; font-size: 0.82rem; color: var(--text); }
+.sagent-nums { display: flex; gap: 10px; }
+.sagent-num  { font-size: 0.72rem; font-weight: 900; }
+.sagent-num.day   { color: #27ae60; }
+.sagent-num.week  { color: #1565C0; }
+.sagent-num.month { color: #E65100; }
+
 /* ── QUICK LINKS SIDEBAR ─────────────────────── */
 #quickLinks {
   position: fixed; left: 0; top: 50%; transform: translateY(-50%);
@@ -1687,6 +1745,22 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="userLabel" style="display:flex;align-items:center;gap:6px">—</div>
       </div>
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
+      <div id="salesCounter" onclick="openSalesStats()" title="Ver estadísticas de ventas">
+        <div style="text-align:center">
+          <div class="sc-label">Hoy</div>
+          <div class="sc-num" id="scDaily">0</div>
+        </div>
+        <div class="sc-divider"></div>
+        <div style="text-align:center">
+          <div class="sc-label">Semana</div>
+          <div class="sc-num" id="scWeekly">0</div>
+        </div>
+        <div class="sc-divider"></div>
+        <div style="text-align:center">
+          <div class="sc-label">Mes</div>
+          <div class="sc-num" id="scMonthly">0</div>
+        </div>
+      </div>
       <button class="hbtn" id="historyBtn" onclick="openHistory()">📊 Mi Historial</button>
       <button class="hbtn danger" onclick="doLogout()">Salir</button>
     </div>
@@ -2034,6 +2108,37 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </div><!-- /main -->
   <!-- Floating step avatar -->
   <div class="step-avatar-float" id="stepAvatarFloat" style="display:none" onclick="bounceAvatar()"></div>
+
+<!-- ── SALES STATS OVERLAY ── -->
+<div id="salesStatsOverlay" onclick="if(event.target===this)closeSalesStats()">
+  <div class="sstats-panel">
+    <div class="sstats-header">
+      <div class="sstats-title">💰 Estadísticas de Ventas</div>
+      <button class="sstats-close" onclick="closeSalesStats()">✕</button>
+    </div>
+    <div class="sstats-grid">
+      <div class="sstat-box">
+        <div class="sb-num" id="ss-daily">0</div>
+        <div class="sb-label">📅 Hoy</div>
+      </div>
+      <div class="sstat-box">
+        <div class="sb-num" id="ss-weekly">0</div>
+        <div class="sb-label">📆 Esta Semana</div>
+      </div>
+      <div class="sstat-box">
+        <div class="sb-num" id="ss-monthly">0</div>
+        <div class="sb-label">🗓 Este Mes</div>
+      </div>
+    </div>
+    <div class="sstats-agents" id="ssAgentsSection" style="display:none">
+      <div class="sstats-agents-title">👥 Por Agente</div>
+      <div id="ssAgentsList"></div>
+    </div>
+    <div style="text-align:center;margin-top:6px">
+      <span style="font-size:0.68rem;color:var(--text-muted);font-weight:700" id="ssLastUpdate"></span>
+    </div>
+  </div>
+</div>
 
 <!-- ── AGENT HISTORY PANEL ── -->
 <div id="historyOverlay">
@@ -2955,6 +3060,7 @@ function doLogout() {
   if(fab2) fab2.style.display = 'none';
   var ql2 = document.getElementById('quickLinks');
   if(ql2) ql2.classList.remove('show');
+  hideSalesCounter();
   var panel = document.getElementById('chatPanel');
   if(panel) panel.classList.remove('open');
   chatOpen = false;
@@ -4291,6 +4397,8 @@ async function submitSale() {
 
     if(result.success) {
       addLog('sale', (currentUser?currentUser.name:'') + ' — ' + sale.holder + ' — ' + sale.supplier + ' — ' + sale.state);
+  // Refresh sales counter after new sale
+  setTimeout(loadSalesStats, 2000);
       showSaleSuccess(sale);
     } else {
       throw new Error(result.error || 'Unknown error');
@@ -5459,6 +5567,7 @@ function finishLogin() {
   if(fab) { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }
   var ql = document.getElementById('quickLinks');
   if(ql) ql.classList.add('show');
+  showSalesCounter();
   updateChatHeader();
   startChatPolling();
   // DNC checked server-side with cache
@@ -5920,6 +6029,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if(fab3) { fab3.style.display = 'flex'; fab3.style.visibility = 'visible'; fab3.style.opacity = '1'; }
       var ql3 = document.getElementById('quickLinks');
       if(ql3) ql3.classList.add('show');
+      showSalesCounter();
       updateChatHeader();
       startChatPolling();
       addLog('login', saved.name + ' retomó sesión tras refresco');
@@ -6489,6 +6599,109 @@ function renderHistoryBody() {
   }).join('');
 
   body.innerHTML = statsHtml + cardsHtml;
+}
+
+// ═══════════════════════════════════════════
+// SALES COUNTER
+// ═══════════════════════════════════════════
+var _salesStatsTimer = null;
+
+function showSalesCounter() {
+  var el = document.getElementById('salesCounter');
+  if(el) el.classList.add('show');
+  loadSalesStats();
+  // Refresh every 5 minutes
+  if(_salesStatsTimer) clearInterval(_salesStatsTimer);
+  _salesStatsTimer = setInterval(loadSalesStats, 5 * 60 * 1000);
+}
+
+function hideSalesCounter() {
+  var el = document.getElementById('salesCounter');
+  if(el) el.classList.remove('show');
+  if(_salesStatsTimer) { clearInterval(_salesStatsTimer); _salesStatsTimer = null; }
+}
+
+async function loadSalesStats() {
+  if(!currentUser) return;
+  var isSuper = currentUser.role === 'supervisor' || currentUser.role === 'admin';
+  try {
+    var resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        _secret: _APP_SECRET,
+        action: 'get_sales_stats',
+        agent: isSuper ? null : currentUser.name
+      })
+    });
+    var result = JSON.parse(await resp.text());
+    if(!result.stats) return;
+
+    var s = result.stats;
+    // Update header counter
+    var setEl = function(id, val) { var e = document.getElementById(id); if(e) e.textContent = val; };
+    setEl('scDaily',   s.daily   || 0);
+    setEl('scWeekly',  s.weekly  || 0);
+    setEl('scMonthly', s.monthly || 0);
+
+    // Store for overlay
+    window._salesStats = result;
+  } catch(e) {}
+}
+
+function openSalesStats() {
+  var overlay = document.getElementById('salesStatsOverlay');
+  if(!overlay) return;
+  overlay.classList.add('show');
+  renderSalesStats();
+}
+
+function closeSalesStats() {
+  var overlay = document.getElementById('salesStatsOverlay');
+  if(overlay) overlay.classList.remove('show');
+}
+
+function renderSalesStats() {
+  var data = window._salesStats;
+  if(!data || !data.stats) { loadSalesStats().then(renderSalesStats); return; }
+
+  var s = data.stats;
+  var setEl = function(id, val) { var e = document.getElementById(id); if(e) e.textContent = val; };
+  setEl('ss-daily',   s.daily   || 0);
+  setEl('ss-weekly',  s.weekly  || 0);
+  setEl('ss-monthly', s.monthly || 0);
+
+  var lastUpdate = document.getElementById('ssLastUpdate');
+  if(lastUpdate) lastUpdate.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
+
+  // Agents section — only for supervisor/admin
+  var agentsSection = document.getElementById('ssAgentsSection');
+  var agentsList    = document.getElementById('ssAgentsList');
+  var isSuper = currentUser && (currentUser.role === 'supervisor' || currentUser.role === 'admin');
+
+  if(isSuper && data.agents && agentsSection && agentsList) {
+    agentsSection.style.display = 'block';
+    var agents = data.agents;
+    var keys = Object.keys(agents).sort(function(a,b){
+      return (agents[b].monthly || 0) - (agents[a].monthly || 0);
+    });
+    if(keys.length === 0) {
+      agentsList.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.8rem;padding:12px">Sin ventas registradas</div>';
+      return;
+    }
+    agentsList.innerHTML = keys.map(function(name) {
+      var a = agents[name];
+      return '<div class="sagent-row">'
+        + '<div class="sagent-name">👤 ' + name + '</div>'
+        + '<div class="sagent-nums">'
+        + '<span class="sagent-num day"   title="Hoy">' + (a.daily||0) + ' hoy</span>'
+        + '<span class="sagent-num week"  title="Semana">' + (a.weekly||0) + ' sem</span>'
+        + '<span class="sagent-num month" title="Mes">' + (a.monthly||0) + ' mes</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  } else if(agentsSection) {
+    agentsSection.style.display = 'none';
+  }
 }
 </script>
 </body>
