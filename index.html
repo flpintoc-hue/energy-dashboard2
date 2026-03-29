@@ -1294,6 +1294,26 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 
 /* ── AGENT HISTORY PANEL ────────────────────── */
+/* Block print and copy on history */
+@media print {
+  #historyOverlay * { display: none !important; }
+  #historyOverlay::after {
+    display: block !important;
+    content: 'Este contenido es confidencial';
+    font-size: 2rem; text-align: center; margin-top: 40vh;
+    color: #000;
+  }
+}
+#historyOverlay {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+#historyOverlay * {
+  -webkit-user-select: none;
+  user-select: none;
+}
 #historyOverlay {
   display: none; position: fixed; inset: 0; z-index: 9990;
   background: var(--bg); flex-direction: column;
@@ -4059,25 +4079,13 @@ function showSaleSuccess(sale) {
   // Show overlay
   overlay.classList.add('show');
 
-  // Countdown timer
-  var secs = 6;
-  var countdown = setInterval(function() {
-    secs--;
-    if(timer) timer.textContent = currentLang==='en'
-      ? 'Redirecting in ' + secs + ' seconds...'
-      : 'Redirigiendo en ' + secs + ' segundos...';
-    if(secs <= 0) {
-      clearInterval(countdown);
-      hideSaleSuccess();
-    }
-  }, 1000);
-  overlay._countdown = countdown;
+  // No auto-redirect — agent must click the button
+  if(timer) timer.style.display = 'none';
 }
 
 function hideSaleSuccess() {
   var overlay = document.getElementById('saleSuccessOverlay');
   if(!overlay) return;
-  if(overlay._countdown) clearInterval(overlay._countdown);
   overlay.classList.remove('show');
   // Remove confetti
   document.querySelectorAll('.confetti-dot').forEach(function(el){ el.remove(); });
@@ -5410,7 +5418,7 @@ function finishLogin() {
   setTimeout(function(){ renderDNC(); }, 100);
   // Show chat bubble and start polling
   var fab = document.getElementById('chatFab');
-  if(fab) fab.style.display = 'flex';
+  if(fab) { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }
   updateChatHeader();
   startChatPolling();
   // DNC checked server-side with cache
@@ -6020,7 +6028,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 
 <!-- ═══ FLOATING CHAT ═══ -->
-<button id="chatFab" onclick="toggleChat()" title="Chat interno" style="display:none">
+<button id="chatFab" onclick="toggleChat()" title="Chat interno" style="display:none" class="chat-fab-btn">
   💬
   <span class="chat-unread" id="chatUnread">0</span>
 </button>
@@ -6225,18 +6233,35 @@ function updateChatHeader() {
 var _historyTab = 'all';
 var _historyData = [];
 
+function _blockHistoryKeys(e) {
+  // Block Ctrl+C, Ctrl+P, Ctrl+S, PrtScn
+  if((e.ctrlKey || e.metaKey) && ['c','p','s','a'].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+    return false;
+  }
+  if(e.key === 'PrintScreen') {
+    e.preventDefault();
+    // Briefly flash screen black as deterrent
+    document.body.style.filter = 'brightness(0)';
+    setTimeout(function(){ document.body.style.filter = ''; }, 300);
+    return false;
+  }
+}
+
 function openHistory() {
   var overlay = document.getElementById('historyOverlay');
   var nameEl  = document.getElementById('historyAgentName');
   if(!overlay) return;
   if(nameEl && currentUser) nameEl.textContent = currentUser.name;
   overlay.classList.add('show');
+  document.addEventListener('keydown', _blockHistoryKeys);
   loadHistory();
 }
 
 function closeHistory() {
   var overlay = document.getElementById('historyOverlay');
   if(overlay) overlay.classList.remove('show');
+  document.removeEventListener('keydown', _blockHistoryKeys);
 }
 
 function switchHistoryTab(tab) {
