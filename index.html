@@ -1107,9 +1107,9 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .obj-bubble {
   background: linear-gradient(135deg, #1a1a2e, #16213e);
   color: #fff;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 0.78rem;
+  border-radius: 24px;
+  padding: 13px 22px;
+  font-size: 0.9rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
@@ -1506,7 +1506,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .qlink-tpv      { background: linear-gradient(135deg,#1565C0,#0D47A1); }
 .qlink-five9    { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
 .qlink-xoom     { background: linear-gradient(135deg,#E65100,#BF360C); }
-.qlink-tempedge { background: linear-gradient(135deg,#2E7D32,#1B5E20); }
+.qlink-tempedge { background: linear-gradient(135deg,#0288D1,#0277BD); }
 
 /* ═══════════════════════════════════════════
    FLOATING CHAT BUBBLE
@@ -1735,7 +1735,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <span id="dncUploadLink" style="display:none"></span>
           </div>
           <div class="dnc-input-row">
-            <input class="dnc-input" id="dncPhone" type="tel" placeholder="5551234567" maxlength="10"
+            <input class="dnc-input" id="dncPhone" type="tel" placeholder="-" maxlength="10"
               oninput="dncFormatInput(this)" onkeydown="if(event.key==='Enter')checkDNC()">
             <button class="dnc-check-btn" onclick="checkDNC()" id="dncCheckBtn">Verificar</button>
           </div>
@@ -5915,6 +5915,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if(pi) pi.value = '';
       if(cb) cb.disabled = true;
       renderDNC();
+      // Restore chat FAB and quick links after F5
+      var fab3 = document.getElementById('chatFab');
+      if(fab3) { fab3.style.display = 'flex'; fab3.style.visibility = 'visible'; fab3.style.opacity = '1'; }
+      var ql3 = document.getElementById('quickLinks');
+      if(ql3) ql3.classList.add('show');
+      updateChatHeader();
+      startChatPolling();
       addLog('login', saved.name + ' retomó sesión tras refresco');
     }
   } catch(e) { console.warn('Session restore error:', e); }
