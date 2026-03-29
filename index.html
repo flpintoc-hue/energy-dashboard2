@@ -1293,6 +1293,85 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 
 
+/* ── AGENT HISTORY PANEL ────────────────────── */
+#historyOverlay {
+  display: none; position: fixed; inset: 0; z-index: 9990;
+  background: var(--bg); flex-direction: column;
+  animation: overlayFadeIn 0.3s ease;
+}
+#historyOverlay.show { display: flex; }
+.history-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+.history-title { color: #fff; font-size: 1.1rem; font-weight: 900; flex: 1; }
+.history-close {
+  background: rgba(255,255,255,0.1); border: none; color: #fff;
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.history-close:hover { background: rgba(255,255,255,0.2); }
+.history-tabs {
+  display: flex; background: var(--card);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  overflow-x: auto; padding: 0 16px;
+}
+.history-tab {
+  padding: 14px 18px; font-size: 0.82rem; font-weight: 800;
+  color: var(--text-muted); cursor: pointer; white-space: nowrap;
+  border-bottom: 3px solid transparent; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.history-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.history-tab .htab-count {
+  background: var(--surface); border-radius: 20px;
+  padding: 2px 8px; font-size: 0.7rem; font-weight: 900;
+}
+.history-tab.active .htab-count { background: var(--accent); color: #fff; }
+.history-body {
+  flex: 1; overflow-y: auto; padding: 20px;
+}
+.history-card {
+  background: var(--card); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 10px;
+  border-left: 4px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.15s;
+}
+.history-card:hover { transform: translateX(3px); }
+.history-card.dnc-clear  { border-left-color: #27ae60; }
+.history-card.dnc-blocked { border-left-color: #E53935; }
+.history-card.template   { border-left-color: var(--blue); }
+.history-card.sale       { border-left-color: #F47C20; }
+.hcard-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.hcard-title { font-weight: 800; font-size: 0.88rem; color: var(--text); }
+.hcard-time  { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; }
+.hcard-detail { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.hcard-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 0.68rem; font-weight: 900; margin-top: 6px;
+}
+.badge-clear   { background: #E8F5E9; color: #2E7D32; }
+.badge-blocked { background: #FFEBEE; color: #C62828; }
+.badge-sent    { background: #E3F2FD; color: #1565C0; }
+.badge-sale    { background: #FFF3E0; color: #E65100; }
+.history-empty {
+  text-align: center; padding: 60px 20px; color: var(--text-muted);
+}
+.history-empty .he-icon { font-size: 3rem; margin-bottom: 12px; }
+.history-empty .he-text { font-size: 0.88rem; font-weight: 700; }
+.history-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+}
+.hstat-card {
+  background: var(--card); border-radius: 12px; padding: 16px;
+  text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.hstat-num  { font-size: 1.8rem; font-weight: 900; color: var(--accent); }
+.hstat-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
+
 /* ── SALE SUCCESS OVERLAY ───────────────────── */
 #saleSuccessOverlay {
   display: none;
@@ -1554,6 +1633,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="userLabel" style="display:flex;align-items:center;gap:6px">—</div>
       </div>
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
+      <button class="hbtn" id="historyBtn" onclick="openHistory()" style="background:var(--surface);color:var(--text);border:1.5px solid var(--border)">📊 Mi Historial</button>
       <button class="hbtn danger" onclick="doLogout()">Salir</button>
     </div>
     <!-- Avatar Picker Dropdown -->
@@ -1900,6 +1980,37 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </div><!-- /main -->
   <!-- Floating step avatar -->
   <div class="step-avatar-float" id="stepAvatarFloat" style="display:none" onclick="bounceAvatar()"></div>
+
+<!-- ── AGENT HISTORY PANEL ── -->
+<div id="historyOverlay">
+  <div class="history-header">
+    <div>
+      <div class="history-title">📊 Mi Historial</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;font-weight:700" id="historyAgentName"></div>
+    </div>
+    <button class="history-close" onclick="closeHistory()">✕</button>
+  </div>
+  <div class="history-tabs">
+    <div class="history-tab active" id="htab-all"     onclick="switchHistoryTab('all')">
+      📋 Todo <span class="htab-count" id="hcount-all">0</span>
+    </div>
+    <div class="history-tab" id="htab-dnc"      onclick="switchHistoryTab('dnc')">
+      🔍 Consultas DNC <span class="htab-count" id="hcount-dnc">0</span>
+    </div>
+    <div class="history-tab" id="htab-template" onclick="switchHistoryTab('template')">
+      📋 Plantillas <span class="htab-count" id="hcount-template">0</span>
+    </div>
+    <div class="history-tab" id="htab-sale"     onclick="switchHistoryTab('sale')">
+      💰 Ventas <span class="htab-count" id="hcount-sale">0</span>
+    </div>
+  </div>
+  <div class="history-body" id="historyBody">
+    <div class="history-empty">
+      <div class="he-icon">📊</div>
+      <div class="he-text">Cargando historial...</div>
+    </div>
+  </div>
+</div>
 
 <!-- ── SALE SUCCESS OVERLAY ── -->
 <div id="saleSuccessOverlay">
@@ -4888,6 +4999,18 @@ async function checkDNC() {
   btn.disabled = true;
   btn.textContent = t('btn_verifying');
 
+  // Show waiting message — agent can keep talking to client
+  var dncResult = document.getElementById('dncResult');
+  var dncIcon   = document.getElementById('dncResultIcon');
+  var dncTitle  = document.getElementById('dncResultTitle');
+  var dncSub    = document.getElementById('dncResultSub');
+  if(dncResult) dncResult.className = 'dnc-result show unknown';
+  if(dncIcon)   dncIcon.textContent  = '🔍';
+  if(dncTitle)  dncTitle.textContent = currentLang==='en' ? 'Checking DNC list...' : 'Consultando lista DNC...';
+  if(dncSub)    dncSub.innerHTML     = currentLang==='en'
+    ? '⏳ This may take a moment — <strong>you can keep talking to the client</strong>'
+    : '⏳ Esto puede tardar unos segundos — <strong>puedes seguir hablando con el cliente</strong>';
+
   // Pause chat polling during DNC check to avoid competing requests
   stopChatPolling();
 
@@ -4915,10 +5038,12 @@ async function checkDNC() {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
       dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.remove('show');
+      addLog('dnc', 'DNC: ' + clean + ' — 🚫 EN DNC');
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
       dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
+      addLog('dnc', 'DNC: ' + clean + ' — ✅ LIBRE');
     }
   } catch(err) {
     btn.disabled = false;
@@ -6093,6 +6218,185 @@ function updateChatHeader() {
 
 // ═══════════════════════════════════════════
 // DNC approval system removed — flow simplified
+
+// ═══════════════════════════════════════════
+// AGENT HISTORY
+// ═══════════════════════════════════════════
+var _historyTab = 'all';
+var _historyData = [];
+
+function openHistory() {
+  var overlay = document.getElementById('historyOverlay');
+  var nameEl  = document.getElementById('historyAgentName');
+  if(!overlay) return;
+  if(nameEl && currentUser) nameEl.textContent = currentUser.name;
+  overlay.classList.add('show');
+  loadHistory();
+}
+
+function closeHistory() {
+  var overlay = document.getElementById('historyOverlay');
+  if(overlay) overlay.classList.remove('show');
+}
+
+function switchHistoryTab(tab) {
+  _historyTab = tab;
+  document.querySelectorAll('.history-tab').forEach(function(t) {
+    t.classList.toggle('active', t.id === 'htab-' + tab);
+  });
+  renderHistoryBody();
+}
+
+async function loadHistory() {
+  var body = document.getElementById('historyBody');
+  if(body) body.innerHTML = '<div class="history-empty"><div class="he-icon">⏳</div><div class="he-text">Cargando...</div></div>';
+
+  // Build history from local logs + fetch sales from Apps Script
+  var logs = (typeof accessLog !== 'undefined') ? accessLog : [];
+  var agentName = currentUser ? currentUser.name : '';
+
+  // Filter logs for this agent
+  var dncLogs      = logs.filter(function(l){ return l.type === 'dnc' || (l.text && l.text.includes('DNC')); });
+  var templateLogs = logs.filter(function(l){ return l.type === 'template'; });
+  var saleLogs     = logs.filter(function(l){ return l.type === 'sale'; });
+
+  // Fetch sales from Google Sheets
+  var salesFromSheet = [];
+  try {
+    var resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'get_agent_sales', agent: agentName })
+    });
+    var result = JSON.parse(await resp.text());
+    if(result.sales) salesFromSheet = result.sales;
+  } catch(e) {}
+
+  // Build unified history array
+  _historyData = [];
+
+  // Add DNC logs
+  dncLogs.forEach(function(l) {
+    _historyData.push({ type: 'dnc', subtype: 'clear', text: l.text, time: l.time });
+  });
+
+  // Add template logs
+  templateLogs.forEach(function(l) {
+    _historyData.push({ type: 'template', text: l.text, time: l.time });
+  });
+
+  // Add sales from sheet (most complete data)
+  salesFromSheet.forEach(function(s) {
+    _historyData.push({
+      type:     'sale',
+      holder:   s.holder   || '—',
+      phone:    s.phone    || '—',
+      supplier: s.supplier || '—',
+      state:    s.state    || '—',
+      tpv:      s.tpv      || '—',
+      date:     s.date     || '—',
+      time:     s.date     || '—'
+    });
+  });
+
+  // Add sale logs as fallback if no sheet data
+  if(salesFromSheet.length === 0) {
+    saleLogs.forEach(function(l) {
+      _historyData.push({ type: 'sale', text: l.text, time: l.time });
+    });
+  }
+
+  // Update tab counts
+  var dncCount      = _historyData.filter(function(d){ return d.type==='dnc'; }).length;
+  var templateCount = _historyData.filter(function(d){ return d.type==='template'; }).length;
+  var saleCount     = _historyData.filter(function(d){ return d.type==='sale'; }).length;
+  var totalCount    = _historyData.length;
+
+  var setCount = function(id, n) {
+    var el = document.getElementById(id);
+    if(el) el.textContent = n;
+  };
+  setCount('hcount-all',      totalCount);
+  setCount('hcount-dnc',      dncCount);
+  setCount('hcount-template', templateCount);
+  setCount('hcount-sale',     saleCount);
+
+  renderHistoryBody();
+}
+
+function renderHistoryBody() {
+  var body = document.getElementById('historyBody');
+  if(!body) return;
+
+  var filtered = _historyData.filter(function(d) {
+    if(_historyTab === 'all')      return true;
+    if(_historyTab === 'dnc')      return d.type === 'dnc';
+    if(_historyTab === 'template') return d.type === 'template';
+    if(_historyTab === 'sale')     return d.type === 'sale';
+    return true;
+  });
+
+  if(filtered.length === 0) {
+    body.innerHTML = '<div class="history-empty"><div class="he-icon">🔍</div><div class="he-text">No hay registros en esta categoría</div></div>';
+    return;
+  }
+
+  // Stats row
+  var dncTotal  = _historyData.filter(function(d){ return d.type==='dnc'; }).length;
+  var tplTotal  = _historyData.filter(function(d){ return d.type==='template'; }).length;
+  var saleTotal = _historyData.filter(function(d){ return d.type==='sale'; }).length;
+
+  var statsHtml = '';
+  if(_historyTab === 'all') {
+    statsHtml = '<div class="history-stats">'
+      + '<div class="hstat-card"><div class="hstat-num">' + dncTotal + '</div><div class="hstat-label">🔍 Consultas DNC</div></div>'
+      + '<div class="hstat-card"><div class="hstat-num">' + tplTotal + '</div><div class="hstat-label">📋 Plantillas copiadas</div></div>'
+      + '<div class="hstat-card"><div class="hstat-num">' + saleTotal + '</div><div class="hstat-label">💰 Ventas enviadas</div></div>'
+      + '<div class="hstat-card"><div class="hstat-num">' + (dncTotal + tplTotal + saleTotal) + '</div><div class="hstat-label">📊 Total acciones</div></div>'
+      + '</div>';
+  }
+
+  var cardsHtml = filtered.map(function(d) {
+    if(d.type === 'dnc') {
+      var blocked = d.text && d.text.toLowerCase().includes('bloqueado');
+      return '<div class="history-card ' + (blocked ? 'dnc-blocked' : 'dnc-clear') + '">'
+        + '<div class="hcard-top">'
+        + '<div class="hcard-title">🔍 Consulta DNC</div>'
+        + '<div class="hcard-time">' + (d.time || '') + '</div>'
+        + '</div>'
+        + '<div class="hcard-detail">' + (d.text || '') + '</div>'
+        + '<span class="hcard-badge ' + (blocked ? 'badge-blocked' : 'badge-clear') + '">'
+        + (blocked ? '🚫 EN DNC' : '✅ LIBRE') + '</span>'
+        + '</div>';
+    }
+    if(d.type === 'template') {
+      return '<div class="history-card template">'
+        + '<div class="hcard-top">'
+        + '<div class="hcard-title">📋 Plantilla Copiada</div>'
+        + '<div class="hcard-time">' + (d.time || '') + '</div>'
+        + '</div>'
+        + '<div class="hcard-detail">' + (d.text || '') + '</div>'
+        + '<span class="hcard-badge badge-sent">✓ Enviada al cliente</span>'
+        + '</div>';
+    }
+    if(d.type === 'sale') {
+      var detail = d.holder
+        ? '<strong>' + d.holder + '</strong> · ' + d.phone + '<br>' + d.supplier + ' · ' + d.state
+          + (d.tpv && d.tpv !== '—' ? '<br>TPV #: <strong>' + d.tpv + '</strong>' : '')
+        : (d.text || '');
+      return '<div class="history-card sale">'
+        + '<div class="hcard-top">'
+        + '<div class="hcard-title">💰 Venta Enviada</div>'
+        + '<div class="hcard-time">' + (d.date || d.time || '') + '</div>'
+        + '</div>'
+        + '<div class="hcard-detail">' + detail + '</div>'
+        + '<span class="hcard-badge badge-sale">✅ Registrada</span>'
+        + '</div>';
+    }
+    return '';
+  }).join('');
+
+  body.innerHTML = statsHtml + cardsHtml;
+}
 </script>
 </body>
 </html>
