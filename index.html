@@ -4888,6 +4888,9 @@ async function checkDNC() {
   btn.disabled = true;
   btn.textContent = t('btn_verifying');
 
+  // Pause chat polling during DNC check to avoid competing requests
+  stopChatPolling();
+
   // ── Server check with cache — fast after first query ────
   try {
     const dncState = db.states.find(s => s.id === sel.stateId);
@@ -4921,6 +4924,9 @@ async function checkDNC() {
     btn.disabled = false;
     btn.textContent = t('btn_verify');
     showDNCResult('unknown','⚠️', t('dnc_error'), t('dnc_error_sub'));
+  } finally {
+    // Resume chat polling after DNC check completes
+    startChatPolling();
   }
 }
 
@@ -6069,7 +6075,7 @@ async function pollChat() {
 
 function startChatPolling() {
   if(chatPollingInterval) return;
-  chatPollingInterval = setInterval(pollChat, 4000);
+  chatPollingInterval = setInterval(pollChat, 15000);
   pollChat(); // immediate first poll
 }
 
