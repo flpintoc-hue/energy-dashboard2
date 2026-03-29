@@ -2918,7 +2918,9 @@ async function doLogin() {
   }
 
   // ── Check single session ──
-  const sessionToken = Math.random().toString(36).substr(2) + Date.now();
+  const tokenBytes = new Uint8Array(32);
+  crypto.getRandomValues(tokenBytes);
+  const sessionToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2,'0')).join('');
   const sessionCheck = await checkAndRegisterSession(u, sessionToken);
 
   if(sessionCheck.blocked) {
@@ -5969,7 +5971,8 @@ function secResetTimer() {
 }
 
 function secStartSession(user) {
-  const token = user.sessionToken || (Math.random().toString(36).substr(2)+Date.now());
+  const _tb = new Uint8Array(32); crypto.getRandomValues(_tb);
+  const token = user.sessionToken || Array.from(_tb).map(b=>b.toString(16).padStart(2,'0')).join('');
   const session = {
     username: user.username, name: user.name, role: user.role,
     token:    token,
