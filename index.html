@@ -1547,7 +1547,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   border-radius: 20px 0 0 20px;
   padding: 20px 20px;
   box-shadow: -2px 2px 12px rgba(0,0,0,0.25);
-  transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+  transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s, transform 0.2s;
   white-space: nowrap; cursor: pointer;
   font-family: 'Nunito', sans-serif;
   font-weight: 800; font-size: 0.88rem;
@@ -1556,6 +1556,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .shs-btn:hover {
   width: 210px;
   box-shadow: -4px 4px 20px rgba(0,0,0,0.3);
+  transform: translateX(-3px);
 }
 .shs-icon  { font-size: 2rem; flex-shrink: 0; line-height: 1; }
 .shs-label { opacity: 0; transition: opacity 0.15s 0.1s; font-size: 0.88rem; }
@@ -2200,7 +2201,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
                 style="width:100%;border:none;border-bottom:2px solid transparent;background:transparent;font-family:Nunito,sans-serif;
                 font-size:0.92rem;font-weight:700;color:var(--text);outline:none;opacity:0.4;cursor:not-allowed;
                 transition:border-color 0.2s;padding-bottom:2px"
-                oninput="this.value=this.value.replace(/[^0-9a-zA-Z\-]/g,'');validateTpvNum()">
+                oninput="enforceTpvFormat(this);validateTpvNum()">
             </div>
             <span id="tpvNumStatus" style="font-size:0.75rem;font-weight:800;color:var(--text-muted);white-space:nowrap">🔒 Bloqueado</span>
           </div>
@@ -3997,7 +3998,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // CITY
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
-        +'<input class="tpl-input" id="tpl_city" placeholder="Ciudad" required oninput="validateTemplate()"></div>'
+        +'<input class="tpl-input" id="tpl_city" placeholder="Ciudad" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>'
         +'<div class="tpl-row"><label class="tpl-label">ZIP Code *</label>'
         +'<input class="tpl-input" id="tpl_zip" placeholder="12345" maxlength="5" required oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,5);validateTemplate()"></div>'
 
@@ -4570,31 +4571,65 @@ function enableTpvField() {
   inp.focus();
 }
 
+function enforceTpvFormat(inp) {
+  var sup = db.suppliers.find(function(s){ return s.id === sel.supId; });
+  var name = sup ? (sup.name || '') : '';
+  var val = inp.value;
+
+  if(name === 'INDRA') {
+    // First char must be W (letter), rest must be numbers — total 14
+    val = val.toUpperCase();
+    var first = val[0] || '';
+    if(first && first !== 'W') val = 'W' + val.replace(/[^0-9]/g,'');
+    else {
+      var rest = val.slice(1).replace(/[^0-9]/g,'');
+      val = (first === 'W' ? 'W' : '') + rest;
+    }
+    inp.value = val.slice(0, 14);
+  } else if(name === 'NG&E' || name === 'Rushmore') {
+    // Only digits, max 9
+    inp.value = val.replace(/[^0-9]/g,'').slice(0, 9);
+  } else {
+    // Alphanumeric for others
+    inp.value = val.replace(/[^0-9a-zA-Z\-]/g,'');
+  }
+}
+
 function validateTpvNum() {
   var inp = document.getElementById('tpl_tpv_num');
   var val = (inp||{}).value || '';
   var status = document.getElementById('tpvNumStatus');
   if(!status) return;
+
+  var sup = db.suppliers.find(function(s){ return s.id === sel.supId; });
+  var supName = sup ? (sup.name || '') : '';
   var len = getTpvNumLength();
-  var digits = val.replace(/[^0-9a-zA-Z]/g,'').length;
-  if(len && val.trim().length > 0) {
-    if(val.trim().length === len) {
-      status.textContent = '✅ ' + val.trim();
-      status.style.color = '#27ae60';
-      if(inp) { inp.style.borderBottom = '2px solid #27ae60'; }
-    } else {
-      status.textContent = '⚠ ' + val.trim().length + '/' + len + ' dígitos';
-      status.style.color = '#E65100';
-      if(inp) { inp.style.borderBottom = '2px solid #E65100'; }
-    }
-  } else if(val.trim().length > 0) {
-    status.textContent = '✅ ' + val.trim();
-    status.style.color = '#27ae60';
-    if(inp) { inp.style.borderBottom = '2px solid #27ae60'; }
+  var isValid = false;
+  var errorMsg = '';
+
+  if(supName === 'INDRA') {
+    // Must be W + 13 digits = 14 chars
+    isValid = val.length === 14 && val[0] === 'W' && /^W[0-9]{13}$/.test(val);
+    if(val.length > 0 && !isValid) errorMsg = 'Debe ser W + 13 números (' + val.length + '/14)';
+  } else if(supName === 'NG&E' || supName === 'Rushmore') {
+    isValid = val.length === 9 && /^[0-9]{9}$/.test(val);
+    if(val.length > 0 && !isValid) errorMsg = 'Solo 9 dígitos (' + val.length + '/9)';
   } else {
+    isValid = val.trim().length > 0;
+  }
+
+  if(val.trim().length === 0) {
     status.textContent = '✏️ Listo';
     status.style.color = 'var(--text-muted)';
     if(inp) inp.style.borderBottom = '';
+  } else if(isValid) {
+    status.textContent = '✅ ' + val.trim();
+    status.style.color = '#27ae60';
+    if(inp) inp.style.borderBottom = '2px solid #27ae60';
+  } else {
+    status.textContent = '⚠ ' + (errorMsg || val.trim().length + '/' + len + ' caracteres');
+    status.style.color = '#E65100';
+    if(inp) inp.style.borderBottom = '2px solid #E65100';
   }
 }
 
@@ -4803,11 +4838,11 @@ function onAuthChange() {
   if(val === 'Yes — Account Holder') {
     container.innerHTML =
       '<div class="tpl-row tpl-full"><label class="tpl-label">Account Holder Name *</label>'
-      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="validateTemplate()"></div>';
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>';
   } else if(val === 'Yes — Authorized User') {
     container.innerHTML =
       '<div class="tpl-row"><label class="tpl-label">Authorized User Name *</label>'
-      +'<input class="tpl-input" id="tpl_auth_name" placeholder="Nombre del autorizado" required oninput="validateTemplate()"></div>'
+      +'<input class="tpl-input" id="tpl_auth_name" placeholder="Nombre del autorizado" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>'
       +'<div class="tpl-row"><label class="tpl-label">Account Holder Name *</label>'
       +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="validateTemplate()"></div>';
   } else {
@@ -6358,14 +6393,32 @@ document.addEventListener('click', function(e) {
 
 // Intercept browser back button
 window.addEventListener('popstate', function(e) {
-  if(document.getElementById('appScreen') && 
-     document.getElementById('appScreen').style.display !== 'none') {
-    // Always push a new state so back button keeps working
-    history.pushState({ step: currentStep }, '');
-    if(currentStep > 0) {
-      goBack();
+  var appScreen = document.getElementById('appScreen');
+  var isLoggedIn = appScreen && appScreen.style.display !== 'none';
+
+  // Close any open overlay first
+  var overlays = ['historyOverlay','salesStatsOverlay','supOverlay','chartsOverlay'];
+  for(var i = 0; i < overlays.length; i++) {
+    var ov = document.getElementById(overlays[i]);
+    if(ov && ov.classList.contains('show')) {
+      ov.classList.remove('show');
+      history.pushState({ step: currentStep }, '');
+      return;
     }
   }
+
+  if(isLoggedIn) {
+    if(currentStep > 0) {
+      // Go back one step
+      history.pushState({ step: currentStep }, '');
+      goBack();
+    } else {
+      // Already at step 0 — back = logout
+      history.pushState({ step: 0 }, '');
+      doLogout();
+    }
+  }
+  // If on login screen, let browser handle normally
 });
 
 // ════════════════════════════════════════════
