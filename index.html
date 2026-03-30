@@ -1783,12 +1783,12 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   font-size: 0.56rem; color: rgba(255,255,255,0.4); font-weight: 700;
 }
 /* Main chat area */
+#chatPanel.open {
+  transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
+}
 #chatMain {
   flex: 1; display: flex; flex-direction: column; overflow: hidden;
   border-radius: 0 20px 20px 0;
-}
-#chatPanel.open {
-  transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
 }
 .chat-header {
   background: var(--accent); color: #fff;
@@ -2281,28 +2281,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   <div class="step-avatar-float" id="stepAvatarFloat" style="display:none" onclick="bounceAvatar()"></div>
 
 <!-- ── RIGHT SIDE STRIP ── -->
-<div id="salesHeaderStrip">
-  <button class="shs-btn" style="background:linear-gradient(135deg,#0D47A1,#1565C0)" onclick="openCharts()" title="Ver gráficas">
-    <span class="shs-label">Gráficas</span>
-    <span class="shs-icon">📈</span>
-  </button>
-  <button class="shs-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
-    <div class="shs-counter">
-      <div class="shs-num" id="scDaily">0</div>
-      <div class="shs-sub">Hoy</div>
-    </div>
-    <div class="shs-label" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-      <span style="font-size:0.65rem;opacity:0.8">Sem: <span id="scWeekly">0</span></span>
-      <span style="font-size:0.65rem;opacity:0.8">Mes: <span id="scMonthly">0</span></span>
-    </div>
-    <span class="shs-icon">💰</span>
-  </button>
-  <button id="supPanelBtn" class="shs-btn shs-sup" onclick="openSupPanel()" title="Agentes en línea" style="display:none">
-    <span class="shs-label">Agentes</span>
-    <span class="shs-icon">👥</span>
-  </button>
-</div>
-
 <!-- ── SUPERVISOR PANEL ── -->
 <div id="supOverlay" onclick="if(event.target===this)closeSupPanel()">
   <div class="sup-panel">
@@ -2446,6 +2424,29 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 </div>
 
 </div><!-- /appScreen -->
+
+<!-- ── RIGHT SIDE STRIP (outside appScreen so always visible when shown) ── -->
+<div id="salesHeaderStrip">
+  <button class="shs-btn" style="background:linear-gradient(135deg,#0D47A1,#1565C0)" onclick="openCharts()" title="Ver gráficas">
+    <span class="shs-label">Gráficas</span>
+    <span class="shs-icon">📈</span>
+  </button>
+  <button class="shs-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
+    <div class="shs-counter">
+      <div class="shs-num" id="scDaily">0</div>
+      <div class="shs-sub">Hoy</div>
+    </div>
+    <div class="shs-label" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+      <span style="font-size:0.65rem;opacity:0.8">Sem: <span id="scWeekly">0</span></span>
+      <span style="font-size:0.65rem;opacity:0.8">Mes: <span id="scMonthly">0</span></span>
+    </div>
+    <span class="shs-icon">💰</span>
+  </button>
+  <button id="supPanelBtn" class="shs-btn shs-sup" onclick="openSupPanel()" title="Agentes en línea" style="display:none">
+    <span class="shs-label">Agentes</span>
+    <span class="shs-icon">👥</span>
+  </button>
+</div>
 
 <!-- ════════════════════════════════
   ADMIN DRAWER
