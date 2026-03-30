@@ -1476,6 +1476,63 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .action-bar-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 .action-bar-btn:active { transform: translateY(0); filter: brightness(0.95); }
 
+/* ── SUPERVISOR PANEL ───────────────────────── */
+#supPanelBtn {
+  display: none;
+  background: linear-gradient(135deg,#6A1B9A,#4A148C);
+  border: none; color: #fff; padding: 6px 14px;
+  border-radius: 7px; cursor: pointer;
+  font-family: 'Nunito',sans-serif; font-weight: 800;
+  font-size: 0.75rem; transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(106,27,154,0.35);
+}
+#supPanelBtn:hover { transform: translateY(-1px); }
+#supPanelBtn.show { display: block; }
+#supOverlay {
+  display: none; position: fixed; inset: 0; z-index: 9970;
+  background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
+}
+#supOverlay.show { display: flex; }
+.sup-panel {
+  background: var(--card); border-radius: 20px; padding: 24px;
+  width: 92%; max-width: 520px; max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.sup-panel-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 18px;
+}
+.sup-panel-title { font-size: 1.05rem; font-weight: 900; color: var(--text); }
+.sup-refresh-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  font-size: 0.72rem; font-weight: 800; color: var(--text-muted);
+  font-family: 'Nunito',sans-serif; transition: all 0.15s;
+}
+.sup-refresh-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sup-agent-card {
+  background: var(--surface); border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 8px; border: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.sup-agent-left { display: flex; align-items: center; gap: 10px; }
+.sup-online-dot { width: 10px; height: 10px; border-radius: 50%; background: #27ae60; flex-shrink: 0; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.sup-agent-name { font-weight: 800; font-size: 0.85rem; color: var(--text); }
+.sup-agent-time { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
+.sup-sales-badge {
+  background: linear-gradient(135deg,#27ae60,#1e8449);
+  color: #fff; border-radius: 20px; padding: 4px 12px;
+  font-size: 0.78rem; font-weight: 900;
+}
+.sup-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
+.sup-last-update { text-align: center; font-size: 0.67rem; color: var(--text-muted); font-weight: 700; margin-top: 12px; }
+.sup-close-btn {
+  background: var(--surface); border: none; border-radius: 50%;
+  width: 32px; height: 32px; cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
 /* ── SALES COUNTER ───────────────────────────── */
 #salesCounter {
   display: none; align-items: center; gap: 6px;
@@ -1761,6 +1818,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           <div class="sc-num" id="scMonthly">0</div>
         </div>
       </div>
+      <button id="supPanelBtn" onclick="openSupPanel()" title="Panel Supervisor">👥 Agentes</button>
       <button class="hbtn" id="historyBtn" onclick="openHistory()">📊 Mi Historial</button>
       <button class="hbtn danger" onclick="doLogout()">Salir</button>
     </div>
@@ -2108,6 +2166,23 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </div><!-- /main -->
   <!-- Floating step avatar -->
   <div class="step-avatar-float" id="stepAvatarFloat" style="display:none" onclick="bounceAvatar()"></div>
+
+<!-- ── SUPERVISOR PANEL ── -->
+<div id="supOverlay" onclick="if(event.target===this)closeSupPanel()">
+  <div class="sup-panel">
+    <div class="sup-panel-hdr">
+      <div class="sup-panel-title">👥 Agentes en Línea</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="sup-refresh-btn" onclick="loadSupStatus()">🔄 Actualizar</button>
+        <button class="sup-close-btn" onclick="closeSupPanel()">✕</button>
+      </div>
+    </div>
+    <div id="supAgentsList">
+      <div class="sup-empty">⏳ Cargando...</div>
+    </div>
+    <div class="sup-last-update" id="supLastUpdate"></div>
+  </div>
+</div>
 
 <!-- ── SALES STATS OVERLAY ── -->
 <div id="salesStatsOverlay" onclick="if(event.target===this)closeSalesStats()">
@@ -3061,6 +3136,9 @@ function doLogout() {
   var ql2 = document.getElementById('quickLinks');
   if(ql2) ql2.classList.remove('show');
   hideSalesCounter();
+  var supBtn2 = document.getElementById('supPanelBtn');
+  if(supBtn2) supBtn2.classList.remove('show');
+  closeSupPanel();
   var panel = document.getElementById('chatPanel');
   if(panel) panel.classList.remove('open');
   chatOpen = false;
@@ -4397,8 +4475,24 @@ async function submitSale() {
 
     if(result.success) {
       addLog('sale', (currentUser?currentUser.name:'') + ' — ' + sale.holder + ' — ' + sale.supplier + ' — ' + sale.state);
-  // Refresh sales counter after new sale
-  setTimeout(loadSalesStats, 2000);
+      // Refresh sales counter after new sale
+      setTimeout(loadSalesStats, 2000);
+      // Notify supervisor via WA — fire & forget
+      fetch(SESSIONS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          _secret: _APP_SECRET,
+          action: 'notify_sale',
+          sale: {
+            agent:    currentUser ? currentUser.name : '',
+            holder:   sale.holder   || '',
+            phone:    sale.phone    || '',
+            supplier: sale.supplier || '',
+            state:    sale.state    || '',
+            tpv:      sale.tpvNum   || ''
+          }
+        })
+      }).catch(function(){});
       showSaleSuccess(sale);
     } else {
       throw new Error(result.error || 'Unknown error');
@@ -5568,6 +5662,7 @@ function finishLogin() {
   var ql = document.getElementById('quickLinks');
   if(ql) ql.classList.add('show');
   showSalesCounter();
+  initSupPanel();
   updateChatHeader();
   startChatPolling();
   // DNC checked server-side with cache
@@ -6030,6 +6125,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var ql3 = document.getElementById('quickLinks');
       if(ql3) ql3.classList.add('show');
       showSalesCounter();
+      initSupPanel();
       updateChatHeader();
       startChatPolling();
       addLog('login', saved.name + ' retomó sesión tras refresco');
@@ -6701,6 +6797,72 @@ function renderSalesStats() {
     }).join('');
   } else if(agentsSection) {
     agentsSection.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════
+// SUPERVISOR PANEL
+// ═══════════════════════════════════════════
+var _supTimer = null;
+
+function initSupPanel() {
+  if(!currentUser) return;
+  var isSuper = currentUser.role === 'supervisor' || currentUser.role === 'admin';
+  var btn = document.getElementById('supPanelBtn');
+  if(btn) btn.classList.toggle('show', isSuper);
+}
+
+function openSupPanel() {
+  var overlay = document.getElementById('supOverlay');
+  if(!overlay) return;
+  overlay.classList.add('show');
+  loadSupStatus();
+  // Auto-refresh every 30 seconds while panel is open
+  if(_supTimer) clearInterval(_supTimer);
+  _supTimer = setInterval(loadSupStatus, 30000);
+}
+
+function closeSupPanel() {
+  var overlay = document.getElementById('supOverlay');
+  if(overlay) overlay.classList.remove('show');
+  if(_supTimer) { clearInterval(_supTimer); _supTimer = null; }
+}
+
+async function loadSupStatus() {
+  var list = document.getElementById('supAgentsList');
+  try {
+    var resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'get_supervisor_status' })
+    });
+    var result = JSON.parse(await resp.text());
+    var agents = result.agents || [];
+
+    var lastEl = document.getElementById('supLastUpdate');
+    if(lastEl) lastEl.textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+
+    if(!list) return;
+    if(agents.length === 0) {
+      list.innerHTML = '<div class="sup-empty">😴 No hay agentes en línea ahora</div>';
+      return;
+    }
+
+    list.innerHTML = agents.map(function(a) {
+      var loginTime = a.loginTime ? new Date(a.loginTime).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}) : '—';
+      return '<div class="sup-agent-card">'
+        + '<div class="sup-agent-left">'
+        + '<div class="sup-online-dot"></div>'
+        + '<div>'
+        + '<div class="sup-agent-name">👤 ' + a.username + '</div>'
+        + '<div class="sup-agent-time">Ingresó: ' + loginTime + '</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="sup-sales-badge">💰 ' + (a.salesToday||0) + ' venta' + (a.salesToday===1?'':'s') + ' hoy</div>'
+        + '</div>';
+    }).join('');
+
+  } catch(e) {
+    if(list) list.innerHTML = '<div class="sup-empty">❌ Error al cargar agentes</div>';
   }
 }
 </script>
