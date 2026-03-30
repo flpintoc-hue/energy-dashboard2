@@ -3424,7 +3424,11 @@ function goStep(n) {
   if(n===1) { renderStates(); }
   if(n===2) renderUtilities();
   if(n===3) renderSupplierCards();
-  if(n===4) { renderChecklist(); setTimeout(validateTemplate, 150); }
+  if(n===4) { 
+    // Reset autocomplete so it re-binds to the freshly rendered input
+    _placesAutocomplete = null;
+    renderChecklist(); setTimeout(validateTemplate, 150); 
+  }
   updateContext();
   applyTranslationsToDOM();
   updateStepAvatar();
@@ -4709,6 +4713,9 @@ async function submitSale() {
     const result = JSON.parse(await resp.text());
 
     if(result.success) {
+      // Reset button immediately on success
+      if(btn) { btn.disabled = false; btn.style.background = ''; }
+      if(btnText) btnText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
       addLog('sale', (currentUser?currentUser.name:'') + ' — ' + sale.holder + ' — ' + sale.supplier + ' — ' + sale.state);
       // Refresh sales counter after new sale
       setTimeout(loadSalesStats, 2000);
@@ -5016,7 +5023,14 @@ function initAddressAutocomplete() {
 
 function setupAddressAutocomplete() {
   var input = document.getElementById('tpl_address');
-  if(!input || _placesAutocomplete) return;
+  if(!input) return;
+  // If autocomplete exists but is bound to a different (stale) input, reset it
+  if(_placesAutocomplete) {
+    var boundInput = _placesAutocomplete.getBounds ? _placesAutocomplete.f : null;
+    // Always re-bind if the current input doesn't have the pac listener attached
+    if(input.dataset.autocompleteReady === '1') return;
+    _placesAutocomplete = null;
+  }
   if(!window.google || !window.google.maps || !window.google.maps.places) {
     setTimeout(setupAddressAutocomplete, 500);
     return;
@@ -5089,6 +5103,8 @@ function setupAddressAutocomplete() {
     }
     validateTemplate();
   });
+  // Mark this input as having autocomplete attached
+  input.dataset.autocompleteReady = '1';
 }
 
 // ════════════════════════════════════════════
