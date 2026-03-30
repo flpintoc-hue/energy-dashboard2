@@ -1556,7 +1556,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .shs-btn:hover {
   width: 210px;
   box-shadow: -4px 4px 20px rgba(0,0,0,0.3);
-  transform: translateX(-3px);
 }
 .shs-icon  { font-size: 2rem; flex-shrink: 0; line-height: 1; }
 .shs-label { opacity: 0; transition: opacity 0.15s 0.1s; font-size: 0.88rem; }
@@ -1933,7 +1932,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       </div>
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
 
-      <button class="hbtn" id="historyBtn" onclick="openHistory()">📊 Mi Historial</button>
+
       <button class="hbtn danger" onclick="doLogout()">Salir</button>
     </div>
     <!-- Avatar Picker Dropdown -->
@@ -6565,6 +6564,10 @@ window.addEventListener('beforeunload', () => {
     <span class="qlink-icon">👥</span>
     <span class="qlink-label">Readymode</span>
   </a>
+  <button class="qlink-btn" style="background:linear-gradient(135deg,#37474F,#263238)" onclick="openHistory()" title="Mi Historial" id="historyBtn">
+    <span class="qlink-icon">📊</span>
+    <span class="qlink-label">Mi Historial</span>
+  </button>
 </div>
 
 <!-- ═══ FLOATING CHAT ═══ -->
@@ -6700,6 +6703,22 @@ function renderChatMessagesForContact(contactName) {
   scrollChatToBottom();
 }
 
+function playChatSound() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
 function updateChatUnreadBadge() {
   const total = chatUnreadCount.private + chatUnreadCount.group;
   const badge = document.getElementById('chatUnread');
@@ -6763,7 +6782,11 @@ async function sendChatMsg() {
 
   // Optimistic local add
   chatMessages[chatTab].push(msg);
-  renderChatMessages();
+  if(chatSelectedContact && chatTab === 'private') {
+    renderChatMessagesForContact(chatSelectedContact);
+  } else {
+    renderChatMessages();
+  }
 
   try {
     await fetch(SESSIONS_URL, {
@@ -6803,14 +6826,23 @@ async function pollChat() {
           chatLastTs[ch] = Math.max(chatLastTs[ch], m.ts);
           // Count unread if tab not active or chat closed
           if(!chatOpen || chatTab !== ch) {
-            if(m.sender !== myName) chatUnreadCount[ch]++;
+            if(m.sender !== myName) {
+              chatUnreadCount[ch]++;
+              playChatSound();
+            }
           }
         }
       });
     });
 
     updateChatUnreadBadge();
-    if(chatOpen) renderChatMessages();
+    if(chatOpen) {
+      if(chatSelectedContact && chatTab === 'private') {
+        renderChatMessagesForContact(chatSelectedContact);
+      } else {
+        renderChatMessages();
+      }
+    }
 
 
   } catch(e) {
@@ -6822,6 +6854,8 @@ function startChatPolling() {
   if(chatPollingInterval) return;
   chatPollingInterval = setInterval(pollChat, 15000);
   pollChat(); // immediate first poll
+  // Ensure contacts are loaded quickly
+  if(_allUsers.length === 0) refreshOnlineAgents();
 }
 
 function stopChatPolling() {
