@@ -1565,6 +1565,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .shs-icon  { font-size: 2rem; flex-shrink: 0; line-height: 1; }
 .shs-label { opacity: 0; transition: opacity 0.15s 0.1s; font-size: 0.88rem; pointer-events:none; }
 .shs-btn:hover .shs-label { opacity: 1; }
+.shs-btn:hover .shs-sales-info { opacity: 1 !important; }
 .shs-counter {
   display: flex; flex-direction: column; align-items: flex-start;
   opacity: 0; transition: opacity 0.15s 0.1s;
@@ -2438,13 +2439,13 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </button>
   <button class="shs-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
     <span class="shs-icon">💰</span>
-    <div class="shs-counter">
-      <div class="shs-num" id="scDaily">0</div>
-      <div class="shs-sub">Hoy</div>
-    </div>
-    <div class="shs-label" style="display:flex;flex-direction:column;align-items:flex-start;gap:1px">
-      <span style="font-size:0.65rem;opacity:0.8">Sem: <span id="scWeekly">0</span></span>
-      <span style="font-size:0.65rem;opacity:0.8">Mes: <span id="scMonthly">0</span></span>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;opacity:0;transition:opacity 0.15s 0.1s" class="shs-sales-info">
+      <div style="display:flex;align-items:baseline;gap:5px">
+        <span style="font-size:1.5rem;font-weight:900;line-height:1" id="scDaily">0</span>
+        <span style="font-size:0.65rem;font-weight:800;opacity:0.8">hoy</span>
+      </div>
+      <span style="font-size:0.65rem;font-weight:800;opacity:0.8">Sem: <span id="scWeekly">0</span> · Mes: <span id="scMonthly">0</span></span>
+      <span style="font-size:0.6rem;font-weight:800;opacity:0.6">Mis ventas</span>
     </div>
   </button>
   <button id="supPanelBtn" class="shs-btn shs-sup" onclick="openSupPanel()" title="Agentes en línea" style="display:none">
