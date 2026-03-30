@@ -6583,7 +6583,7 @@ window.addEventListener('beforeunload', () => {
   <div id="chatMain">
     <div class="chat-header">
       <div>
-        <div class="chat-header-title">💬 Chat Interno</div>
+        <div class="chat-header-title" id="chatHeaderTitle">💬 Chat Interno</div>
         <div class="chat-header-sub" id="chatHeaderSub">Conectando...</div>
       </div>
       <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px">✕</button>
@@ -6619,6 +6619,12 @@ function toggleChat() {
   if(chatOpen) {
     refreshOnlineAgents();
     panel.classList.add('open');
+    // Non-admin users default to group tab
+    var isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor');
+    if(!isAdmin && chatTab === 'private') chatTab = 'group';
+    var tabPrivate = document.getElementById('tabPrivate');
+    if(tabPrivate) tabPrivate.style.display = isAdmin ? '' : 'none';
+    switchChatTab(chatTab);
     // Reset unread for current tab
     chatUnreadCount[chatTab] = 0;
     updateChatUnreadBadge();
@@ -6631,11 +6637,67 @@ function toggleChat() {
 
 function switchChatTab(tab) {
   chatTab = tab;
-  document.getElementById('tabPrivate').classList.toggle('active', tab === 'private');
-  document.getElementById('tabGroup').classList.toggle('active', tab === 'group');
+  var tabPrivate = document.getElementById('tabPrivate');
+  var tabGroup   = document.getElementById('tabGroup');
+  if(tabPrivate) tabPrivate.classList.toggle('active', tab === 'private');
+  if(tabGroup)   tabGroup.classList.toggle('active', tab === 'group');
   chatUnreadCount[tab] = 0;
   updateChatUnreadBadge();
   renderChatMessages();
+}
+
+// Select a contact from the sidebar — highlight it and open/create DM conversation
+var chatSelectedContact = null;
+function selectChatContact(name) {
+  chatSelectedContact = name;
+
+  // Highlight selected contact
+  document.querySelectorAll('.chat-contact-item').forEach(function(el) {
+    var nameEl = el.querySelector('.chat-contact-name');
+    el.classList.toggle('active', nameEl && nameEl.textContent === name);
+  });
+
+  // Update header
+  var titleEl = document.getElementById('chatHeaderTitle');
+  var subEl   = document.getElementById('chatHeaderSub');
+  if(titleEl) titleEl.textContent = '💬 ' + name;
+  if(subEl)   subEl.textContent   = 'Conversación privada';
+
+  // Switch to private tab and filter messages for this contact
+  chatTab = 'private';
+  var tabPrivate = document.getElementById('tabPrivate');
+  var tabGroup   = document.getElementById('tabGroup');
+  if(tabPrivate) { tabPrivate.classList.add('active'); tabPrivate.style.display = ''; }
+  if(tabGroup)   tabGroup.classList.remove('active');
+  chatUnreadCount['private'] = 0;
+  updateChatUnreadBadge();
+  renderChatMessagesForContact(name);
+}
+
+function renderChatMessagesForContact(contactName) {
+  var myName = currentUser ? currentUser.name : '';
+  var msgs = (chatMessages['private'] || []).filter(function(m) {
+    return (m.sender === contactName && m.recipient === myName) ||
+           (m.sender === myName && m.recipient === contactName) ||
+           // fallback: show all private if no recipient field yet
+           (!m.recipient);
+  });
+  var container = document.getElementById('chatMessages');
+  if(!container) return;
+  if(msgs.length === 0) {
+    container.innerHTML = '<div class="chat-empty">Sin mensajes con ' + escHtml(contactName) + '.<br>Empieza la conversación 👋</div>';
+    return;
+  }
+  container.innerHTML = msgs.map(function(m) {
+    if(m.type === 'system') return '<div class="chat-msg system">' + escHtml(m.text) + '</div>';
+    var isMe = m.sender === myName;
+    return '<div class="chat-msg ' + (isMe ? 'mine' : 'theirs') + '">'
+      + (!isMe ? '<div style="font-size:0.68rem;font-weight:800;margin-bottom:3px;opacity:0.8">' + escHtml(m.sender) + '</div>' : '')
+      + escHtml(m.text)
+      + '<div class="chat-msg-meta">' + formatChatTime(m.ts) + '</div>'
+      + '</div>';
+  }).join('');
+  scrollChatToBottom();
 }
 
 function updateChatUnreadBadge() {
@@ -6694,6 +6756,7 @@ async function sendChatMsg() {
     sender: currentUser.name,
     role: currentUser.role,
     channel: chatTab,
+    recipient: (chatTab === 'private' && chatSelectedContact) ? chatSelectedContact : null,
     text: text,
     ts: Date.now()
   };
@@ -7198,8 +7261,8 @@ function renderChatContacts() {
 
   list.innerHTML = contacts.map(function(c) {
     var roleLabel = (c.role === 'supervisor' || c.role === 'admin') ? 'SUP' : 'AGT';
-    var onlineText = c.online ? ' • 🟢' : '';
-    return '<div class="chat-contact-item">'
+    var onlineText = c.online ? ' •' : '';
+    return '<div class="chat-contact-item" onclick="selectChatContact(\'' + c.name + '\')" style="cursor:pointer">'
       + '<div class="chat-contact-dot' + (c.online ? ' online' : '') + '"></div>'
       + '<div>'
       + '<div class="chat-contact-name">' + c.name + '</div>'
@@ -7207,6 +7270,14 @@ function renderChatContacts() {
       + '</div>'
       + '</div>';
   }).join('');
+
+  // Show Supervisor tab only to admin/supervisor
+  var isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'supervisor');
+  var tabPrivate = document.getElementById('tabPrivate');
+  if(tabPrivate) {
+    tabPrivate.style.display = isAdmin ? '' : 'none';
+    if(!isAdmin && chatTab === 'private') switchChatTab('group');
+  }
 }
 
 // ═══════════════════════════════════════════
