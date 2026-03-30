@@ -1748,96 +1748,201 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 #chatFab .chat-unread.show { display: flex; }
 
+/* ═══════════════════════════════════════════
+   WHATSAPP-STYLE CHAT
+═══════════════════════════════════════════ */
 #chatPanel {
-  position: fixed; bottom: 180px; right: 20px; z-index: 9998;
-  width: min(520px, calc(100vw - 32px));
-  height: min(580px, calc(100vh - 220px));
-  background: var(--card); border-radius: 20px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.32);
+  position: fixed; bottom: 20px; right: 20px; z-index: 9998;
+  width: min(560px, calc(100vw - 32px));
+  height: min(600px, calc(100vh - 100px));
+  background: #111b21; border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.45);
   display: flex; flex-direction: row;
   transform: scale(0.88) translateY(16px); opacity: 0;
   pointer-events: none;
   transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
   overflow: hidden;
 }
-/* Contacts sidebar */
-#chatContacts {
-  width: 130px; flex-shrink: 0;
-  background: #16213e; display: flex; flex-direction: column;
-  border-radius: 20px 0 0 20px; overflow: hidden;
-}
-.chat-contacts-title {
-  padding: 14px 10px 8px;
-  font-size: 0.62rem; font-weight: 900; color: rgba(255,255,255,0.5);
-  text-transform: uppercase; letter-spacing: 0.08em;
-}
-.chat-contact-item {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 10px; cursor: pointer;
-  transition: background 0.15s; border-radius: 8px; margin: 2px 6px;
-}
-.chat-contact-item:hover { background: rgba(255,255,255,0.08); }
-.chat-contact-item.active { background: rgba(255,255,255,0.15); }
-.chat-contact-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #555; flex-shrink: 0;
-}
-.chat-contact-dot.online { background: #27ae60; animation: pulse 2s infinite; }
-.chat-contact-name {
-  font-size: 0.68rem; font-weight: 800; color: rgba(255,255,255,0.85);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.chat-contact-role {
-  font-size: 0.56rem; color: rgba(255,255,255,0.4); font-weight: 700;
-}
-/* Main chat area */
 #chatPanel.open {
   transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
 }
+
+/* Left contacts pane */
+#chatContacts {
+  width: 200px; flex-shrink: 0;
+  background: #111b21;
+  display: flex; flex-direction: column;
+  border-right: 1px solid #2a3942;
+  overflow: hidden;
+}
+.chat-contacts-header {
+  background: #202c33; padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.chat-contacts-header-title {
+  font-size: 0.85rem; font-weight: 900; color: #e9edef;
+}
+.chat-search {
+  padding: 6px 10px;
+  background: #2a3942; border: none; border-radius: 8px;
+  color: #e9edef; font-size: 0.72rem; width: 100%;
+  font-family: 'Nunito',sans-serif; font-weight: 700;
+  outline: none; margin: 8px 10px 4px; width: calc(100% - 20px);
+}
+.chat-search::placeholder { color: #8696a0; }
+.chat-contact-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; cursor: pointer;
+  transition: background 0.15s; border-bottom: 1px solid #1f2c34;
+  position: relative;
+}
+.chat-contact-item:hover { background: #202c33; }
+.chat-contact-item.active { background: #2a3942; }
+.chat-contact-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg,#00a884,#025144);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 900; color: #fff;
+  flex-shrink: 0; position: relative;
+}
+.chat-contact-avatar.group {
+  background: linear-gradient(135deg,#1565C0,#0D47A1);
+}
+.chat-online-badge {
+  position: absolute; bottom: 0; right: 0;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #00a884; border: 2px solid #111b21;
+}
+.chat-contact-info { flex: 1; min-width: 0; }
+.chat-contact-name {
+  font-size: 0.78rem; font-weight: 800; color: #e9edef;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-contact-preview {
+  font-size: 0.65rem; color: #8696a0; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.chat-contact-meta {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+}
+.chat-contact-time { font-size: 0.58rem; color: #8696a0; }
+.chat-unread-badge {
+  background: #00a884; color: #111b21; border-radius: 50%;
+  width: 18px; height: 18px; font-size: 0.6rem; font-weight: 900;
+  display: none; align-items: center; justify-content: center;
+}
+.chat-unread-badge.show { display: flex; }
+
+/* Main chat area */
 #chatMain {
   flex: 1; display: flex; flex-direction: column; overflow: hidden;
-  border-radius: 0 20px 20px 0;
+  background: #0b141a;
 }
-.chat-header {
-  background: var(--accent); color: #fff;
-  padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px;
+.chat-main-header {
+  background: #202c33; padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
   flex-shrink: 0;
 }
-.chat-header-title { font-weight: 800; font-size: 0.95rem; flex: 1; }
-.chat-header-sub { font-size: 0.7rem; opacity: 0.85; }
-.chat-tab-bar {
-  display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+.chat-main-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg,#00a884,#025144);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; font-weight: 900; color: #fff; flex-shrink: 0;
 }
-.chat-tab {
-  flex: 1; padding: 8px 4px; font-size: 0.72rem; font-weight: 700;
-  text-align: center; cursor: pointer; color: var(--text-muted);
-  border-bottom: 2px solid transparent; transition: all 0.15s;
+.chat-main-avatar.group { background: linear-gradient(135deg,#1565C0,#0D47A1); }
+.chat-main-name { font-size: 0.85rem; font-weight: 800; color: #e9edef; }
+.chat-main-status { font-size: 0.65rem; color: #8696a0; }
+.chat-main-close {
+  margin-left: auto; background: none; border: none; color: #8696a0;
+  font-size: 1.2rem; cursor: pointer; padding: 4px;
 }
-.chat-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.chat-main-close:hover { color: #e9edef; }
+
+/* Messages area */
 .chat-messages {
-  flex: 1; overflow-y: auto; padding: 14px 12px;
-  display: flex; flex-direction: column; gap: 8px;
-  min-height: 0; height: 0;
+  flex: 1; overflow-y: auto; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 4px;
+  min-height: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
+.chat-date-divider {
+  text-align: center; margin: 8px 0;
+}
+.chat-date-divider span {
+  background: #182229; color: #8696a0;
+  font-size: 0.62rem; font-weight: 700; padding: 4px 10px; border-radius: 8px;
+}
+.chat-msg-wrap {
+  display: flex; flex-direction: column;
+  margin-bottom: 2px;
+}
+.chat-msg-wrap.mine { align-items: flex-end; }
+.chat-msg-wrap.theirs { align-items: flex-start; }
 .chat-msg {
-  max-width: 80%; padding: 8px 12px; border-radius: 14px;
-  font-size: 0.8rem; line-height: 1.4; word-break: break-word;
+  max-width: 75%; padding: 6px 10px 8px;
+  border-radius: 8px; font-size: 0.78rem; line-height: 1.45;
+  word-break: break-word; position: relative;
 }
 .chat-msg.mine {
-  align-self: flex-end; background: var(--accent); color: #fff;
-  border-bottom-right-radius: 4px;
+  background: #005c4b; color: #e9edef;
+  border-top-right-radius: 2px;
 }
 .chat-msg.theirs {
-  align-self: flex-start; background: var(--surface); color: var(--text);
-  border-bottom-left-radius: 4px;
+  background: #202c33; color: #e9edef;
+  border-top-left-radius: 2px;
 }
 .chat-msg.system {
-  align-self: center; background: transparent;
-  color: var(--text-muted); font-size: 0.68rem; font-style: italic;
-  padding: 2px 8px;
+  align-self: center; background: #182229;
+  color: #8696a0; font-size: 0.65rem; border-radius: 8px;
+  padding: 4px 12px; max-width: 90%; text-align: center;
 }
-.chat-msg-meta { font-size: 0.62rem; opacity: 0.7; margin-top: 3px; }
+.chat-msg-sender {
+  font-size: 0.65rem; font-weight: 800; margin-bottom: 2px;
+  color: #00a884;
+}
+.chat-msg-meta {
+  font-size: 0.58rem; opacity: 0.6; margin-top: 2px;
+  text-align: right;
+}
+.chat-msg-tail-mine {
+  position: absolute; top: 0; right: -7px;
+  width: 0; height: 0;
+  border-left: 8px solid #005c4b;
+  border-top: 8px solid transparent;
+}
+.chat-msg-tail-theirs {
+  position: absolute; top: 0; left: -7px;
+  width: 0; height: 0;
+  border-right: 8px solid #202c33;
+  border-top: 8px solid transparent;
+}
+
+/* Input area */
+.chat-input-row {
+  background: #202c33; padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1; background: #2a3942; border: none; border-radius: 24px;
+  padding: 9px 16px; color: #e9edef;
+  font-size: 0.82rem; font-family: 'Nunito',sans-serif; font-weight: 600;
+  outline: none;
+}
+.chat-input::placeholder { color: #8696a0; }
+.chat-send-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #00a884; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: #fff; transition: background 0.15s; flex-shrink: 0;
+}
+.chat-send-btn:hover { background: #00cf9d; }
+.chat-empty {
+  text-align: center; color: #8696a0; font-size: 0.8rem;
+  margin: auto; padding: 20px;
+}
 .chat-input-row {
   display: flex; gap: 8px; padding: 12px 14px;
   border-top: 1px solid var(--border); flex-shrink: 0;
@@ -6557,9 +6662,7 @@ window.addEventListener('beforeunload', () => {
   </button>
   <button class="qlink-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
     <span class="qlink-icon">💰</span>
-    <span class="qlink-label">
-      <span id="scDaily">0</span> hoy · Sem: <span id="scWeekly">0</span> · Mes: <span id="scMonthly">0</span>
-    </span>
+    <span class="qlink-label">Estadísticas</span>
   </button>
   <button id="supPanelBtn" class="qlink-btn" style="background:linear-gradient(135deg,#6A1B9A,#4A148C);display:none" onclick="openSupPanel()" title="Agentes">
     <span class="qlink-icon">🧑‍💼</span>
@@ -6578,31 +6681,34 @@ window.addEventListener('beforeunload', () => {
 </button>
 
 <div id="chatPanel">
-  <!-- Contacts sidebar -->
+  <!-- Left: contacts list -->
   <div id="chatContacts">
-    <div class="chat-contacts-title">Contactos</div>
-    <div id="chatContactsList"></div>
-  </div>
-  <!-- Main chat area -->
-  <div id="chatMain">
-    <div class="chat-header">
-      <div>
-        <div class="chat-header-title">💬 Chat Interno</div>
-        <div class="chat-header-sub" id="chatHeaderSub">Conectando...</div>
-      </div>
-      <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px">✕</button>
+    <div class="chat-contacts-header">
+      <span class="chat-contacts-header-title">💬 Chats</span>
+      <button onclick="toggleChat()" style="background:none;border:none;color:#8696a0;font-size:1.1rem;cursor:pointer;padding:2px">✕</button>
     </div>
-    <div class="chat-tab-bar">
-      <div class="chat-tab active" id="tabPrivate" onclick="switchChatTab('private')">🔒 Supervisor</div>
-      <div class="chat-tab" id="tabGroup" onclick="switchChatTab('group')">👥 Equipo</div>
+    <input class="chat-search" id="chatSearch" placeholder="🔍 Buscar contacto..." oninput="filterChatContacts(this.value)">
+    <div id="chatContactsList" style="overflow-y:auto;flex:1"></div>
+  </div>
+  <!-- Right: active conversation -->
+  <div id="chatMain">
+    <div class="chat-main-header" id="chatMainHeader">
+      <div class="chat-main-avatar" id="chatMainAvatar">G</div>
+      <div>
+        <div class="chat-main-name" id="chatMainName">Equipo</div>
+        <div class="chat-main-status" id="chatMainStatus">Canal grupal</div>
+      </div>
+      <button class="chat-main-close" onclick="toggleChat()">✕</button>
     </div>
     <div class="chat-messages" id="chatMessages">
-      <div class="chat-empty">No hay mensajes aún.<br>Di hola 👋</div>
+      <div class="chat-empty">Selecciona un chat para comenzar 👆</div>
     </div>
     <div class="chat-input-row">
       <input class="chat-input" id="chatInput" placeholder="Escribe un mensaje..."
         onkeydown="if(event.key==='Enter')sendChatMsg()">
-      <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
+      <button class="chat-send-btn" onclick="sendChatMsg()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -6610,90 +6716,194 @@ window.addEventListener('beforeunload', () => {
 // ═══════════════════════════════════════════
 // INTERNAL CHAT SYSTEM
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// WHATSAPP-STYLE CHAT SYSTEM
+// ═══════════════════════════════════════════
 let chatOpen = false;
-let chatTab = 'private'; // 'private' | 'group'
+let chatTab = 'group'; // active conversation: 'group' | username
 let chatPollingInterval = null;
-let chatLastTs = { private: 0, group: 0 };
-let chatUnreadCount = { private: 0, group: 0 };
-let chatMessages = { private: [], group: [] };
+let chatLastTs = { group: 0 };
+let chatUnreadCount = {};
+let chatMessages = { group: [] }; // { group: [], username: [] }
+let _chatContacts = []; // loaded from server
 
+// ── Open/close chat ──────────────────────────────────────────
 function toggleChat() {
   chatOpen = !chatOpen;
   const panel = document.getElementById('chatPanel');
   if(chatOpen) {
-    refreshOnlineAgents();
     panel.classList.add('open');
-    // Reset unread for current tab
-    chatUnreadCount[chatTab] = 0;
-    updateChatUnreadBadge();
-    scrollChatToBottom();
+    refreshOnlineAgents();
     startChatPolling();
+    openChatConversation(chatTab);
   } else {
     panel.classList.remove('open');
   }
 }
 
-function switchChatTab(tab) {
+// ── Open a specific conversation ─────────────────────────────
+function openChatConversation(tab) {
   chatTab = tab;
-  document.getElementById('tabPrivate').classList.toggle('active', tab === 'private');
-  document.getElementById('tabGroup').classList.toggle('active', tab === 'group');
+  if(!chatMessages[tab]) chatMessages[tab] = [];
+  if(chatLastTs[tab] === undefined) chatLastTs[tab] = 0;
   chatUnreadCount[tab] = 0;
+
+  // Update header
+  var nameEl   = document.getElementById('chatMainName');
+  var statusEl = document.getElementById('chatMainStatus');
+  var avatarEl = document.getElementById('chatMainAvatar');
+  if(tab === 'group') {
+    if(nameEl)   nameEl.textContent   = 'Equipo';
+    if(statusEl) statusEl.textContent = 'Canal grupal';
+    if(avatarEl) { avatarEl.textContent = '👥'; avatarEl.className = 'chat-main-avatar group'; }
+  } else {
+    var contact = _chatContacts.find(function(c){ return c.name === tab; });
+    var isOnline = contact && contact.online;
+    if(nameEl)   nameEl.textContent   = tab;
+    if(statusEl) statusEl.textContent = isOnline ? '🟢 En línea' : 'Desconectado';
+    if(avatarEl) { avatarEl.textContent = tab[0].toUpperCase(); avatarEl.className = 'chat-main-avatar'; }
+  }
+
+  // Highlight active contact
+  document.querySelectorAll('.chat-contact-item').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-tab') === tab);
+  });
+
   updateChatUnreadBadge();
   renderChatMessages();
+  scrollChatToBottom();
 }
 
-function updateChatUnreadBadge() {
-  const total = chatUnreadCount.private + chatUnreadCount.group;
-  const badge = document.getElementById('chatUnread');
-  if(!badge) return;
-  badge.textContent = total > 9 ? '9+' : total;
-  badge.classList.toggle('show', total > 0);
+// ── Contacts list ─────────────────────────────────────────────
+function renderChatContacts() {
+  var list = document.getElementById('chatContactsList');
+  if(!list || !currentUser) return;
+
+  var contacts = _allUsers
+    .filter(function(u) { return u.username !== currentUser.username && u.username !== currentUser.name; })
+    .map(function(u) {
+      var isOnline = _onlineAgents.some(function(a) { return a.username === u.username; });
+      var lastMsg = (chatMessages[u.username] || []).slice(-1)[0];
+      var preview = lastMsg ? lastMsg.text.slice(0,28) + (lastMsg.text.length>28?'...':'') : '';
+      var unread  = chatUnreadCount[u.username] || 0;
+      return { name: u.username, role: u.role, online: isOnline, preview: preview, unread: unread };
+    });
+
+  _chatContacts = contacts;
+
+  // Group contact always first
+  var groupUnread = chatUnreadCount['group'] || 0;
+  var groupMsgs   = chatMessages['group'] || [];
+  var groupLast   = groupMsgs.slice(-1)[0];
+  var groupPreview = groupLast ? groupLast.text.slice(0,28) : 'Canal de equipo';
+
+  var groupHTML = '<div class="chat-contact-item' + (chatTab==='group'?' active':'') + '" data-tab="group" onclick="openChatConversation(&quot;group&quot;)">'
+    + '<div class="chat-main-avatar group" style="width:38px;height:38px;font-size:1rem">👥</div>'
+    + '<div class="chat-contact-info">'
+    + '<div class="chat-contact-name">Equipo</div>'
+    + '<div class="chat-contact-preview">' + escHtml(groupPreview) + '</div>'
+    + '</div>'
+    + '<div class="chat-contact-meta">'
+    + (groupUnread > 0 ? '<div class="chat-unread-badge show">' + groupUnread + '</div>' : '')
+    + '</div>'
+    + '</div>';
+
+  var contactsHTML = contacts.map(function(c) {
+    var initial = c.name[0].toUpperCase();
+    return '<div class="chat-contact-item' + (chatTab===c.name?' active':'') + '" data-tab="' + c.name + '" onclick="openChatConversation(this.getAttribute(&quot;data-tab&quot;))">'
+      + '<div class="chat-contact-avatar">' + initial
+      + (c.online ? '<div class="chat-online-badge"></div>' : '')
+      + '</div>'
+      + '<div class="chat-contact-info">'
+      + '<div class="chat-contact-name">' + escHtml(c.name) + '</div>'
+      + '<div class="chat-contact-preview">' + escHtml(c.preview || (c.online ? 'En línea' : '')) + '</div>'
+      + '</div>'
+      + '<div class="chat-contact-meta">'
+      + (c.unread > 0 ? '<div class="chat-unread-badge show">' + c.unread + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  list.innerHTML = groupHTML + contactsHTML;
 }
 
+function filterChatContacts(query) {
+  var items = document.querySelectorAll('#chatContactsList .chat-contact-item');
+  items.forEach(function(item) {
+    var name = (item.getAttribute('data-tab') || '').toLowerCase();
+    item.style.display = name.includes(query.toLowerCase()) ? '' : 'none';
+  });
+}
+
+// ── Render messages ───────────────────────────────────────────
 function renderChatMessages() {
-  const msgs = chatMessages[chatTab] || [];
-  const container = document.getElementById('chatMessages');
+  var msgs = chatMessages[chatTab] || [];
+  var container = document.getElementById('chatMessages');
   if(!container) return;
+
   if(msgs.length === 0) {
     container.innerHTML = '<div class="chat-empty">No hay mensajes aún.<br>Di hola 👋</div>';
     return;
   }
-  const myName = currentUser ? currentUser.name : '';
-  container.innerHTML = msgs.map(function(m) {
-    if(m.type === 'system') return '<div class="chat-msg system">' + escHtml(m.text) + '</div>';
-    const isMe = m.sender === myName;
-    return '<div class="chat-msg ' + (isMe ? 'mine' : 'theirs') + '">' +
-      (!isMe ? '<div style="font-size:0.68rem;font-weight:800;margin-bottom:3px;opacity:0.8">' + escHtml(m.sender) + '</div>' : '') +
-      escHtml(m.text) +
-      '<div class="chat-msg-meta">' + formatChatTime(m.ts) + '</div>' +
-    '</div>';
-  }).join('');
+
+  var myName = currentUser ? currentUser.name : '';
+  var lastDate = '';
+  var html = '';
+
+  msgs.forEach(function(m) {
+    // Date divider
+    var msgDate = m.ts ? new Date(m.ts).toLocaleDateString('es-CO', {day:'numeric',month:'short'}) : '';
+    if(msgDate && msgDate !== lastDate) {
+      html += '<div class="chat-date-divider"><span>' + msgDate + '</span></div>';
+      lastDate = msgDate;
+    }
+
+    if(m.type === 'system') {
+      html += '<div class="chat-msg-wrap"><div class="chat-msg system">' + escHtml(m.text) + '</div></div>';
+      return;
+    }
+
+    var isMe = m.sender === myName;
+    var time = formatChatTime(m.ts);
+    html += '<div class="chat-msg-wrap ' + (isMe?'mine':'theirs') + '">';
+    if(!isMe && chatTab === 'group') {
+      html += '<div style="font-size:0.65rem;font-weight:800;color:#00a884;margin-bottom:2px;margin-left:4px">' + escHtml(m.sender) + '</div>';
+    }
+    html += '<div class="chat-msg ' + (isMe?'mine':'theirs') + '" style="position:relative">';
+    if(isMe)  html += '<div class="chat-msg-tail-mine"></div>';
+    else      html += '<div class="chat-msg-tail-theirs"></div>';
+    html += escHtml(m.text);
+    html += '<div class="chat-msg-meta">' + time + (isMe ? ' ✓✓' : '') + '</div>';
+    html += '</div></div>';
+  });
+
+  container.innerHTML = html;
   scrollChatToBottom();
 }
 
 function scrollChatToBottom() {
-  const c = document.getElementById('chatMessages');
+  var c = document.getElementById('chatMessages');
   if(c) setTimeout(function(){ c.scrollTop = c.scrollHeight; }, 50);
 }
 
 function formatChatTime(ts) {
   if(!ts) return '';
-  var d = new Date(ts);
-  return d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+  return new Date(ts).toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
 }
 
 function escHtml(str) {
   return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── Send message ──────────────────────────────────────────────
 async function sendChatMsg() {
   if(!currentUser) return;
-  const input = document.getElementById('chatInput');
-  const text = (input.value || '').trim();
+  var input = document.getElementById('chatInput');
+  var text = (input.value || '').trim();
   if(!text) return;
   input.value = '';
 
-  const msg = {
+  var msg = {
     type: 'msg',
     sender: currentUser.name,
     role: currentUser.role,
@@ -6702,83 +6912,86 @@ async function sendChatMsg() {
     ts: Date.now()
   };
 
-  // Optimistic local add
+  if(!chatMessages[chatTab]) chatMessages[chatTab] = [];
   chatMessages[chatTab].push(msg);
   renderChatMessages();
+  renderChatContacts();
 
   try {
     await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         _secret: _APP_SECRET, action: 'chat_send', message: msg,
-        username: currentUser ? currentUser.username : '',
-        token: currentUser ? currentUser.sessionToken : ''
+        username: currentUser.username,
+        token: currentUser.sessionToken
       })
     });
-  } catch(e) {
-    console.log('Chat send error:', e);
-  }
+  } catch(e) {}
 }
 
+// ── Polling ───────────────────────────────────────────────────
 async function pollChat() {
   if(!currentUser) return;
   try {
-    const resp = await fetch(SESSIONS_URL, {
+    var sinceObj = {};
+    Object.keys(chatLastTs).forEach(function(k){ sinceObj[k] = chatLastTs[k]; });
+    var resp = await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({ _secret: _APP_SECRET,
-        action: 'chat_fetch',
-        since_private: chatLastTs.private,
-        since_group: chatLastTs.group,
-        user: currentUser.name,
-        role: currentUser.role
+      body: JSON.stringify({
+        _secret: _APP_SECRET, action: 'chat_fetch',
+        since_private: chatLastTs['private'] || 0,
+        since_group: chatLastTs['group'] || 0,
+        user: currentUser.name, role: currentUser.role
       })
     });
-    const data = JSON.parse(await resp.text());
+    var data = JSON.parse(await resp.text());
     if(data.error) return;
 
+    var myName = currentUser ? currentUser.name : '';
     ['private','group'].forEach(function(ch) {
-      const incoming = (data[ch] || []);
-      if(incoming.length === 0) return;
-      const myName = currentUser ? currentUser.name : '';
+      var incoming = data[ch] || [];
       incoming.forEach(function(m) {
-        // Deduplicate by ts + sender
-        const exists = chatMessages[ch].some(function(x){ return x.ts === m.ts && x.sender === m.sender; });
+        var tab = ch === 'private' ? (m.sender === myName ? (m.channel || ch) : m.sender) : 'group';
+        if(!chatMessages[tab]) chatMessages[tab] = [];
+        if(!chatLastTs[tab]) chatLastTs[tab] = 0;
+        var exists = chatMessages[tab].some(function(x){ return x.ts===m.ts && x.sender===m.sender; });
         if(!exists) {
-          chatMessages[ch].push(m);
-          chatLastTs[ch] = Math.max(chatLastTs[ch], m.ts);
-          // Count unread if tab not active or chat closed
-          if(!chatOpen || chatTab !== ch) {
-            if(m.sender !== myName) chatUnreadCount[ch]++;
+          chatMessages[tab].push(m);
+          chatLastTs[tab] = Math.max(chatLastTs[tab]||0, m.ts);
+          if(!chatOpen || chatTab !== tab) {
+            if(m.sender !== myName) {
+              chatUnreadCount[tab] = (chatUnreadCount[tab]||0) + 1;
+            }
           }
         }
       });
     });
 
     updateChatUnreadBadge();
-    if(chatOpen) renderChatMessages();
+    if(chatOpen) { renderChatMessages(); renderChatContacts(); }
+  } catch(e) {}
+}
 
-
-  } catch(e) {
-    // silent fail
-  }
+function updateChatUnreadBadge() {
+  var total = Object.values(chatUnreadCount).reduce(function(a,b){ return a+(b||0); }, 0);
+  var badge = document.getElementById('chatUnread');
+  if(!badge) return;
+  badge.textContent = total > 9 ? '9+' : total;
+  badge.classList.toggle('show', total > 0);
 }
 
 function startChatPolling() {
   if(chatPollingInterval) return;
   chatPollingInterval = setInterval(pollChat, 15000);
-  pollChat(); // immediate first poll
+  pollChat();
 }
 
 function stopChatPolling() {
   if(chatPollingInterval) { clearInterval(chatPollingInterval); chatPollingInterval = null; }
 }
 
-// Update chat header subtitle
 function updateChatHeader() {
-  const sub = document.getElementById('chatHeaderSub');
-  if(!sub || !currentUser) return;
-  const isAdmin = currentUser.role === 'admin';
-  sub.textContent = isAdmin ? 'Vista supervisor — agentes conectados' : 'Conectado como ' + currentUser.name;
+  // No-op — header updated in openChatConversation
 }
 
 // ═══════════════════════════════════════════
