@@ -1542,31 +1542,31 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 #salesHeaderStrip.show { display: flex; }
 .shs-btn {
   display: flex; align-items: center; justify-content: flex-end;
-  overflow: hidden; width: 44px;
+  overflow: hidden; width: 88px;
   color: #fff; text-decoration: none;
-  border-radius: 10px 0 0 10px;
-  padding: 10px 10px;
+  border-radius: 20px 0 0 20px;
+  padding: 20px 20px;
   box-shadow: -2px 2px 12px rgba(0,0,0,0.25);
   transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
   white-space: nowrap; cursor: pointer;
   font-family: 'Nunito', sans-serif;
-  font-weight: 800; font-size: 0.78rem;
-  gap: 8px; border: none; flex-direction: row-reverse;
+  font-weight: 800; font-size: 0.88rem;
+  gap: 12px; border: none; flex-direction: row-reverse;
 }
 .shs-btn:hover {
-  width: 160px;
+  width: 210px;
   box-shadow: -4px 4px 20px rgba(0,0,0,0.3);
 }
-.shs-icon  { font-size: 1.3rem; flex-shrink: 0; }
-.shs-label { opacity: 0; transition: opacity 0.15s 0.1s; }
+.shs-icon  { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+.shs-label { opacity: 0; transition: opacity 0.15s 0.1s; font-size: 0.88rem; }
 .shs-btn:hover .shs-label { opacity: 1; }
 .shs-counter {
   display: flex; flex-direction: column; align-items: flex-end;
   opacity: 0; transition: opacity 0.15s 0.1s;
 }
 .shs-btn:hover .shs-counter { opacity: 1; }
-.shs-num   { font-size: 1rem; font-weight: 900; line-height: 1; }
-.shs-sub   { font-size: 0.6rem; font-weight: 800; opacity: 0.8; }
+.shs-num   { font-size: 1.4rem; font-weight: 900; line-height: 1; }
+.shs-sub   { font-size: 0.72rem; font-weight: 800; opacity: 0.8; }
 .shs-sales { background: linear-gradient(135deg,#1B5E20,#2E7D32); }
 .shs-sup   { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
 
@@ -7079,28 +7079,46 @@ async function loadSupStatus() {
 // ═══════════════════════════════════════════
 var _onlineAgents = [];
 
+var _allUsers = [];
+
+async function refreshOnlineAgents() {
+  try {
+    // Load all users if not yet loaded
+    if(_allUsers.length === 0) {
+      var uresp = await fetch(SESSIONS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ _secret: _APP_SECRET, action: 'get_users' })
+      });
+      var uresult = JSON.parse(await uresp.text());
+      _allUsers = uresult.users || [];
+    }
+
+    // Load online agents
+    var resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'get_supervisor_status' })
+    });
+    var result = JSON.parse(await resp.text());
+    _onlineAgents = result.agents || [];
+    renderChatContacts();
+  } catch(e) {}
+}
+
 function renderChatContacts() {
   var list = document.getElementById('chatContactsList');
   if(!list || !currentUser) return;
 
-  // Build contacts from USERS db + online status
-  var contacts = [];
-
-  // Add supervisor/admin contacts
-  if(db && db.users) {
-    db.users.forEach(function(u) {
-      if(u.username === currentUser.username) return; // skip self
+  // Build contacts from all users
+  var contacts = _allUsers
+    .filter(function(u) { return u.username !== currentUser.username && u.username !== currentUser.name; })
+    .map(function(u) {
       var isOnline = _onlineAgents.some(function(a) {
-        return a.username === u.username || a.username === u.name;
+        return a.username === u.username;
       });
-      contacts.push({ name: u.name || u.username, role: u.role, online: isOnline });
+      return { name: u.username, role: u.role, online: isOnline };
     });
-  } else {
-    // Fallback: show supervisor
-    contacts.push({ name: 'Supervisor', role: 'supervisor', online: false });
-  }
 
-  // Sort: online first
+  // Sort: online first, then alphabetically
   contacts.sort(function(a,b) {
     if(a.online && !b.online) return -1;
     if(!a.online && b.online) return 1;
@@ -7113,27 +7131,16 @@ function renderChatContacts() {
   }
 
   list.innerHTML = contacts.map(function(c) {
-    var roleLabel = c.role === 'supervisor' || c.role === 'admin' ? 'SUP' : 'AGT';
-    return '<div class="chat-contact-item" onclick="switchChatTab(&quot;private&quot;)">'
+    var roleLabel = (c.role === 'supervisor' || c.role === 'admin') ? 'SUP' : 'AGT';
+    var onlineText = c.online ? ' • 🟢' : '';
+    return '<div class="chat-contact-item">'
       + '<div class="chat-contact-dot' + (c.online ? ' online' : '') + '"></div>'
       + '<div>'
       + '<div class="chat-contact-name">' + c.name + '</div>'
-      + '<div class="chat-contact-role">' + roleLabel + (c.online ? ' • en línea' : '') + '</div>'
+      + '<div class="chat-contact-role">' + roleLabel + onlineText + '</div>'
       + '</div>'
       + '</div>';
   }).join('');
-}
-
-async function refreshOnlineAgents() {
-  try {
-    var resp = await fetch(SESSIONS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ _secret: _APP_SECRET, action: 'get_supervisor_status' })
-    });
-    var result = JSON.parse(await resp.text());
-    _onlineAgents = result.agents || [];
-    renderChatContacts();
-  } catch(e) {}
 }
 
 // ═══════════════════════════════════════════
