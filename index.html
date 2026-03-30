@@ -2433,32 +2433,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 </div><!-- /appScreen -->
 
-<!-- ── RIGHT SIDE STRIP (outside appScreen so always visible when shown) ── -->
-<div id="salesHeaderStrip">
-  <button class="shs-btn" style="background:linear-gradient(135deg,#0D47A1,#1565C0)" onclick="openCharts()" title="Ver gráficas">
-    <span class="shs-label">Gráficas</span>
-    <span class="shs-icon">📈</span>
-  </button>
-  <button class="shs-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;opacity:0;transition:opacity 0.15s 0.1s" class="shs-sales-info">
-      <div style="display:flex;align-items:baseline;gap:5px">
-        <span style="font-size:0.65rem;font-weight:800;opacity:0.8">hoy</span>
-        <span style="font-size:1.5rem;font-weight:900;line-height:1" id="scDaily">0</span>
-      </div>
-      <span style="font-size:0.65rem;font-weight:800;opacity:0.8">Sem: <span id="scWeekly">0</span> · Mes: <span id="scMonthly">0</span></span>
-      <span style="font-size:0.6rem;font-weight:800;opacity:0.6">Mis ventas</span>
-    </div>
-    <span class="shs-icon">💰</span>
-  </button>
-  <button id="supPanelBtn" class="shs-btn shs-sup" onclick="openSupPanel()" title="Agentes en línea" style="display:none">
-    <span class="shs-label">Agentes</span>
-    <span class="shs-icon">👥</span>
-  </button>
-  <button class="shs-btn" style="background:linear-gradient(135deg,#1a1a2e,#16213e)" onclick="openHistory()" title="Mi Historial">
-    <span class="shs-label">Mi Historial</span>
-    <span class="shs-icon">📊</span>
-  </button>
-</div>
+
 
 <!-- ════════════════════════════════
   ADMIN DRAWER
@@ -6572,10 +6547,28 @@ window.addEventListener('beforeunload', () => {
     <span class="qlink-icon">⚡</span>
     <span class="qlink-label">XOOM Energy</span>
   </a>
-  <a class="qlink-btn qlink-tempedge" href="https://tempedge.readymode.com/login_new/?then=/" target="_blank" rel="noopener" title="TempEdge">
+  <a class="qlink-btn qlink-tempedge" href="https://tempedge.readymode.com/login_new/?then=/" target="_blank" rel="noopener" title="Readymode">
     <span class="qlink-icon">👥</span>
     <span class="qlink-label">Readymode</span>
   </a>
+  <button class="qlink-btn" style="background:linear-gradient(135deg,#0D47A1,#1565C0)" onclick="openCharts()" title="Gráficas">
+    <span class="qlink-icon">📈</span>
+    <span class="qlink-label">Gráficas</span>
+  </button>
+  <button class="qlink-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
+    <span class="qlink-icon">💰</span>
+    <span class="qlink-label">
+      <span id="scDaily">0</span> hoy · Sem: <span id="scWeekly">0</span> · Mes: <span id="scMonthly">0</span>
+    </span>
+  </button>
+  <button id="supPanelBtn" class="qlink-btn" style="background:linear-gradient(135deg,#6A1B9A,#4A148C);display:none" onclick="openSupPanel()" title="Agentes">
+    <span class="qlink-icon">🧑‍💼</span>
+    <span class="qlink-label">Agentes</span>
+  </button>
+  <button class="qlink-btn" style="background:linear-gradient(135deg,#1a1a2e,#16213e)" onclick="openHistory()" title="Mi Historial">
+    <span class="qlink-icon">📊</span>
+    <span class="qlink-label">Mi Historial</span>
+  </button>
 </div>
 
 <!-- ═══ FLOATING CHAT ═══ -->
@@ -6993,16 +6986,13 @@ function renderHistoryBody() {
 var _salesStatsTimer = null;
 
 function showSalesCounter() {
-  var el = document.getElementById('salesHeaderStrip');
-  if(el) el.classList.add('show');
+  // quickLinks is always shown at login — just start loading stats
   loadSalesStats();
   if(_salesStatsTimer) clearInterval(_salesStatsTimer);
   _salesStatsTimer = setInterval(loadSalesStats, 5 * 60 * 1000);
 }
 
 function hideSalesCounter() {
-  var el = document.getElementById('salesHeaderStrip');
-  if(el) el.classList.remove('show');
   if(_salesStatsTimer) { clearInterval(_salesStatsTimer); _salesStatsTimer = null; }
 }
 
@@ -7099,6 +7089,9 @@ function initSupPanel() {
   var isSuper = currentUser.role === 'supervisor' || currentUser.role === 'admin';
   var btn = document.getElementById('supPanelBtn');
   if(btn) btn.style.display = isSuper ? 'flex' : 'none';
+  // Ensure quickLinks is visible
+  var ql = document.getElementById('quickLinks');
+  if(ql) ql.classList.add('show');
 }
 
 function openSupPanel() {
