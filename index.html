@@ -7114,7 +7114,7 @@ function renderChatContacts() {
 
   list.innerHTML = contacts.map(function(c) {
     var roleLabel = c.role === 'supervisor' || c.role === 'admin' ? 'SUP' : 'AGT';
-    return '<div class="chat-contact-item" onclick="switchChatTab('private')">'
+    return '<div class="chat-contact-item" onclick="switchChatTab(&quot;private&quot;)">'
       + '<div class="chat-contact-dot' + (c.online ? ' online' : '') + '"></div>'
       + '<div>'
       + '<div class="chat-contact-name">' + c.name + '</div>'
