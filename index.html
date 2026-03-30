@@ -1295,6 +1295,62 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 
 
+/* ── SALES CHARTS PAGE ───────────────────────── */
+#chartsOverlay {
+  display: none; position: fixed; inset: 0; z-index: 9985;
+  background: var(--bg); flex-direction: column;
+  animation: overlayFadeIn 0.3s ease;
+}
+#chartsOverlay.show { display: flex; }
+.charts-header {
+  background: linear-gradient(135deg,#1B5E20,#2E7D32);
+  padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+.charts-title { color: #fff; font-size: 1.1rem; font-weight: 900; flex: 1; }
+.charts-close {
+  background: rgba(255,255,255,0.1); border: none; color: #fff;
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+}
+.charts-body { flex: 1; overflow-y: auto; padding: 20px; }
+.chart-period-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px; justify-content: center;
+}
+.chart-period-tab {
+  padding: 8px 20px; border-radius: 20px; border: 2px solid var(--border);
+  font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: all 0.15s;
+  color: var(--text-muted); background: var(--card);
+}
+.chart-period-tab.active {
+  background: #2E7D32; color: #fff; border-color: #2E7D32;
+}
+.chart-card {
+  background: var(--card); border-radius: 16px; padding: 20px;
+  margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.chart-card-title {
+  font-size: 0.78rem; font-weight: 900; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px;
+}
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar {
+  width: 100%; background: linear-gradient(180deg,#27ae60,#1e8449);
+  border-radius: 6px 6px 0 0; min-height: 4px;
+  transition: height 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+}
+.bar-val { font-size: 0.65rem; font-weight: 900; color: var(--text); }
+.bar-label { font-size: 0.58rem; color: var(--text-muted); font-weight: 700; text-align: center; }
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-row-label { font-size: 0.8rem; font-weight: 800; color: var(--text); }
+.stat-row-val   { font-size: 1.1rem; font-weight: 900; color: #27ae60; }
+
 /* ── AGENT HISTORY PANEL ────────────────────── */
 /* Block print and copy on history */
 @media print {
@@ -1476,6 +1532,44 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .action-bar-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 .action-bar-btn:active { transform: translateY(0); filter: brightness(0.95); }
 
+/* ── SALES HEADER STRIP (right side) ────────── */
+#salesHeaderStrip {
+  position: fixed; right: 0; top: 50%;
+  transform: translateY(-50%);
+  z-index: 888; display: none;
+  flex-direction: column; gap: 6px; padding: 8px 0;
+}
+#salesHeaderStrip.show { display: flex; }
+.shs-btn {
+  display: flex; align-items: center; justify-content: flex-end;
+  overflow: hidden; width: 44px;
+  color: #fff; text-decoration: none;
+  border-radius: 10px 0 0 10px;
+  padding: 10px 10px;
+  box-shadow: -2px 2px 12px rgba(0,0,0,0.25);
+  transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+  white-space: nowrap; cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800; font-size: 0.78rem;
+  gap: 8px; border: none; flex-direction: row-reverse;
+}
+.shs-btn:hover {
+  width: 160px;
+  box-shadow: -4px 4px 20px rgba(0,0,0,0.3);
+}
+.shs-icon  { font-size: 1.3rem; flex-shrink: 0; }
+.shs-label { opacity: 0; transition: opacity 0.15s 0.1s; }
+.shs-btn:hover .shs-label { opacity: 1; }
+.shs-counter {
+  display: flex; flex-direction: column; align-items: flex-end;
+  opacity: 0; transition: opacity 0.15s 0.1s;
+}
+.shs-btn:hover .shs-counter { opacity: 1; }
+.shs-num   { font-size: 1rem; font-weight: 900; line-height: 1; }
+.shs-sub   { font-size: 0.6rem; font-weight: 800; opacity: 0.8; }
+.shs-sales { background: linear-gradient(135deg,#1B5E20,#2E7D32); }
+.shs-sup   { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
+
 /* ── SUPERVISOR PANEL ───────────────────────── */
 #supPanelBtn {
   display: none;
@@ -1648,15 +1742,50 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 #chatPanel {
   position: fixed; bottom: 180px; right: 20px; z-index: 9998;
-  width: min(380px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
   height: min(580px, calc(100vh - 220px));
   background: var(--card); border-radius: 20px;
   box-shadow: 0 12px 48px rgba(0,0,0,0.32);
-  display: flex; flex-direction: column;
+  display: flex; flex-direction: row;
   transform: scale(0.88) translateY(16px); opacity: 0;
   pointer-events: none;
   transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
   overflow: hidden;
+}
+/* Contacts sidebar */
+#chatContacts {
+  width: 130px; flex-shrink: 0;
+  background: #16213e; display: flex; flex-direction: column;
+  border-radius: 20px 0 0 20px; overflow: hidden;
+}
+.chat-contacts-title {
+  padding: 14px 10px 8px;
+  font-size: 0.62rem; font-weight: 900; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.chat-contact-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; cursor: pointer;
+  transition: background 0.15s; border-radius: 8px; margin: 2px 6px;
+}
+.chat-contact-item:hover { background: rgba(255,255,255,0.08); }
+.chat-contact-item.active { background: rgba(255,255,255,0.15); }
+.chat-contact-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #555; flex-shrink: 0;
+}
+.chat-contact-dot.online { background: #27ae60; animation: pulse 2s infinite; }
+.chat-contact-name {
+  font-size: 0.68rem; font-weight: 800; color: rgba(255,255,255,0.85);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat-contact-role {
+  font-size: 0.56rem; color: rgba(255,255,255,0.4); font-weight: 700;
+}
+/* Main chat area */
+#chatMain {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 0 20px 20px 0;
 }
 #chatPanel.open {
   transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
@@ -1802,23 +1931,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="userLabel" style="display:flex;align-items:center;gap:6px">—</div>
       </div>
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
-      <div id="salesCounter" onclick="openSalesStats()" title="Ver estadísticas de ventas">
-        <div style="text-align:center">
-          <div class="sc-label">Hoy</div>
-          <div class="sc-num" id="scDaily">0</div>
-        </div>
-        <div class="sc-divider"></div>
-        <div style="text-align:center">
-          <div class="sc-label">Semana</div>
-          <div class="sc-num" id="scWeekly">0</div>
-        </div>
-        <div class="sc-divider"></div>
-        <div style="text-align:center">
-          <div class="sc-label">Mes</div>
-          <div class="sc-num" id="scMonthly">0</div>
-        </div>
-      </div>
-      <button id="supPanelBtn" onclick="openSupPanel()" title="Panel Supervisor">👥 Agentes</button>
+
       <button class="hbtn" id="historyBtn" onclick="openHistory()">📊 Mi Historial</button>
       <button class="hbtn danger" onclick="doLogout()">Salir</button>
     </div>
@@ -2167,6 +2280,29 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   <!-- Floating step avatar -->
   <div class="step-avatar-float" id="stepAvatarFloat" style="display:none" onclick="bounceAvatar()"></div>
 
+<!-- ── RIGHT SIDE STRIP ── -->
+<div id="salesHeaderStrip">
+  <button class="shs-btn" style="background:linear-gradient(135deg,#0D47A1,#1565C0)" onclick="openCharts()" title="Ver gráficas">
+    <span class="shs-label">Gráficas</span>
+    <span class="shs-icon">📈</span>
+  </button>
+  <button class="shs-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
+    <div class="shs-counter">
+      <div class="shs-num" id="scDaily">0</div>
+      <div class="shs-sub">Hoy</div>
+    </div>
+    <div class="shs-label" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+      <span style="font-size:0.65rem;opacity:0.8">Sem: <span id="scWeekly">0</span></span>
+      <span style="font-size:0.65rem;opacity:0.8">Mes: <span id="scMonthly">0</span></span>
+    </div>
+    <span class="shs-icon">💰</span>
+  </button>
+  <button id="supPanelBtn" class="shs-btn shs-sup" onclick="openSupPanel()" title="Agentes en línea" style="display:none">
+    <span class="shs-label">Agentes</span>
+    <span class="shs-icon">👥</span>
+  </button>
+</div>
+
 <!-- ── SUPERVISOR PANEL ── -->
 <div id="supOverlay" onclick="if(event.target===this)closeSupPanel()">
   <div class="sup-panel">
@@ -2211,6 +2347,57 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
     </div>
     <div style="text-align:center;margin-top:6px">
       <span style="font-size:0.68rem;color:var(--text-muted);font-weight:700" id="ssLastUpdate"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── SALES CHARTS PAGE ── -->
+<div id="chartsOverlay">
+  <div class="charts-header">
+    <div>
+      <div class="charts-title">📈 Mis Ventas</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:0.75rem;font-weight:700" id="chartsAgentName"></div>
+    </div>
+    <button class="charts-close" onclick="closeCharts()">✕</button>
+  </div>
+  <div class="charts-body">
+    <div class="chart-period-tabs">
+      <div class="chart-period-tab active" id="cperiod-week"  onclick="switchChartPeriod('week')">Esta Semana</div>
+      <div class="chart-period-tab"        id="cperiod-month" onclick="switchChartPeriod('month')">Este Mes</div>
+      <div class="chart-period-tab"        id="cperiod-all"   onclick="switchChartPeriod('all')">Histórico</div>
+    </div>
+    <!-- Summary stats -->
+    <div class="chart-card">
+      <div class="chart-card-title">📊 Resumen</div>
+      <div class="stat-row">
+        <div class="stat-row-label">Total de servicios</div>
+        <div class="stat-row-val" id="cstat-total">—</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-row-label">Promedio diario</div>
+        <div class="stat-row-val" id="cstat-avg">—</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-row-label">Mejor día</div>
+        <div class="stat-row-val" id="cstat-best">—</div>
+      </div>
+    </div>
+    <!-- Bar chart -->
+    <div class="chart-card">
+      <div class="chart-card-title">📅 Ventas por día</div>
+      <div class="bar-chart" id="cBarChart">
+        <div style="text-align:center;width:100%;color:var(--text-muted);font-size:0.8rem">Cargando...</div>
+      </div>
+    </div>
+    <!-- By supplier -->
+    <div class="chart-card">
+      <div class="chart-card-title">⚡ Por Supplier</div>
+      <div id="cSupplierList"></div>
+    </div>
+    <!-- By state -->
+    <div class="chart-card">
+      <div class="chart-card-title">📍 Por Estado</div>
+      <div id="cStateList"></div>
     </div>
   </div>
 </div>
@@ -3137,7 +3324,7 @@ function doLogout() {
   if(ql2) ql2.classList.remove('show');
   hideSalesCounter();
   var supBtn2 = document.getElementById('supPanelBtn');
-  if(supBtn2) supBtn2.classList.remove('show');
+  if(supBtn2) supBtn2.style.display = 'none';
   closeSupPanel();
   var panel = document.getElementById('chatPanel');
   if(panel) panel.classList.remove('open');
@@ -3159,6 +3346,18 @@ function doLogout() {
   const dncPhone = document.getElementById('dncPhone');
   if(dncPhone) dncPhone.value = '';
   currentStep = 0;
+  // Force all panels to step 0 — clear browser history state
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===0));
+  document.querySelectorAll('.step-item').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if(i===0) s.classList.add('active');
+  });
+  // Clear any open overlays
+  ['historyOverlay','salesStatsOverlay','supOverlay'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if(el) el.classList.remove('show');
+  });
+  try { history.replaceState({ step: 0 }, ''); } catch(e) {}
 }
 
 // ════════════════════════════════════════════
@@ -6308,24 +6507,32 @@ window.addEventListener('beforeunload', () => {
 </button>
 
 <div id="chatPanel">
-  <div class="chat-header">
-    <div>
-      <div class="chat-header-title">💬 Chat Interno</div>
-      <div class="chat-header-sub" id="chatHeaderSub">Conectando...</div>
+  <!-- Contacts sidebar -->
+  <div id="chatContacts">
+    <div class="chat-contacts-title">Contactos</div>
+    <div id="chatContactsList"></div>
+  </div>
+  <!-- Main chat area -->
+  <div id="chatMain">
+    <div class="chat-header">
+      <div>
+        <div class="chat-header-title">💬 Chat Interno</div>
+        <div class="chat-header-sub" id="chatHeaderSub">Conectando...</div>
+      </div>
+      <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px">✕</button>
     </div>
-    <button onclick="toggleChat()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px">✕</button>
-  </div>
-  <div class="chat-tab-bar">
-    <div class="chat-tab active" id="tabPrivate" onclick="switchChatTab('private')">🔒 Supervisor</div>
-    <div class="chat-tab" id="tabGroup" onclick="switchChatTab('group')">👥 Equipo</div>
-  </div>
-  <div class="chat-messages" id="chatMessages">
-    <div class="chat-empty">No hay mensajes aún.<br>Di hola 👋</div>
-  </div>
-  <div class="chat-input-row">
-    <input class="chat-input" id="chatInput" placeholder="Escribe un mensaje..."
-      onkeydown="if(event.key==='Enter')sendChatMsg()">
-    <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
+    <div class="chat-tab-bar">
+      <div class="chat-tab active" id="tabPrivate" onclick="switchChatTab('private')">🔒 Supervisor</div>
+      <div class="chat-tab" id="tabGroup" onclick="switchChatTab('group')">👥 Equipo</div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-empty">No hay mensajes aún.<br>Di hola 👋</div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Escribe un mensaje..."
+        onkeydown="if(event.key==='Enter')sendChatMsg()">
+      <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
+    </div>
   </div>
 </div>
 <script>
@@ -6343,6 +6550,7 @@ function toggleChat() {
   chatOpen = !chatOpen;
   const panel = document.getElementById('chatPanel');
   if(chatOpen) {
+    refreshOnlineAgents();
     panel.classList.add('open');
     // Reset unread for current tab
     chatUnreadCount[chatTab] = 0;
@@ -6703,16 +6911,15 @@ function renderHistoryBody() {
 var _salesStatsTimer = null;
 
 function showSalesCounter() {
-  var el = document.getElementById('salesCounter');
+  var el = document.getElementById('salesHeaderStrip');
   if(el) el.classList.add('show');
   loadSalesStats();
-  // Refresh every 5 minutes
   if(_salesStatsTimer) clearInterval(_salesStatsTimer);
   _salesStatsTimer = setInterval(loadSalesStats, 5 * 60 * 1000);
 }
 
 function hideSalesCounter() {
-  var el = document.getElementById('salesCounter');
+  var el = document.getElementById('salesHeaderStrip');
   if(el) el.classList.remove('show');
   if(_salesStatsTimer) { clearInterval(_salesStatsTimer); _salesStatsTimer = null; }
 }
@@ -6809,7 +7016,7 @@ function initSupPanel() {
   if(!currentUser) return;
   var isSuper = currentUser.role === 'supervisor' || currentUser.role === 'admin';
   var btn = document.getElementById('supPanelBtn');
-  if(btn) btn.classList.toggle('show', isSuper);
+  if(btn) btn.style.display = isSuper ? 'flex' : 'none';
 }
 
 function openSupPanel() {
@@ -6863,6 +7070,211 @@ async function loadSupStatus() {
 
   } catch(e) {
     if(list) list.innerHTML = '<div class="sup-empty">❌ Error al cargar agentes</div>';
+  }
+}
+
+// ═══════════════════════════════════════════
+// CHAT CONTACTS SIDEBAR
+// ═══════════════════════════════════════════
+var _onlineAgents = [];
+
+function renderChatContacts() {
+  var list = document.getElementById('chatContactsList');
+  if(!list || !currentUser) return;
+
+  // Build contacts from USERS db + online status
+  var contacts = [];
+
+  // Add supervisor/admin contacts
+  if(db && db.users) {
+    db.users.forEach(function(u) {
+      if(u.username === currentUser.username) return; // skip self
+      var isOnline = _onlineAgents.some(function(a) {
+        return a.username === u.username || a.username === u.name;
+      });
+      contacts.push({ name: u.name || u.username, role: u.role, online: isOnline });
+    });
+  } else {
+    // Fallback: show supervisor
+    contacts.push({ name: 'Supervisor', role: 'supervisor', online: false });
+  }
+
+  // Sort: online first
+  contacts.sort(function(a,b) {
+    if(a.online && !b.online) return -1;
+    if(!a.online && b.online) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  if(contacts.length === 0) {
+    list.innerHTML = '<div style="padding:10px;font-size:0.65rem;color:rgba(255,255,255,0.3);text-align:center">Sin contactos</div>';
+    return;
+  }
+
+  list.innerHTML = contacts.map(function(c) {
+    var roleLabel = c.role === 'supervisor' || c.role === 'admin' ? 'SUP' : 'AGT';
+    return '<div class="chat-contact-item" onclick="switchChatTab('private')">'
+      + '<div class="chat-contact-dot' + (c.online ? ' online' : '') + '"></div>'
+      + '<div>'
+      + '<div class="chat-contact-name">' + c.name + '</div>'
+      + '<div class="chat-contact-role">' + roleLabel + (c.online ? ' • en línea' : '') + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+async function refreshOnlineAgents() {
+  try {
+    var resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'get_supervisor_status' })
+    });
+    var result = JSON.parse(await resp.text());
+    _onlineAgents = result.agents || [];
+    renderChatContacts();
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+// SALES CHARTS
+// ═══════════════════════════════════════════
+var _chartPeriod = 'week';
+var _chartData   = null;
+
+function openCharts() {
+  var overlay = document.getElementById('chartsOverlay');
+  var nameEl  = document.getElementById('chartsAgentName');
+  if(!overlay) return;
+  if(nameEl && currentUser) nameEl.textContent = currentUser.name;
+  overlay.classList.add('show');
+  loadChartData();
+}
+
+function closeCharts() {
+  var overlay = document.getElementById('chartsOverlay');
+  if(overlay) overlay.classList.remove('show');
+}
+
+function switchChartPeriod(period) {
+  _chartPeriod = period;
+  document.querySelectorAll('.chart-period-tab').forEach(function(t) {
+    t.classList.toggle('active', t.id === 'cperiod-' + period);
+  });
+  renderCharts();
+}
+
+async function loadChartData() {
+  try {
+    var resp = await fetch(SESSIONS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        _secret: _APP_SECRET,
+        action: 'get_agent_sales',
+        agent: currentUser ? currentUser.name : ''
+      })
+    });
+    var result = JSON.parse(await resp.text());
+    _chartData = result.sales || [];
+    renderCharts();
+  } catch(e) {
+    console.error('Chart load error:', e);
+  }
+}
+
+function renderCharts() {
+  if(!_chartData) return;
+  var now = new Date();
+  var sales = _chartData;
+
+  // Filter by period
+  var filtered = sales.filter(function(s) {
+    if(!s.date) return false;
+    var d = new Date(s.date);
+    if(_chartPeriod === 'week') {
+      var diff = (now - d) / (1000*60*60*24);
+      return diff <= 7;
+    }
+    if(_chartPeriod === 'month') {
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }
+    return true; // all
+  });
+
+  // Count services (electric+gas = 2)
+  var totalSvcs = filtered.reduce(function(acc, s) {
+    var isGas = s.gasUtil && s.gasUtil !== '—' && s.gasUtil !== '';
+    return acc + (isGas ? 2 : 1);
+  }, 0);
+
+  // Daily breakdown
+  var byDay = {};
+  filtered.forEach(function(s) {
+    var day = (s.date || '').substring(0, 10);
+    if(!day) return;
+    var isGas = s.gasUtil && s.gasUtil !== '—';
+    byDay[day] = (byDay[day] || 0) + (isGas ? 2 : 1);
+  });
+
+  var days = Object.keys(byDay).sort();
+  var maxVal = Math.max.apply(null, days.map(function(d){ return byDay[d]; }).concat([1]));
+  var avgVal = days.length > 0 ? (totalSvcs / days.length).toFixed(1) : '0';
+  var bestDay = days.reduce(function(best, d) { return byDay[d] > byDay[best] ? d : best; }, days[0] || '');
+
+  // Update summary
+  var setEl = function(id, v) { var e = document.getElementById(id); if(e) e.textContent = v; };
+  setEl('cstat-total', totalSvcs);
+  setEl('cstat-avg',   avgVal + '/día');
+  setEl('cstat-best',  bestDay ? bestDay + ' (' + byDay[bestDay] + ')' : '—');
+
+  // Bar chart
+  var barEl = document.getElementById('cBarChart');
+  if(barEl) {
+    if(days.length === 0) {
+      barEl.innerHTML = '<div style="text-align:center;width:100%;color:var(--text-muted);font-size:0.8rem;padding:20px">Sin ventas en este período</div>';
+    } else {
+      var showDays = days.slice(-14); // max 14 bars
+      barEl.innerHTML = showDays.map(function(d) {
+        var pct = Math.round((byDay[d] / maxVal) * 100);
+        var label = d.substring(5); // MM-DD
+        return '<div class="bar-wrap">'
+          + '<div class="bar-val">' + byDay[d] + '</div>'
+          + '<div class="bar" style="height:' + Math.max(pct, 4) + 'px"></div>'
+          + '<div class="bar-label">' + label + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // By supplier
+  var bySupplier = {};
+  filtered.forEach(function(s) {
+    var sup = s.supplier || 'Otro';
+    bySupplier[sup] = (bySupplier[sup] || 0) + 1;
+  });
+  var supList = document.getElementById('cSupplierList');
+  if(supList) {
+    var sups = Object.keys(bySupplier).sort(function(a,b){ return bySupplier[b]-bySupplier[a]; });
+    supList.innerHTML = sups.length === 0
+      ? '<div style="color:var(--text-muted);font-size:0.8rem">Sin datos</div>'
+      : sups.map(function(s) {
+          return '<div class="stat-row"><div class="stat-row-label">' + s + '</div><div class="stat-row-val">' + bySupplier[s] + '</div></div>';
+        }).join('');
+  }
+
+  // By state
+  var byState = {};
+  filtered.forEach(function(s) {
+    var st = s.state || 'Otro';
+    byState[st] = (byState[st] || 0) + 1;
+  });
+  var stateList = document.getElementById('cStateList');
+  if(stateList) {
+    var states = Object.keys(byState).sort(function(a,b){ return byState[b]-byState[a]; });
+    stateList.innerHTML = states.length === 0
+      ? '<div style="color:var(--text-muted);font-size:0.8rem">Sin datos</div>'
+      : states.map(function(s) {
+          return '<div class="stat-row"><div class="stat-row-label">' + s + '</div><div class="stat-row-val">' + byState[s] + '</div></div>';
+        }).join('');
   }
 }
 </script>
