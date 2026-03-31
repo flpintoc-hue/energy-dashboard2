@@ -6810,7 +6810,7 @@ function renderChatContacts() {
 
   var contactsHTML = contacts.map(function(c) {
     var initial = c.name[0].toUpperCase();
-    return '<div class="chat-contact-item' + (chatTab===c.name?' active':'') + '" data-tab="' + c.name + '" onclick="openChatConversation(this.getAttribute(&quot;data-tab&quot;))">'
+    return '<div class="chat-contact-item' + (chatTab===c.name?' active':'') + '" data-tab="' + c.name + '" onclick="openChatConversation(this.dataset.tab)">'
       + '<div class="chat-contact-avatar">' + initial
       + (c.online ? '<div class="chat-online-badge"></div>' : '')
       + '</div>'
@@ -6903,11 +6903,17 @@ async function sendChatMsg() {
   if(!text) return;
   input.value = '';
 
+  // DM vs group
+  var isGroup = chatTab === 'group';
+  var channel = isGroup ? 'group' : ('dm:' + chatTab);
+  var recipient = isGroup ? '' : chatTab;
+
   var msg = {
     type: 'msg',
     sender: currentUser.name,
     role: currentUser.role,
-    channel: chatTab,
+    channel: channel,
+    recipient: recipient,
     text: text,
     ts: Date.now()
   };
@@ -6935,12 +6941,18 @@ async function pollChat() {
   try {
     var sinceObj = {};
     Object.keys(chatLastTs).forEach(function(k){ sinceObj[k] = chatLastTs[k]; });
+    // Get oldest timestamp across all DM tabs
+    var minDmTs = 0;
+    Object.keys(chatLastTs).forEach(function(k) {
+      if(k !== 'group') minDmTs = minDmTs === 0 ? chatLastTs[k] : Math.min(minDmTs, chatLastTs[k]);
+    });
     var resp = await fetch(SESSIONS_URL, {
       method: 'POST',
       body: JSON.stringify({
         _secret: _APP_SECRET, action: 'chat_fetch',
-        since_private: chatLastTs['private'] || 0,
+        since_private: minDmTs || 0,
         since_group: chatLastTs['group'] || 0,
+        since_ts: minDmTs || 0,
         user: currentUser.name, role: currentUser.role
       })
     });
@@ -6948,23 +6960,36 @@ async function pollChat() {
     if(data.error) return;
 
     var myName = currentUser ? currentUser.name : '';
-    ['private','group'].forEach(function(ch) {
-      var incoming = data[ch] || [];
-      incoming.forEach(function(m) {
-        var tab = ch === 'private' ? (m.sender === myName ? (m.channel || ch) : m.sender) : 'group';
-        if(!chatMessages[tab]) chatMessages[tab] = [];
-        if(!chatLastTs[tab]) chatLastTs[tab] = 0;
-        var exists = chatMessages[tab].some(function(x){ return x.ts===m.ts && x.sender===m.sender; });
-        if(!exists) {
-          chatMessages[tab].push(m);
-          chatLastTs[tab] = Math.max(chatLastTs[tab]||0, m.ts);
-          if(!chatOpen || chatTab !== tab) {
-            if(m.sender !== myName) {
-              chatUnreadCount[tab] = (chatUnreadCount[tab]||0) + 1;
-            }
-          }
+
+    // Group messages
+    (data.group || []).forEach(function(m) {
+      var tab = 'group';
+      if(!chatMessages[tab]) chatMessages[tab] = [];
+      if(!chatLastTs[tab]) chatLastTs[tab] = 0;
+      var exists = chatMessages[tab].some(function(x){ return x.ts===m.ts && x.sender===m.sender; });
+      if(!exists) {
+        chatMessages[tab].push(m);
+        chatLastTs['group'] = Math.max(chatLastTs['group']||0, m.ts);
+        if((!chatOpen || chatTab !== 'group') && m.sender !== myName) {
+          chatUnreadCount['group'] = (chatUnreadCount['group']||0) + 1;
         }
-      });
+      }
+    });
+
+    // Private/DM messages — tab = the other person's name
+    (data.private || []).forEach(function(m) {
+      var otherPerson = m.sender === myName ? m.recipient : m.sender;
+      var tab = otherPerson || 'private';
+      if(!chatMessages[tab]) chatMessages[tab] = [];
+      if(!chatLastTs[tab]) chatLastTs[tab] = 0;
+      var exists = chatMessages[tab].some(function(x){ return x.ts===m.ts && x.sender===m.sender; });
+      if(!exists) {
+        chatMessages[tab].push(m);
+        chatLastTs[tab] = Math.max(chatLastTs[tab]||0, m.ts);
+        if((!chatOpen || chatTab !== tab) && m.sender !== myName) {
+          chatUnreadCount[tab] = (chatUnreadCount[tab]||0) + 1;
+        }
+      }
     });
 
     updateChatUnreadBadge();
