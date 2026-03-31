@@ -6757,10 +6757,15 @@ function toggleChat() {
   if(chatOpen) {
     panel.classList.add('open');
     refreshOnlineAgents();
+    // Switch to fast polling when chat opens
+    stopChatPolling();
     startChatPolling();
     openChatConversation(chatTab);
   } else {
     panel.classList.remove('open');
+    // Switch back to slow polling when chat closes
+    stopChatPolling();
+    startChatPolling();
   }
 }
 
@@ -7032,7 +7037,8 @@ function updateChatUnreadBadge() {
 
 function startChatPolling() {
   if(chatPollingInterval) return;
-  chatPollingInterval = setInterval(pollChat, 15000);
+  // 3s when chat open, 15s when closed
+  chatPollingInterval = setInterval(pollChat, chatOpen ? 3000 : 15000);
   pollChat();
 }
 
