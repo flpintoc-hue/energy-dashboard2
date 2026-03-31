@@ -6,7 +6,7 @@
   <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://maps.googleapis.com https://api.dicebear.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://api.dicebear.com https://maps.gstatic.com https://maps.googleapis.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://maps.googleapis.com https://api.dicebear.com https://cdnjs.cloudflare.com https://script.google.com https://script.googleusercontent.com; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://api.dicebear.com https://maps.gstatic.com https://maps.googleapis.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Energy Supplier Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
@@ -5741,9 +5741,15 @@ async function reloadDNC() {
 // ════════════════════════════════════════════
 // SINGLE SESSION CONTROL — Google Apps Script
 // ════════════════════════════════════════════
-const SESSIONS_URL = '/api';
+const SESSIONS_URL = 'https://script.google.com/macros/s/AKfycbwgGPt16nqYuw0FOwIdSHfjlj_0A4C-tl-EPXLK_5v_h75VBvSlevE0M8fanCifUiwt/exec';
 // Token assembled at runtime — split to avoid plain-text exposure
-const _APP_SECRET = 'EnergyDash2026!SecureProxy#LP';
+const _APP_SECRET = (function() {
+  var _a = atob('NDUyNDU0NmZlZjFiNzgwYw==');
+  var _b = atob('MmJlMWNiMzdkOTVmZTEzMA==');
+  var _c = atob('NTY4ODM2ZDk4ZDQwMmM2Zg==');
+  var _d = atob('YTY2YTRiNmM1NDdhMmU4Mg==');
+  return _a + _b + _c + _d;
+})();
 
 async function checkAndRegisterSession(username, token) {
   try {
