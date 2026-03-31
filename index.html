@@ -6719,6 +6719,29 @@ window.addEventListener('beforeunload', () => {
 // ═══════════════════════════════════════════
 // WHATSAPP-STYLE CHAT SYSTEM
 // ═══════════════════════════════════════════
+
+// Chat notification sound using Web Audio API (no file needed)
+var _chatAudioCtx = null;
+function playChatSound() {
+  try {
+    if(!_chatAudioCtx) _chatAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var ctx = _chatAudioCtx;
+    // WhatsApp-style double beep
+    [0, 0.15].forEach(function(delay) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + delay + 0.01);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + delay + 0.12);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.13);
+    });
+  } catch(e) {}
+}
 let chatOpen = false;
 let chatTab = 'group'; // active conversation: 'group' | username
 let chatPollingInterval = null;
@@ -6972,6 +6995,7 @@ async function pollChat() {
         chatLastTs['group'] = Math.max(chatLastTs['group']||0, m.ts);
         if((!chatOpen || chatTab !== 'group') && m.sender !== myName) {
           chatUnreadCount['group'] = (chatUnreadCount['group']||0) + 1;
+          playChatSound();
         }
       }
     });
@@ -6988,6 +7012,7 @@ async function pollChat() {
         chatLastTs[tab] = Math.max(chatLastTs[tab]||0, m.ts);
         if((!chatOpen || chatTab !== tab) && m.sender !== myName) {
           chatUnreadCount[tab] = (chatUnreadCount[tab]||0) + 1;
+          playChatSound();
         }
       }
     });
@@ -7416,44 +7441,7 @@ async function refreshOnlineAgents() {
   } catch(e) {}
 }
 
-function renderChatContacts() {
-  var list = document.getElementById('chatContactsList');
-  if(!list || !currentUser) return;
-
-  // Build contacts from all users
-  var contacts = _allUsers
-    .filter(function(u) { return u.username !== currentUser.username && u.username !== currentUser.name; })
-    .map(function(u) {
-      var isOnline = _onlineAgents.some(function(a) {
-        return a.username === u.username;
-      });
-      return { name: u.username, role: u.role, online: isOnline };
-    });
-
-  // Sort: online first, then alphabetically
-  contacts.sort(function(a,b) {
-    if(a.online && !b.online) return -1;
-    if(!a.online && b.online) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  if(contacts.length === 0) {
-    list.innerHTML = '<div style="padding:10px;font-size:0.65rem;color:rgba(255,255,255,0.3);text-align:center">Sin contactos</div>';
-    return;
-  }
-
-  list.innerHTML = contacts.map(function(c) {
-    var roleLabel = (c.role === 'supervisor' || c.role === 'admin') ? 'SUP' : 'AGT';
-    var onlineText = c.online ? ' • 🟢' : '';
-    return '<div class="chat-contact-item">'
-      + '<div class="chat-contact-dot' + (c.online ? ' online' : '') + '"></div>'
-      + '<div>'
-      + '<div class="chat-contact-name">' + c.name + '</div>'
-      + '<div class="chat-contact-role">' + roleLabel + onlineText + '</div>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
+// renderChatContacts defined above
 
 // ═══════════════════════════════════════════
 // SALES CHARTS
