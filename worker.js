@@ -4,13 +4,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Servir el index.html
-    if (request.method === "GET" && url.pathname === "/") {
-      const asset = await env.ASSETS.fetch(request);
-      return asset;
-    }
-
-    // Proxy hacia Apps Script
+    // ✅ Primero atender /api antes que los assets
     if (url.pathname === "/api") {
 
       if (request.method === "OPTIONS") {
@@ -62,6 +56,7 @@ export default {
       }
     }
 
-    return new Response("Not found", { status: 404 });
+    // ✅ Todo lo demás → servir archivos estáticos (index.html)
+    return env.ASSETS.fetch(request);
   }
 };
