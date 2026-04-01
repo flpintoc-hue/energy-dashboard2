@@ -1,72 +1,60 @@
-// Energy Dashboard — Combined Worker
-// Sirve el HTML estático Y actúa como proxy hacia Apps Script
-// Las credenciales van en Variables de entorno — nunca en el código
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgGPt16nqYuw0FOwIdSHfjlj_0A4C-tl-EPXLK_5v_h75VBvSlevE0M8fanCifUiwt/exec";
+const ALLOWED_ORIGIN = "https://flpintoc-hue.github.io";
 
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
+  async fetch(request, env) {
 
-    // ── POST /api → proxy hacia Apps Script ──────────────────
-    if (request.method === 'POST' && url.pathname === '/api') {
-      const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      };
-
-      try {
-        const body = await request.json();
-
-        // Validar que el request viene del app
-        if (!env.WORKER_SECRET || body._secret !== env.WORKER_SECRET) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-
-        // Reemplazar con el secret real de Apps Script
-        body._secret = env.APPS_SCRIPT_SECRET;
-
-        // Reenviar a Apps Script
-        const asResp = await fetch(env.APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          redirect: 'follow'
-        });
-
-        const data = await asResp.text();
-
-        return new Response(data, {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store'
-          }
-        });
-
-      } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-    }
-
-    // ── OPTIONS preflight ─────────────────────────────────────
-    if (request.method === 'OPTIONS') {
+    if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        }
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
       });
     }
 
-    // ── GET / → servir el HTML ────────────────────────────────
-    return env.ASSETS.fetch(request);
+    if (!["GET", "POST"].includes(request.method)) {
+      return new Response("Method not allowed", { status: 405 });
+    }
+
+    try {
+      let appsScriptUrl = APPS_SCRIPT_URL;
+      let fetchOptions = {
+        method: request.method,
+        headers: { "Content-Type": "application/json" },
+        redirect: "follow"
+      };
+
+      if (request.method === "POST") {
+        const body = await request.text();
+        fetchOptions.body = body;
+      } else {
+        const incoming = new URL(request.url);
+        const target = new URL(APPS_SCRIPT_URL);
+        incoming.searchParams.forEach((v, k) => target.searchParams.set(k, v));
+        appsScriptUrl = target.toString();
+      }
+
+      const response = await fetch(appsScriptUrl, fetchOptions);
+      const data = await response.text();
+
+      return new Response(data, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        },
+      });
+
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+        },
+      });
+    }
   }
 };
