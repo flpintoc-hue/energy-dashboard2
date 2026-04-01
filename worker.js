@@ -1,60 +1,67 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgGPt16nqYuw0FOwIdSHfjlj_0A4C-tl-EPXLK_5v_h75VBvSlevE0M8fanCifUiwt/exec";
-const ALLOWED_ORIGIN = "https://flpintoc-hue.github.io";
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
 
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
+    // Servir el index.html
+    if (request.method === "GET" && url.pathname === "/") {
+      const asset = await env.ASSETS.fetch(request);
+      return asset;
     }
 
-    if (!["GET", "POST"].includes(request.method)) {
-      return new Response("Method not allowed", { status: 405 });
-    }
+    // Proxy hacia Apps Script
+    if (url.pathname === "/api") {
 
-    try {
-      let appsScriptUrl = APPS_SCRIPT_URL;
-      let fetchOptions = {
-        method: request.method,
-        headers: { "Content-Type": "application/json" },
-        redirect: "follow"
-      };
-
-      if (request.method === "POST") {
-        const body = await request.text();
-        fetchOptions.body = body;
-      } else {
-        const incoming = new URL(request.url);
-        const target = new URL(APPS_SCRIPT_URL);
-        incoming.searchParams.forEach((v, k) => target.searchParams.set(k, v));
-        appsScriptUrl = target.toString();
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          },
+        });
       }
 
-      const response = await fetch(appsScriptUrl, fetchOptions);
-      const data = await response.text();
+      try {
+        let appsScriptUrl = APPS_SCRIPT_URL;
+        let fetchOptions = {
+          method: request.method,
+          headers: { "Content-Type": "application/json" },
+          redirect: "follow"
+        };
 
-      return new Response(data, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-        },
-      });
+        if (request.method === "POST") {
+          const body = await request.text();
+          fetchOptions.body = body;
+        } else {
+          const target = new URL(APPS_SCRIPT_URL);
+          url.searchParams.forEach((v, k) => target.searchParams.set(k, v));
+          appsScriptUrl = target.toString();
+        }
 
-    } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-        },
-      });
+        const response = await fetch(appsScriptUrl, fetchOptions);
+        const data = await response.text();
+
+        return new Response(data, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
     }
+
+    return new Response("Not found", { status: 404 });
   }
 };
