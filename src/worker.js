@@ -1,5 +1,11 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgGPt16nqYuw0FOwIdSHfjlj_0A4C-tl-EPXLK_5v_h75VBvSlevE0M8fanCifUiwt/exec";
 
+const SECURITY_HEADERS = {
+  "X-Frame-Options": "SAMEORIGIN",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -41,6 +47,7 @@ export default {
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
+            ...SECURITY_HEADERS,
           },
         });
 
@@ -55,6 +62,12 @@ export default {
       }
     }
 
-    return env.ASSETS.fetch(request);
+    // Serve static assets (index.html)
+    const assetResponse = await env.ASSETS.fetch(request);
+    const newResponse = new Response(assetResponse.body, assetResponse);
+    Object.entries(SECURITY_HEADERS).forEach(([k, v]) => {
+      newResponse.headers.set(k, v);
+    });
+    return newResponse;
   }
 };
