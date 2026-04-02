@@ -3485,12 +3485,6 @@ let currentStep = 0;
 let dncVerifiedClear = false; // true only when DNC check returns CLEAR
 let openSupId = null;
 
-const MONTHS = [
-  {abbr:'ENE',name:'Enero'},{abbr:'FEB',name:'Febrero'},{abbr:'MAR',name:'Marzo'},
-  {abbr:'ABR',name:'Abril'},{abbr:'MAY',name:'Mayo'},{abbr:'JUN',name:'Junio'},
-  {abbr:'JUL',name:'Julio'},{abbr:'AGO',name:'Agosto'},{abbr:'SEP',name:'Septiembre'},
-  {abbr:'OCT',name:'Octubre'},{abbr:'NOV',name:'Noviembre'},{abbr:'DIC',name:'Diciembre'}
-];
 
 function goStep(n) {
   // Push browser history state
@@ -3546,17 +3540,6 @@ function updateContext() {
 // ════════════════════════════════════════════
 // US MAP — Active States Only
 // ════════════════════════════════════════════
-const ACTIVE_STATES_MAP = {
-  'st1': { name:'Massachusetts', code:'MA', x:720, y:112, w:52, h:28 },
-  'st2': { name:'New Jersey',    code:'NJ', x:688, y:148, w:36, h:38 },
-  'st3': { name:'Pennsylvania',  code:'PA', x:648, y:128, w:72, h:38 },
-  'st4': { name:'Washington DC', code:'DC', x:672, y:178, w:28, h:22 },
-  'st8': { name:'Delaware',      code:'DE', x:700, y:166, w:24, h:22 },
-  'st9': { name:'New York',      code:'NY', x:680, y:88,  w:76, h:40 },
-  'st7': { name:'Virginia',      code:'VA', x:636, y:182, w:72, h:36 },
-  'st5': { name:'Indiana',       code:'IN', x:528, y:138, w:52, h:48 },
-  'st6': { name:'California',    code:'CA', x:92,  y:148, w:76, h:108 },
-};
 
 
 function renderMiniMap() {
@@ -4128,21 +4111,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
   +'</div>';
 }
 
-function restoreTemplateValues() {
-  // Keep values across re-renders by storing in a global object
-  if(!window._tplData) return;
-  const fields = ['state','lang','phone','auth','holder','address','city','acc','util','dob','namekey','repid','tarifa'];
-  fields.forEach(f => {
-    const el = document.getElementById('tpl_'+f);
-    if(el && window._tplData[f] !== undefined) el.value = window._tplData[f];
-  });
-}
-
-function saveTplField(field) {
-  if(!window._tplData) window._tplData = {};
-  const el = document.getElementById('tpl_'+field);
-  if(el) window._tplData[field] = el.value;
-}
+// restoreTemplateValues: see implementation below
 
 
 
@@ -4491,9 +4460,6 @@ function saveScriptEntry(key, safeKey) {
   toast('✓ Script guardado', 'success');
 }
 
-function saveScript(supplierName) {
-  // Legacy - kept for compatibility
-}
 
 
 // ════════════════════════════════════════════
@@ -5480,6 +5446,10 @@ function toast(msg,type=''){
 // ════════════════════════════════════════════
 // DNC list loaded into browser memory at login for instant local lookups
 let dncCount = 0;
+let dncLoading = false;
+let dncLoaded = false;
+let dncSet = null;
+let dncLoadError = false;
 
 async function loadDNCFromSheets() {
   if(dncLoading) return;
@@ -6300,51 +6270,9 @@ function closeObjection() {
 // ════════════════════════════════════════════
 // OBJECTIONS HANDLER
 // ════════════════════════════════════════════
-var OBJECTIONS = [
-  { key: 'Ya tengo contrato', text: 'Entiendo perfectamente. Lo que hacemos es revisar si su tarifa actual es competitiva. Muchos clientes tienen contratos pero siguen pagando más de lo necesario. ¿Me podría decir cuánto está pagando aproximadamente por kWh?' },
-  { key: 'No me interesa', text: 'Lo comprendo. La mayoría de nuestros clientes nos decían lo mismo antes de ver el ahorro. Solo le toma 2 minutos revisar si podemos reducir su factura. ¿Cuánto paga actualmente de luz al mes?' },
-  { key: 'Es una estafa', text: 'Entiendo su preocupación y es válida. Somos un proveedor certificado por la PUC del estado. Puede verificarnos en el sitio oficial del regulador. ¿Le gustaría que le dé el nombre exacto para que lo busque?' },
-  { key: 'Llame más tarde', text: 'Por supuesto, lo respeto. ¿Podría decirme a qué hora le quedaría mejor para que yo mismo lo llame? Quiero asegurarme de no interrumpirle en un momento inapropiado.' },
-  { key: 'Hablar con esposo/a', text: 'Perfecto, es una decisión importante. Mientras tanto, ¿podría confirmarme si usted es el titular de la cuenta de electricidad? Así cuando hable con su pareja ya tienen la información correcta.' },
-  { key: 'No entiendo inglés', text: 'No hay problema, podemos continuar en español. Estoy aquí para ayudarle. ¿Me puede decir su nombre para llamarle correctamente?' },
-  { key: 'Ya llamaron antes', text: 'Le pido disculpas si ha recibido varias llamadas. Esta vez tenemos una oferta específica para su zona que no estaba disponible antes. ¿Me permite 2 minutos para explicársela?' },
-  { key: 'No quiero cambios', text: 'No se preocupe, no cambia nada en su servicio. El mismo electricista, los mismos cables, la misma confiabilidad. Solo cambia quién le cobra y a un precio menor. ¿Le gustaría ver cómo funciona?' },
-];
 
-var expandedObj = null;
 
-function renderObjections() {
-  var el = document.getElementById('objCloudWrap');
-  if(!el) return;
-  el.innerHTML = OBJECTIONS.map(function(obj, i) {
-    return '<div class="obj-bubble" onclick="toggleObjBubble('+i+')" id="obj_'+i+'">' +
-      '<span class="obj-keyword">'+obj.key+'</span>' +
-    '</div>';
-  }).join('');
-}
 
-function toggleObjBubble(idx) {
-  var all = document.querySelectorAll('.obj-bubble');
-  if(expandedObj === idx) {
-    // Collapse
-    all.forEach(function(b) { b.classList.remove('expanded'); b.innerHTML = '<span class="obj-keyword">'+OBJECTIONS[parseInt(b.id.split('_')[1])].key+'</span>'; });
-    expandedObj = null;
-  } else {
-    // Collapse all first
-    all.forEach(function(b, i) {
-      b.classList.remove('expanded');
-      b.innerHTML = '<span class="obj-keyword">'+OBJECTIONS[i].key+'</span>';
-    });
-    // Expand selected
-    var el = document.getElementById('obj_'+idx);
-    if(el) {
-      el.classList.add('expanded');
-      el.innerHTML = '<span class="obj-keyword">'+OBJECTIONS[idx].key+'</span>' + OBJECTIONS[idx].text;
-      expandedObj = idx;
-      el.scrollIntoView({behavior:'smooth', block:'nearest'});
-    }
-  }
-}
 
 // ════════════════════════════════════════════
 // MAP ZOOM + CLICK FUNCTIONS
