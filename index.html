@@ -3879,20 +3879,17 @@ function volverInicio(){
   dncClearResult();
   document.getElementById('dncPhone').value='';
   _placesAutocomplete = null;
-  // Reset TPV field
+  _savedTemplateValues = {};
   var tpvInp = document.getElementById('tpl_tpv_num');
   if(tpvInp) { tpvInp.value=''; tpvInp.disabled=true; tpvInp.style.opacity='0.4'; tpvInp.style.cursor='not-allowed'; }
   var tpvStatus = document.getElementById('tpvNumStatus');
   if(tpvStatus) { tpvStatus.textContent='🔒 Bloqueado'; tpvStatus.style.color=''; }
   var tpvRow = document.getElementById('tpvNumRow');
   if(tpvRow) { tpvRow.style.borderColor=''; tpvRow.style.background=''; tpvRow.style.boxShadow=''; }
-  // Reset submit button
   var submitBtn = document.getElementById('submitSaleBtn');
   var submitText = document.getElementById('submitSaleBtnText');
   if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
-  if(submitText) submitText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
-  // Reset saved template values
-  _savedTemplateValues = {};
+  if(submitText) submitText.textContent = 'Enviar venta';
   goStep(0);
   renderDNC();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -4217,22 +4214,43 @@ function copyTemplate() {
     holderLine = 'Authorized User: ' + g('tpl_auth_name') + '\n' + t('tpl_holder') + ': ' + g('tpl_holder');
   }
 
-  var lines = [
-    t('tpl_lang')    + ': ' + g('tpl_lang'),
-    t('tpl_auth')    + ': ' + authVal,
-    holderLine,
-    t('tpl_state')   + ': ' + g('tpl_state'),
-    t('tpl_phone')   + ': ' + g('tpl_phone'),
-    t('tpl_address') + ': ' + g('tpl_address') + (g('tpl_apt') ? ', ' + g('tpl_apt') : ''),
-    t('tpl_city')    + ': ' + g('tpl_city'),
-    'ZIP: ' + g('tpl_zip'),
-  ].concat(accLines).concat([
-    t('tpl_util')    + ': ' + g('tpl_util'),
-    isMAEv ? t('tpl_dob')     + ': ' + g('tpl_dob')     : '',
-    isMAEv ? t('tpl_namekey') + ': ' + g('tpl_namekey') : '',
-    t('tpl_repid')   + ': ' + g('tpl_repid'),
-    t('tpl_tarifa')  + ': ' + g('tpl_tarifa'),
-  ]).filter(Boolean);
+  var supName = sup ? sup.name : '';
+  var isShortTemplate = (supName === 'NG&E' || supName === 'Rushmore');
+
+  var lines;
+  if(isShortTemplate) {
+    // NG&E and Rushmore — minimal template (no ACC INFO, no rate, no DOB, no namekey)
+    lines = [
+      t('tpl_state')   + ': ' + g('tpl_state'),
+      t('tpl_lang')    + ': ' + g('tpl_lang'),
+      t('tpl_phone')   + ': ' + g('tpl_phone'),
+      t('tpl_auth')    + ': ' + authVal,
+      holderLine,
+      t('tpl_address') + ': ' + g('tpl_address') + (g('tpl_apt') ? ', ' + g('tpl_apt') : ''),
+      t('tpl_city')    + ': ' + g('tpl_city'),
+      'ZIP: ' + g('tpl_zip'),
+      t('tpl_util')    + ': ' + g('tpl_util'),
+      t('tpl_repid')   + ': ' + g('tpl_repid'),
+    ].filter(Boolean);
+  } else {
+    // INDRA and others — full template
+    lines = [
+      t('tpl_lang')    + ': ' + g('tpl_lang'),
+      t('tpl_auth')    + ': ' + authVal,
+      holderLine,
+      t('tpl_state')   + ': ' + g('tpl_state'),
+      t('tpl_phone')   + ': ' + g('tpl_phone'),
+      t('tpl_address') + ': ' + g('tpl_address') + (g('tpl_apt') ? ', ' + g('tpl_apt') : ''),
+      t('tpl_city')    + ': ' + g('tpl_city'),
+      'ZIP: ' + g('tpl_zip'),
+    ].concat(accLines).concat([
+      t('tpl_util')    + ': ' + g('tpl_util'),
+      isMAEv ? t('tpl_dob')     + ': ' + g('tpl_dob')     : '',
+      isMAEv ? t('tpl_namekey') + ': ' + g('tpl_namekey') : '',
+      t('tpl_repid')   + ': ' + g('tpl_repid'),
+      t('tpl_tarifa')  + ': ' + g('tpl_tarifa'),
+    ]).filter(Boolean);
+  }
 
   var text = lines.join('\n');
 
@@ -4619,7 +4637,6 @@ function hideSaleSuccess() {
   if(!overlay) return;
   overlay.classList.remove('show');
   document.querySelectorAll('.confetti-dot').forEach(function(el){ el.remove(); });
-  // Reset submit button state before going home
   var submitBtn = document.getElementById('submitSaleBtn');
   var submitText = document.getElementById('submitSaleBtnText');
   if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
