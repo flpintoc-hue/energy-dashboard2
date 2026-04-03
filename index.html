@@ -541,12 +541,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   width: 100%;
 }
 .tpl-input:focus { border-color: var(--blue); background: #fff; }
-
-/* Google Places autocomplete dropdown — must be above all overlays */
-.pac-container {
-  z-index: 99999 !important;
-  pointer-events: all !important;
-}
+.pac-container { z-index: 99999 !important; pointer-events: all !important; }
 
 .tpl-copy-btn {
   display: flex; align-items: center; gap: 8px;
@@ -3522,7 +3517,7 @@ function goStep(n) {
   if(n===1) { renderStates(); }
   if(n===2) renderUtilities();
   if(n===3) renderSupplierCards();
-  if(n===4) { renderChecklist(); setTimeout(validateTemplate, 150); }
+  if(n===4) { _placesAutocomplete = null; renderChecklist(); setTimeout(validateTemplate, 150); }
   updateContext();
   applyTranslationsToDOM();
   updateStepAvatar();
