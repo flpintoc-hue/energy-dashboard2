@@ -542,6 +542,16 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 .tpl-input:focus { border-color: var(--blue); background: #fff; }
 
+/* Hide browser native validation icons */
+input::-webkit-validation-bubble { display: none !important; }
+input::-webkit-validation-bubble-message { display: none !important; }
+input::-ms-clear { display: none; }
+#tpl_address::-webkit-contacts-auto-fill-button { display: none !important; }
+#tpl_address::-webkit-credentials-auto-fill-button { display: none !important; }
+/* Prevent red border from browser on invalid state */
+#tpl_address:invalid { box-shadow: none; border-color: var(--border); }
+#tpl_address { -webkit-appearance: none; }
+
 .tpl-copy-btn {
   display: flex; align-items: center; gap: 8px;
   background: var(--blue);
