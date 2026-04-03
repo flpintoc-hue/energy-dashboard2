@@ -3876,6 +3876,22 @@ function volverInicio(){
   checkedItems.clear();
   dncClearResult();
   document.getElementById('dncPhone').value='';
+  // Reset submit button
+  var btn = document.getElementById('submitSaleBtn');
+  var btnText = document.getElementById('submitSaleBtnText');
+  if(btn) { btn.disabled = false; btn.style.background = ''; }
+  if(btnText) btnText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
+  // Reset TPV field
+  var tpv = document.getElementById('tpl_tpv_num');
+  var tpvStatus = document.getElementById('tpvNumStatus');
+  var tpvRow = document.getElementById('tpvNumRow');
+  var tpvHint = document.getElementById('tpvNumHint');
+  if(tpv) { tpv.value = ''; tpv.disabled = true; tpv.style.opacity = '0.4'; tpv.style.cursor = 'not-allowed'; tpv.placeholder = 'Primero copia la plantilla...'; }
+  if(tpvStatus) { tpvStatus.textContent = '🔒 Bloqueado'; tpvStatus.style.color = ''; }
+  if(tpvRow) { tpvRow.style.borderColor = ''; tpvRow.style.background = ''; tpvRow.style.boxShadow = ''; }
+  if(tpvHint) tpvHint.style.display = 'none';
+  // Reset saved template values
+  window._savedTemplateValues = {};
   goStep(0);
   renderDNC();
   window.scrollTo({top:0,behavior:'smooth'});
