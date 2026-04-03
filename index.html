@@ -542,17 +542,19 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 .tpl-input:focus { border-color: var(--blue); background: #fff; }
 
-/* Hide Chrome autofill/contacts suggestion icons */
-#tpl_address::-webkit-contacts-auto-fill-button,
-#tpl_address::-webkit-credentials-auto-fill-button,
-#tpl_address::-webkit-caps-lock-indicator,
-input[autocomplete="new-password"]::-webkit-contacts-auto-fill-button,
-input[autocomplete="new-password"]::-webkit-credentials-auto-fill-button {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  width: 0 !important;
-  height: 0 !important;
+/* Hide Google Maps Places API error icon on address field */
+#tpl_address.gm-err-autocomplete {
+  background-image: none !important;
+}
+.pac-container.pac-logo::after {
+  display: none;
+}
+input.gm-err-autocomplete {
+  background-image: none !important;
+}
+/* Also hide via direct style override */
+#tpl_address[style*="icon_error"] {
+  background-image: none !important;
 }
 
 .tpl-copy-btn {
@@ -4096,7 +4098,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." autocomplete="new-password" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
         +'<div class="tpl-row"><label class="tpl-label">Apt / Unit / Floor <span style="color:var(--text-muted);font-weight:600;font-size:0.7rem">(opcional)</span></label>'
         +'<input class="tpl-input" id="tpl_apt" placeholder="Ej: Apt 2B, Unit 3, 2FL" oninput="validateTemplate()"></div>'
 
@@ -5128,15 +5130,28 @@ function setupAddressAutocomplete() {
   var input = document.getElementById('tpl_address');
   if(!input || _placesAutocomplete) return;
   if(!window.google || !window.google.maps || !window.google.maps.places) {
-    setTimeout(setupAddressAutocomplete, 500);
+    // Don't retry indefinitely — just leave as plain text field
+    // This prevents the gm-err-autocomplete error icon
     return;
   }
+  // Remove any error state Google Maps may have set
+  input.classList.remove('gm-err-autocomplete');
+  input.style.backgroundImage = 'none';
 
   _placesAutocomplete = new google.maps.places.Autocomplete(input, {
     types: ['address'],
     componentRestrictions: { country: 'us' },
     fields: ['formatted_address', 'address_components']
   });
+
+  // Strip Google Maps error icon immediately after setup
+  var _gMapsObserver = new MutationObserver(function() {
+    if(input.style.backgroundImage && input.style.backgroundImage.includes('icon_error')) {
+      input.style.backgroundImage = 'none';
+    }
+    input.classList.remove('gm-err-autocomplete');
+  });
+  _gMapsObserver.observe(input, { attributes: true, attributeFilter: ['style','class'] });
 
   // Prevent form submit on Enter
   input.addEventListener('keydown', function(e) {
