@@ -541,7 +541,12 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   width: 100%;
 }
 .tpl-input:focus { border-color: var(--blue); background: #fff; }
-#tpl_address.gm-err-autocomplete, input.gm-err-autocomplete { background-image: none !important; }
+
+/* Google Places autocomplete dropdown — must be above all overlays */
+.pac-container {
+  z-index: 99999 !important;
+  pointer-events: all !important;
+}
 
 .tpl-copy-btn {
   display: flex; align-items: center; gap: 8px;
@@ -5111,17 +5116,6 @@ function initGooglePlaces() {
 }
 
 function initAddressAutocomplete() {
-  // Always clear error state when user focuses the field
-  var input = document.getElementById('tpl_address');
-  if(input) {
-    input.removeAttribute('disabled');
-    input.style.backgroundImage = 'none';
-    input.classList.remove('gm-err-autocomplete');
-    if(input.placeholder === 'Se ha producido un error.') {
-      input.placeholder = 'Empieza a escribir la dirección...';
-    }
-  }
-  if(_placesAutocomplete) return; // Already initialized
   setupAddressAutocomplete();
 }
 
@@ -5129,14 +5123,9 @@ function setupAddressAutocomplete() {
   var input = document.getElementById('tpl_address');
   if(!input || _placesAutocomplete) return;
   if(!window.google || !window.google.maps || !window.google.maps.places) {
-    return; // Don't retry — leave as plain text field
+    setTimeout(setupAddressAutocomplete, 500);
+    return;
   }
-
-  // Remove any error state Google Maps may have previously set
-  input.removeAttribute('disabled');
-  input.placeholder = 'Empieza a escribir la dirección...';
-  input.style.backgroundImage = 'none';
-  input.classList.remove('gm-err-autocomplete');
 
   _placesAutocomplete = new google.maps.places.Autocomplete(input, {
     types: ['address'],
