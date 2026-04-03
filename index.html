@@ -3876,22 +3876,6 @@ function volverInicio(){
   checkedItems.clear();
   dncClearResult();
   document.getElementById('dncPhone').value='';
-  // Reset submit button
-  var btn = document.getElementById('submitSaleBtn');
-  var btnText = document.getElementById('submitSaleBtnText');
-  if(btn) { btn.disabled = false; btn.style.background = ''; }
-  if(btnText) btnText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
-  // Reset TPV field
-  var tpv = document.getElementById('tpl_tpv_num');
-  var tpvStatus = document.getElementById('tpvNumStatus');
-  var tpvRow = document.getElementById('tpvNumRow');
-  var tpvHint = document.getElementById('tpvNumHint');
-  if(tpv) { tpv.value = ''; tpv.disabled = true; tpv.style.opacity = '0.4'; tpv.style.cursor = 'not-allowed'; tpv.placeholder = 'Primero copia la plantilla...'; }
-  if(tpvStatus) { tpvStatus.textContent = '🔒 Bloqueado'; tpvStatus.style.color = ''; }
-  if(tpvRow) { tpvRow.style.borderColor = ''; tpvRow.style.background = ''; tpvRow.style.boxShadow = ''; }
-  if(tpvHint) tpvHint.style.display = 'none';
-  // Reset saved template values
-  window._savedTemplateValues = {};
   goStep(0);
   renderDNC();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -4099,7 +4083,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." autocomplete="new-address" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." autocomplete="off" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
         +'<div class="tpl-row"><label class="tpl-label">Apt / Unit / Floor <span style="color:var(--text-muted);font-weight:600;font-size:0.7rem">(opcional)</span></label>'
         +'<input class="tpl-input" id="tpl_apt" placeholder="Ej: Apt 2B, Unit 3, 2FL" oninput="validateTemplate()"></div>'
 
@@ -4949,15 +4933,15 @@ function onAuthChange() {
   if(!container) return;
 
   if(val === 'Yes — Account Holder') {
-    container.innerHTML =
+        container.innerHTML =
       '<div class="tpl-row tpl-full"><label class="tpl-label">Account Holder Name *</label>'
-      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>';
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-Z\u00C0-\u024F\s\.\-]/g,\'\');validateTemplate()"></div>';validateTemplate()"></div>';
   } else if(val === 'Yes — Authorized User') {
     container.innerHTML =
       '<div class="tpl-row"><label class="tpl-label">Authorized User Name *</label>'
       +'<input class="tpl-input" id="tpl_auth_name" placeholder="Nombre del autorizado" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>'
       +'<div class="tpl-row"><label class="tpl-label">Account Holder Name *</label>'
-      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\\s\\.\\-]/g,\'\');validateTemplate()"></div>';
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="validateTemplate()"></div>';
   } else {
     container.innerHTML = '<div style="display:none"><input id="tpl_holder"><input id="tpl_auth_name"></div>';
   }
