@@ -5259,7 +5259,7 @@ function restoreTemplateValues() {
 }
 
 function toggleCheck(id){saveTemplateValues();checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();restoreTemplateValues();_placesAutocomplete=null;}
-function resetChecklist(){checkedItems.clear();renderCheckItems();}
+function resetChecklist(){checkedItems.clear();_placesAutocomplete=null;renderCheckItems();}
 
 // ════════════════════════════════════════════
 // ADMIN PANEL
