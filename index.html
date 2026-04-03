@@ -541,12 +541,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   width: 100%;
 }
 .tpl-input:focus { border-color: var(--blue); background: #fff; }
-
-/* Hide Google Maps error icon when API unavailable */
-#tpl_address.gm-err-autocomplete,
-input.gm-err-autocomplete {
-  background-image: none !important;
-}
+#tpl_address.gm-err-autocomplete, input.gm-err-autocomplete { background-image: none !important; }
 
 .tpl-copy-btn {
   display: flex; align-items: center; gap: 8px;
@@ -3508,7 +3503,6 @@ function goStep(n) {
     dncClearResult();
     const dncInput = document.getElementById('dncPhone');
     if(dncInput) dncInput.value = '';
-    // Reset Places autocomplete so it reinitializes next time
     _placesAutocomplete = null;
   }
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
@@ -3884,7 +3878,6 @@ function volverInicio(){
   checkedItems.clear();
   dncClearResult();
   document.getElementById('dncPhone').value='';
-  // Reset Places autocomplete so it reinitializes on next checklist visit
   _placesAutocomplete = null;
   goStep(0);
   renderDNC();
@@ -4093,7 +4086,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
         +'<div class="tpl-row"><label class="tpl-label">Apt / Unit / Floor <span style="color:var(--text-muted);font-weight:600;font-size:0.7rem">(opcional)</span></label>'
         +'<input class="tpl-input" id="tpl_apt" placeholder="Ej: Apt 2B, Unit 3, 2FL" oninput="validateTemplate()"></div>'
 
@@ -5265,7 +5258,7 @@ function restoreTemplateValues() {
   setTimeout(validateTemplate, 50);
 }
 
-function toggleCheck(id){saveTemplateValues();checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();restoreTemplateValues();}
+function toggleCheck(id){saveTemplateValues();checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();restoreTemplateValues();_placesAutocomplete=null;}
 function resetChecklist(){checkedItems.clear();renderCheckItems();}
 
 // ════════════════════════════════════════════
