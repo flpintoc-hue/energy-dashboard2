@@ -4086,7 +4086,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // ADDRESS
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_address')+' *</label>'
-        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
+        +'<input class="tpl-input" id="tpl_address" placeholder="Empieza a escribir la dirección..." required autocomplete="off" oninput="clearAddressMismatch();validateTemplate()" onfocus="initAddressAutocomplete()" ></div>'
         +'<div class="tpl-row"><label class="tpl-label">Apt / Unit / Floor <span style="color:var(--text-muted);font-weight:600;font-size:0.7rem">(opcional)</span></label>'
         +'<input class="tpl-input" id="tpl_apt" placeholder="Ej: Apt 2B, Unit 3, 2FL" oninput="validateTemplate()"></div>'
 
@@ -5111,6 +5111,17 @@ function initGooglePlaces() {
 }
 
 function initAddressAutocomplete() {
+  // Always clear error state when user focuses the field
+  var input = document.getElementById('tpl_address');
+  if(input) {
+    input.removeAttribute('disabled');
+    input.style.backgroundImage = 'none';
+    input.classList.remove('gm-err-autocomplete');
+    if(input.placeholder === 'Se ha producido un error.') {
+      input.placeholder = 'Empieza a escribir la dirección...';
+    }
+  }
+  if(_placesAutocomplete) return; // Already initialized
   setupAddressAutocomplete();
 }
 
@@ -5118,9 +5129,14 @@ function setupAddressAutocomplete() {
   var input = document.getElementById('tpl_address');
   if(!input || _placesAutocomplete) return;
   if(!window.google || !window.google.maps || !window.google.maps.places) {
-    setTimeout(setupAddressAutocomplete, 500);
-    return;
+    return; // Don't retry — leave as plain text field
   }
+
+  // Remove any error state Google Maps may have previously set
+  input.removeAttribute('disabled');
+  input.placeholder = 'Empieza a escribir la dirección...';
+  input.style.backgroundImage = 'none';
+  input.classList.remove('gm-err-autocomplete');
 
   _placesAutocomplete = new google.maps.places.Autocomplete(input, {
     types: ['address'],
