@@ -3879,6 +3879,20 @@ function volverInicio(){
   dncClearResult();
   document.getElementById('dncPhone').value='';
   _placesAutocomplete = null;
+  // Reset TPV field
+  var tpvInp = document.getElementById('tpl_tpv_num');
+  if(tpvInp) { tpvInp.value=''; tpvInp.disabled=true; tpvInp.style.opacity='0.4'; tpvInp.style.cursor='not-allowed'; }
+  var tpvStatus = document.getElementById('tpvNumStatus');
+  if(tpvStatus) { tpvStatus.textContent='🔒 Bloqueado'; tpvStatus.style.color=''; }
+  var tpvRow = document.getElementById('tpvNumRow');
+  if(tpvRow) { tpvRow.style.borderColor=''; tpvRow.style.background=''; tpvRow.style.boxShadow=''; }
+  // Reset submit button
+  var submitBtn = document.getElementById('submitSaleBtn');
+  var submitText = document.getElementById('submitSaleBtnText');
+  if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
+  if(submitText) submitText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
+  // Reset saved template values
+  _savedTemplateValues = {};
   goStep(0);
   renderDNC();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -4604,9 +4618,12 @@ function hideSaleSuccess() {
   var overlay = document.getElementById('saleSuccessOverlay');
   if(!overlay) return;
   overlay.classList.remove('show');
-  // Remove confetti
   document.querySelectorAll('.confetti-dot').forEach(function(el){ el.remove(); });
-  // Go to DNC
+  // Reset submit button state before going home
+  var submitBtn = document.getElementById('submitSaleBtn');
+  var submitText = document.getElementById('submitSaleBtnText');
+  if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
+  if(submitText) submitText.textContent = 'Enviar venta';
   volverInicio();
 }
 
