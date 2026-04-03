@@ -1703,10 +1703,10 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 #quickLinks.show { display: flex; }
 .qlink-btn {
   display: flex; align-items: center;
-  width: 88px; overflow: hidden;
+  width: 72px; overflow: hidden;
   color: #fff; text-decoration: none;
-  border-radius: 0 20px 20px 0;
-  padding: 20px 20px 20px 20px;
+  border-radius: 0 16px 16px 0;
+  padding: 16px 20px 16px 16px;
   box-shadow: 2px 2px 12px rgba(0,0,0,0.25);
   transition: width 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
   white-space: nowrap; cursor: pointer;
@@ -1715,16 +1715,16 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   gap: 12px; border: none;
 }
 .qlink-btn:hover {
-  width: 210px;
+  width: 200px;
   box-shadow: 4px 4px 20px rgba(0,0,0,0.3);
 }
-.qlink-btn .qlink-icon { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+.qlink-btn .qlink-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
 .qlink-btn .qlink-label { opacity: 0; transition: opacity 0.15s 0.1s; pointer-events:none; }
 .qlink-btn:hover .qlink-label { opacity: 1; }
 .qlink-tpv      { background: linear-gradient(135deg,#1565C0,#0D47A1); }
 .qlink-five9    { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
 .qlink-xoom     { background: linear-gradient(135deg,#E65100,#BF360C); }
-.qlink-tempedge { background: linear-gradient(135deg,#00D4C8,#00B5AB); }
+.qlink-tempedge { background: linear-gradient(135deg,#00897B,#00695C); }
 
 /* ═══════════════════════════════════════════
    FLOATING CHAT BUBBLE
@@ -4216,10 +4216,8 @@ function copyTemplate() {
 
   var supName = sup ? sup.name : '';
   var isShortTemplate = (supName === 'NG&E' || supName === 'Rushmore');
-
   var lines;
   if(isShortTemplate) {
-    // NG&E and Rushmore — minimal template (no ACC INFO, no rate, no DOB, no namekey)
     lines = [
       t('tpl_state')   + ': ' + g('tpl_state'),
       t('tpl_lang')    + ': ' + g('tpl_lang'),
@@ -4233,7 +4231,6 @@ function copyTemplate() {
       t('tpl_repid')   + ': ' + g('tpl_repid'),
     ].filter(Boolean);
   } else {
-    // INDRA and others — full template
     lines = [
       t('tpl_lang')    + ': ' + g('tpl_lang'),
       t('tpl_auth')    + ': ' + authVal,
@@ -6687,19 +6684,19 @@ window.addEventListener('beforeunload', () => {
     <span class="qlink-icon">👥</span>
     <span class="qlink-label">Readymode</span>
   </a>
-  <button class="qlink-btn" style="background:linear-gradient(135deg,#0D47A1,#1565C0)" onclick="openCharts()" title="Gráficas">
+  <button class="qlink-btn" style="background:linear-gradient(135deg,#00838F,#006064)" onclick="openCharts()" title="Gráficas">
     <span class="qlink-icon">📈</span>
     <span class="qlink-label">Gráficas</span>
   </button>
-  <button class="qlink-btn shs-sales" onclick="openSalesStats()" title="Mis ventas">
+  <button class="qlink-btn" style="background:linear-gradient(135deg,#2E7D32,#1B5E20)" onclick="openSalesStats()" title="Mis ventas">
     <span class="qlink-icon">💰</span>
     <span class="qlink-label">Estadísticas</span>
   </button>
-  <button id="supPanelBtn" class="qlink-btn" style="background:linear-gradient(135deg,#6A1B9A,#4A148C);display:none" onclick="openSupPanel()" title="Agentes">
+  <button id="supPanelBtn" class="qlink-btn" style="background:linear-gradient(135deg,#F57F17,#E65100);display:none" onclick="openSupPanel()" title="Agentes">
     <span class="qlink-icon">🧑‍💼</span>
     <span class="qlink-label">Agentes</span>
   </button>
-  <button class="qlink-btn" style="background:linear-gradient(135deg,#1a1a2e,#16213e)" onclick="openHistory()" title="Mi Historial">
+  <button class="qlink-btn" style="background:linear-gradient(135deg,#212121,#37474F)" onclick="openHistory()" title="Mi Historial">
     <span class="qlink-icon">📊</span>
     <span class="qlink-label">Mi Historial</span>
   </button>
