@@ -4933,9 +4933,9 @@ function onAuthChange() {
   if(!container) return;
 
   if(val === 'Yes — Account Holder') {
-        container.innerHTML =
+    container.innerHTML =
       '<div class="tpl-row tpl-full"><label class="tpl-label">Account Holder Name *</label>'
-      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-Z\u00C0-\u024F\s\.\-]/g,\'\');validateTemplate()"></div>';validateTemplate()"></div>';
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-Z \u00C0-\u024F.\-]/g,\'\');validateTemplate()"></div>';
   } else if(val === 'Yes — Authorized User') {
     container.innerHTML =
       '<div class="tpl-row"><label class="tpl-label">Authorized User Name *</label>'
