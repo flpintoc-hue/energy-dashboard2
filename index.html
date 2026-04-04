@@ -205,15 +205,10 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   font-weight:800; font-size:0.75rem;
   letter-spacing:0.05em; text-transform:uppercase;
   white-space:nowrap; transition:all 0.2s;
-  opacity:0.5;
+  opacity:0.4;
 }
-.step-item.active {
-  color:#FFD54F; border-bottom-color:#FFD54F;
-  cursor:pointer; opacity:1;
-}
-.step-item.done {
-  color:var(--green); cursor:pointer; opacity:1;
-}
+.step-item.active { color:#FFD54F; border-bottom-color:#FFD54F; cursor:pointer; opacity:1; }
+.step-item.done   { color:var(--green); cursor:pointer; opacity:1; }
 .step-item.done:hover { color:#81C784; }
 .step-num {
   width:22px; height:22px; border-radius:50%;
@@ -3500,42 +3495,29 @@ const MONTHS = [
 ];
 
 function canGoToStep(n) {
-  // Can always go back or stay
   if(n <= currentStep) return true;
-  // Validate each prerequisite
   if(n >= 1 && !dncVerifiedClear) {
-    toast(currentLang==='en'
-      ? '⚠ You must verify the DNC number first'
-      : '⚠ Debes verificar el número DNC primero', 'warn');
+    toast(currentLang==='en' ? '⚠ Verify the DNC number first' : '⚠ Debes verificar el número DNC primero', 'warn');
     return false;
   }
   if(n >= 2 && !sel.stateId) {
-    toast(currentLang==='en'
-      ? '⚠ Select a state first'
-      : '⚠ Selecciona un estado primero', 'warn');
+    toast(currentLang==='en' ? '⚠ Select a state first' : '⚠ Selecciona un estado primero', 'warn');
     return false;
   }
   if(n >= 3 && (!sel.utilIds || sel.utilIds.length === 0)) {
-    toast(currentLang==='en'
-      ? '⚠ Select a utility first'
-      : '⚠ Selecciona una utilidad primero', 'warn');
+    toast(currentLang==='en' ? '⚠ Select a utility first' : '⚠ Selecciona una utilidad primero', 'warn');
     return false;
   }
   if(n >= 4 && !sel.supId) {
-    toast(currentLang==='en'
-      ? '⚠ Select a supplier and rate first'
-      : '⚠ Selecciona un supplier y tarifa primero', 'warn');
+    toast(currentLang==='en' ? '⚠ Select a supplier and rate first' : '⚠ Selecciona un supplier y tarifa primero', 'warn');
     return false;
   }
   return true;
 }
 
 function goStep(n) {
-  // Validate forward navigation
   if(!canGoToStep(n)) return;
-  // Push browser history state
   history.pushState({ step: n }, '');
-  // If going back to DNC, clear everything
   if(n === 0 && currentStep > 0) {
     sel = {stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{}};
     checkedItems.clear();
@@ -3568,26 +3550,20 @@ function goStep(n) {
 }
 
 function updateStepNav() {
-  // Unlock steps based on what has been completed
   var maxAllowed = 0;
-  if(dncVerifiedClear)                              maxAllowed = 1;
-  if(dncVerifiedClear && sel.stateId)               maxAllowed = 2;
-  if(dncVerifiedClear && sel.stateId && sel.utilIds && sel.utilIds.length > 0) maxAllowed = 3;
-  if(dncVerifiedClear && sel.stateId && sel.utilIds && sel.utilIds.length > 0 && sel.supId) maxAllowed = 4;
-
+  if(dncVerifiedClear)                                                    maxAllowed = 1;
+  if(dncVerifiedClear && sel.stateId)                                     maxAllowed = 2;
+  if(dncVerifiedClear && sel.stateId && sel.utilIds && sel.utilIds.length) maxAllowed = 3;
+  if(dncVerifiedClear && sel.stateId && sel.utilIds && sel.utilIds.length && sel.supId) maxAllowed = 4;
   document.querySelectorAll('.step-item').forEach(function(el, i) {
-    var isActive = i === currentStep;
-    var isDone   = i < currentStep;
+    var isActive   = i === currentStep;
+    var isDone     = i < currentStep;
     var isUnlocked = i <= maxAllowed;
     el.classList.toggle('active', isActive);
     el.classList.toggle('done', isDone && !isActive);
-    el.style.opacity  = (isActive || isDone || isUnlocked) ? '1' : '0.35';
-    el.style.cursor   = (isActive || isDone || isUnlocked) ? 'pointer' : 'not-allowed';
-    el.style.color    = isActive
-      ? '#FFD54F'
-      : isDone ? 'var(--green)'
-      : isUnlocked ? 'rgba(255,255,255,0.6)'
-      : 'rgba(255,255,255,0.25)';
+    el.style.opacity = (isActive || isDone || isUnlocked) ? '1' : '0.35';
+    el.style.cursor  = (isActive || isDone || isUnlocked) ? 'pointer' : 'not-allowed';
+    el.style.color   = isActive ? '#FFD54F' : isDone ? 'var(--green)' : isUnlocked ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)';
   });
 }
 
@@ -3933,6 +3909,7 @@ function selectSupAndGo(id) {
   }
   sel.supId = id;
   updateContext();
+  updateStepNav();
   goStep(4);
 }
 
@@ -3955,7 +3932,12 @@ function volverInicio(){
   if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
   if(submitText) submitText.textContent = 'Enviar venta';
   updateStepNav();
-  goStep(0);
+  // Go directly without canGoToStep check
+  dncVerifiedClear = false;
+  currentStep = 0;
+  document.querySelectorAll('.panel').forEach(function(p,i){ p.classList.toggle('active', i===0); });
+  document.querySelectorAll('.step-item').forEach(function(s,i){ s.classList.remove('active','done'); if(i===0) s.classList.add('active'); });
+  updateStepNav();
   renderDNC();
   window.scrollTo({top:0,behavior:'smooth'});
 }
