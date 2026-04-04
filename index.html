@@ -5790,44 +5790,52 @@ async function checkDNC() {
   // Pause chat polling during DNC check to avoid competing requests
   stopChatPolling();
 
-  // ── Server check with cache — fast after first query ────
+  // ── Paso 1: Notificar supervisor vía WA (fire & forget) ────
+  const dncState = db.states.find(s => s.id === sel.stateId);
+  const agentName = currentUser ? currentUser.name : 'Agente';
+  const stateStr  = dncState ? dncState.name + ' (' + dncState.code + ')' : '';
+  const waStatus = document.getElementById('dncWAStatus');
+  const waText   = document.getElementById('dncWAStatusText');
+  if(waStatus) waStatus.style.display = 'flex';
+  if(waText)   waText.textContent = '📱 Notificando supervisor...';
+  fetch(SESSIONS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ _secret: _APP_SECRET, action: 'notify_dnc', phone: clean, found: null, agent: agentName, state: stateStr })
+  }).then(function() {
+    if(waText && waText.textContent.includes('Notificando')) waText.textContent = '✅ Supervisor notificado';
+  }).catch(function() {
+    if(waText) waText.textContent = '⚠️ WA no disponible';
+  });
+
+  // ── Paso 2: Consulta DNC (inmediata, sin esperar WA) ────
   try {
-    const dncState = db.states.find(s => s.id === sel.stateId);
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
-      body: JSON.stringify({
-        _secret: _APP_SECRET,
-        action: 'check_dnc',
-        phone:  clean,
-        agent:  currentUser ? currentUser.name : 'Agente',
-        state:  dncState ? dncState.name + ' (' + dncState.code + ')' : ''
-      }),
+      body: JSON.stringify({ _secret: _APP_SECRET, action: 'check_dnc', phone: clean, agent: agentName, state: stateStr }),
     });
     const result = JSON.parse(await resp.text());
     btn.disabled = false;
     btn.textContent = t('btn_verify');
-    if(result.error) {
-      showDNCResult('unknown','⚠️','No se pudo verificar', 'Error: ' + result.error);
-      return;
-    }
+    if(result.error) { showDNCResult('unknown','⚠️','No se pudo verificar', 'Error: ' + result.error); return; }
     if(result.found) {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
       dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.remove('show');
       addLog('dnc', 'DNC: ' + clean + ' — 🚫 EN DNC');
+      if(waText) waText.textContent = '✅ Supervisor notificado — 🚫 EN DNC';
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
       dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
       addLog('dnc', 'DNC: ' + clean + ' — ✅ LIBRE');
       updateStepNav();
+      if(waText) waText.textContent = '✅ Supervisor notificado — LIBRE';
     }
   } catch(err) {
     btn.disabled = false;
     btn.textContent = t('btn_verify');
     showDNCResult('unknown','⚠️', t('dnc_error'), t('dnc_error_sub'));
   } finally {
-    // Resume chat polling after DNC check completes
     startChatPolling();
   }
 }
