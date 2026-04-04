@@ -9,7 +9,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://maps.googleapis.com https://api.dicebear.com https://cdnjs.cloudflare.com https://energy-prox.flpintoc.workers.dev https://energy-prox.flpintoc.workers.dev; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://api.dicebear.com https://maps.gstatic.com https://maps.googleapis.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Energy Supplier Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 <style>
 :root {
   --orange: #F47C20;
@@ -2001,7 +2001,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 </style>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd05Tpk1Jkg5ITlZFCvJrQl2ZGOdi0LiA&libraries=places&callback=initGooglePlaces" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd05Tpk1Jkg5ITlZFCvJrQl2ZGOdi0LiA&libraries=places&callback=initGooglePlaces" async defer crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -3439,9 +3439,7 @@ async function doLogin() {
   showLoginStep2(user.name);
 }
 
-var _logoutTimer = null;
-var _logoutSeconds = 60;
-
+var _logoutTimer = null, _logoutSeconds = 60;
 function showLogoutConfirm() {
   _logoutSeconds = 60;
   var overlay = document.getElementById('logoutConfirmOverlay');
@@ -3471,7 +3469,6 @@ function confirmLogout() {
   if(o) o.classList.remove('show');
   doLogout();
 }
-
 function doLogout() {
   if (currentUser) {
     addLog('logout', `${currentUser.name} cerró sesión`);
@@ -3537,12 +3534,15 @@ function addLog(type, text) {
 function renderLog() {
   const el = document.getElementById('accessLog');
   if (!accessLog.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;padding:16px 0;text-align:center">Sin registros aún</div>'; return; }
-  el.innerHTML = accessLog.map(l => `
-    <div class="log-entry">
-      <div class="log-dot ${l.type}"></div>
-      <span class="log-text">${l.text}</span>
-      <span class="log-time">${l.time}</span>
-    </div>`).join('');
+  el.innerHTML = accessLog.map(function(l) {
+    var safeText = String(l.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    var safeTime = String(l.time||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="log-entry">'
+      + '<div class="log-dot ' + (l.type||'') + '"></div>'
+      + '<span class="log-text">' + safeText + '</span>'
+      + '<span class="log-time">' + safeTime + '</span>'
+      + '</div>';
+  }).join('');
 }
 
 function clearLog() { accessLog = []; saveLog(); renderLog(); }
@@ -3572,7 +3572,6 @@ function canGoToStep(n) {
   if(n >= 4 && !sel.supId) { toast(currentLang==='en'?'⚠ Select a supplier and rate first':'⚠ Selecciona un supplier y tarifa primero','warn'); return false; }
   return true;
 }
-
 function goStep(n) {
   if(!canGoToStep(n)) return;
   history.pushState({ step: n }, '');
@@ -3622,7 +3621,6 @@ function updateStepNav() {
     el.style.color   = isActive?'#FFD54F':isDone?'var(--green)':isUnlocked?'rgba(255,255,255,0.6)':'rgba(255,255,255,0.25)';
   });
 }
-
 function updateContext() {
   const bar = document.getElementById('contextBar');
   let html = '';
@@ -4237,15 +4235,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
   +'</div>';
 }
 
-function restoreTemplateValues() {
-  // Keep values across re-renders by storing in a global object
-  if(!window._tplData) return;
-  const fields = ['state','lang','phone','auth','holder','address','city','acc','util','dob','namekey','repid','tarifa'];
-  fields.forEach(f => {
-    const el = document.getElementById('tpl_'+f);
-    if(el && window._tplData[f] !== undefined) el.value = window._tplData[f];
-  });
-}
+// restoreTemplateValues merged into comprehensive version below
 
 function saveTplField(field) {
   if(!window._tplData) window._tplData = {};
@@ -4911,8 +4901,8 @@ async function submitSale() {
   var tpvVal = (document.getElementById('tpl_tpv_num')||{}).value || '';
   if(!tpvVal.trim()) {
     toast(currentLang==='en'?'⚠ Enter the TPV # first':'⚠ Ingresa el TPV # antes de enviar','warn');
-    var tpvRow2 = document.getElementById('tpvNumRow');
-    if(tpvRow2) { tpvRow2.style.borderColor='#E53935'; tpvRow2.style.boxShadow='0 0 0 3px rgba(229,57,53,0.2)'; }
+    var tpvRowEl = document.getElementById('tpvNumRow');
+    if(tpvRowEl) { tpvRowEl.style.borderColor='#E53935'; tpvRowEl.style.boxShadow='0 0 0 3px rgba(229,57,53,0.2)'; }
     var tpvFocus = document.getElementById('tpl_tpv_num');
     if(tpvFocus) tpvFocus.focus();
     return;
@@ -5426,20 +5416,20 @@ function renderAgents() {
   const el=document.getElementById('agentsList');
   const agents=users.filter(u=>u.role==='agent');
   if(!agents.length){el.innerHTML='<div style="color:var(--text-muted);font-size:0.8rem;padding:16px 0;text-align:center">Sin agentes creados aún</div>';return;}
-  el.innerHTML=agents.map(a=>`
-    <div class="agent-row">
-      <div class="agent-info">
-        <div class="agent-uname">@${a.username}</div>
-        <div class="agent-meta">${a.name}</div>
-      </div>
-      <span class="agent-status ${a.active?'active':'inactive'}">${a.active?'Activo':'Inactivo'}</span>
-      <div class="agent-actions">
-        <button class="abtn ${a.active?'toggle-inactive':'toggle-active'}" onclick="toggleAgent('${a.id}')">
-          ${a.active?'Desactivar':'Activar'}
-        </button>
-        <button class="abtn del" onclick="deleteAgent('${a.id}')">Eliminar</button>
-      </div>
-    </div>`).join('');
+  var _esc = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  el.innerHTML=agents.map(function(a){
+    return '<div class="agent-row">'
+      + '<div class="agent-info">'
+      + '<div class="agent-uname">@' + _esc(a.username) + '</div>'
+      + '<div class="agent-meta">' + _esc(a.name) + '</div>'
+      + '</div>'
+      + '<span class="agent-status ' + (a.active?'active':'inactive') + '">' + (a.active?'Activo':'Inactivo') + '</span>'
+      + '<div class="agent-actions">'
+      + '<button class="abtn ' + (a.active?'toggle-inactive':'toggle-active') + '" onclick="toggleAgent('' + _esc(a.id) + '')">'
+      + (a.active?'Desactivar':'Activar') + '</button>'
+      + '<button class="abtn del" onclick="deleteAgent('' + _esc(a.id) + '')">Eliminar</button>'
+      + '</div></div>';
+  }).join('');
 }
 
 function addAgent() {
@@ -5740,7 +5730,6 @@ async function checkDNC() {
   const waText   = document.getElementById('dncWAStatusText');
   if(waStatus) waStatus.style.display = 'flex';
   if(waText)   waText.textContent = '📱 Notificando supervisor...';
-  // Fire WA — no await, no blocking
   fetch(SESSIONS_URL, {
     method: 'POST',
     body: JSON.stringify({ _secret: _APP_SECRET, action: 'notify_dnc', phone: clean, found: null, agent: agentName, state: stateStr })
@@ -5771,6 +5760,7 @@ async function checkDNC() {
       dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
       addLog('dnc', 'DNC: ' + clean + ' — ✅ LIBRE');
+      updateStepNav();
       if(waText) waText.textContent = '✅ Supervisor notificado — LIBRE';
     }
   } catch(err) {
