@@ -3535,13 +3535,10 @@ function renderLog() {
   const el = document.getElementById('accessLog');
   if (!accessLog.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;padding:16px 0;text-align:center">Sin registros aún</div>'; return; }
   el.innerHTML = accessLog.map(function(l) {
-    var safeText = String(l.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    var safeTime = String(l.time||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return '<div class="log-entry">'
-      + '<div class="log-dot ' + (l.type||'') + '"></div>'
-      + '<span class="log-text">' + safeText + '</span>'
-      + '<span class="log-time">' + safeTime + '</span>'
-      + '</div>';
+    var st = String(l.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    var sm = String(l.time||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="log-entry"><div class="log-dot '+(l.type||'')+'"></div>'
+      +'<span class="log-text">'+st+'</span><span class="log-time">'+sm+'</span></div>';
   }).join('');
 }
 
@@ -4235,13 +4232,9 @@ function renderTemplateStep(stepNum, state, util, sup) {
   +'</div>';
 }
 
-// restoreTemplateValues merged into comprehensive version below
+/* restoreTemplateValues v1 removed — using comprehensive version */
 
-function saveTplField(field) {
-  if(!window._tplData) window._tplData = {};
-  const el = document.getElementById('tpl_'+field);
-  if(el) window._tplData[field] = el.value;
-}
+/* saveTplField removed — saveTemplateValues() handles persistence */
 
 
 
@@ -4772,10 +4765,10 @@ function enableTpvField() {
     if(hint) hint.style.display = 'none';
   }
 
-  if(row) { row.style.borderColor='var(--orange)'; row.style.background='var(--card)'; row.style.boxShadow='0 0 0 2px rgba(244,124,32,0.15)'; }
-  if(status) { status.textContent='✏️ Escribe el TPV...'; status.style.color='#E65100'; }
-  var sbEtpv=document.getElementById('submitSaleBtn');
-  if(sbEtpv) { sbEtpv.disabled=true; sbEtpv.style.opacity='0.45'; sbEtpv.style.cursor='not-allowed'; }
+  if(row){row.style.borderColor='var(--orange)';row.style.background='var(--card)';row.style.boxShadow='0 0 0 2px rgba(244,124,32,0.15)';}
+  if(status){status.textContent='✏️ Escribe el TPV...';status.style.color='#E65100';}
+  var sbE=document.getElementById('submitSaleBtn');
+  if(sbE){sbE.disabled=true;sbE.style.opacity='0.45';sbE.style.cursor='not-allowed';}
   inp.focus();
 }
 
@@ -4826,18 +4819,18 @@ function validateTpvNum() {
     isValid = val.trim().length > 0;
   }
 
-  if(val.trim().length===0) {
-    status.textContent='✏️ Escribe el TPV...'; status.style.color='#E65100';
+  if(val.trim().length===0){
+    status.textContent='✏️ Escribe el TPV...';status.style.color='#E65100';
     if(inp) inp.style.borderBottom='2px solid #E53935';
-  } else if(isValid) {
-    status.textContent='✅ '+val.trim(); status.style.color='#27ae60';
+  } else if(isValid){
+    status.textContent='✅ '+val.trim();status.style.color='#27ae60';
     if(inp) inp.style.borderBottom='2px solid #27ae60';
   } else {
-    status.textContent='⚠ '+(errorMsg||val.trim().length+'/'+len+' car.'); status.style.color='#E65100';
+    status.textContent='⚠ '+(errorMsg||val.trim().length+'/'+len+' car.');status.style.color='#E65100';
     if(inp) inp.style.borderBottom='2px solid #E65100';
   }
-  var sb = document.getElementById('submitSaleBtn');
-  if(sb) { sb.disabled=!isValid; sb.style.opacity=isValid?'1':'0.45'; sb.style.cursor=isValid?'pointer':'not-allowed'; }
+  var sb=document.getElementById('submitSaleBtn');
+  if(sb){sb.disabled=!isValid;sb.style.opacity=isValid?'1':'0.45';sb.style.cursor=isValid?'pointer':'not-allowed';}
 }
 
 async function submitSale() {
@@ -4897,20 +4890,17 @@ async function submitSale() {
   if(!sale.phone)    missing.push(currentLang==='en'?'Phone':'Teléfono');
   if(!sale.supplier) missing.push('Supplier');
   if(!sale.rate)     missing.push(currentLang==='en'?'Rate':'Tarifa');
-
   var tpvVal = (document.getElementById('tpl_tpv_num')||{}).value || '';
   if(!tpvVal.trim()) {
     toast(currentLang==='en'?'⚠ Enter the TPV # first':'⚠ Ingresa el TPV # antes de enviar','warn');
-    var tpvRowEl = document.getElementById('tpvNumRow');
-    if(tpvRowEl) { tpvRowEl.style.borderColor='#E53935'; tpvRowEl.style.boxShadow='0 0 0 3px rgba(229,57,53,0.2)'; }
-    var tpvFocus = document.getElementById('tpl_tpv_num');
-    if(tpvFocus) tpvFocus.focus();
+    var tpvRowEl=document.getElementById('tpvNumRow');
+    if(tpvRowEl){tpvRowEl.style.borderColor='#E53935';tpvRowEl.style.boxShadow='0 0 0 3px rgba(229,57,53,0.2)';}
+    var tpvF=document.getElementById('tpl_tpv_num'); if(tpvF) tpvF.focus();
     return;
   }
-  var tpvSupName = sup ? (sup.name||'') : '';
-  if(tpvSupName==='INDRA' && !/^W[0-9]{13}$/.test(tpvVal)) { toast('⚠ TPV INDRA: W + 13 dígitos','warn'); return; }
-  if((tpvSupName==='NG&E'||tpvSupName==='Rushmore') && !/^[0-9]{9}$/.test(tpvVal)) { toast('⚠ TPV: 9 dígitos exactos','warn'); return; }
-
+  var tpvSup = sup ? (sup.name||'') : '';
+  if(tpvSup==='INDRA' && !/^W[0-9]{13}$/.test(tpvVal)){toast('⚠ TPV INDRA: W + 13 dígitos','warn');return;}
+  if((tpvSup==='NG&E'||tpvSup==='Rushmore') && !/^[0-9]{9}$/.test(tpvVal)){toast('⚠ TPV: 9 dígitos exactos','warn');return;}
   if(missing.length > 0) {
     toast((currentLang==='en'?'⚠ Missing fields: ':'⚠ Campos faltantes: ') + missing.join(', '), 'warn');
     return;
@@ -5416,20 +5406,20 @@ function renderAgents() {
   const el=document.getElementById('agentsList');
   const agents=users.filter(u=>u.role==='agent');
   if(!agents.length){el.innerHTML='<div style="color:var(--text-muted);font-size:0.8rem;padding:16px 0;text-align:center">Sin agentes creados aún</div>';return;}
-  var _esc = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
-  el.innerHTML=agents.map(function(a){
-    return '<div class="agent-row">'
-      + '<div class="agent-info">'
-      + '<div class="agent-uname">@' + _esc(a.username) + '</div>'
-      + '<div class="agent-meta">' + _esc(a.name) + '</div>'
-      + '</div>'
-      + '<span class="agent-status ' + (a.active?'active':'inactive') + '">' + (a.active?'Activo':'Inactivo') + '</span>'
-      + '<div class="agent-actions">'
-      + '<button class="abtn ' + (a.active?'toggle-inactive':'toggle-active') + '" onclick="toggleAgent('' + _esc(a.id) + '')">'
-      + (a.active?'Desactivar':'Activar') + '</button>'
-      + '<button class="abtn del" onclick="deleteAgent('' + _esc(a.id) + '')">Eliminar</button>'
-      + '</div></div>';
-  }).join('');
+  el.innerHTML=agents.map(a=>`
+    <div class="agent-row">
+      <div class="agent-info">
+        <div class="agent-uname">@${a.username}</div>
+        <div class="agent-meta">${a.name}</div>
+      </div>
+      <span class="agent-status ${a.active?'active':'inactive'}">${a.active?'Activo':'Inactivo'}</span>
+      <div class="agent-actions">
+        <button class="abtn ${a.active?'toggle-inactive':'toggle-active'}" onclick="toggleAgent('${a.id}')">
+          ${a.active?'Desactivar':'Activar'}
+        </button>
+        <button class="abtn del" onclick="deleteAgent('${a.id}')">Eliminar</button>
+      </div>
+    </div>`).join('');
 }
 
 function addAgent() {
