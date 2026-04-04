@@ -2099,15 +2099,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
             <button class="dnc-check-btn" onclick="checkDNC()" id="dncCheckBtn">Verificar</button>
           </div>
           <div style="display:flex;gap:10px;margin-top:10px">
-            <button id="dncWABtn" onclick="sendDNCWhatsApp()"
-              style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
-              padding:11px 16px;border-radius:10px;border:none;cursor:pointer;
-              background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;
-              font-family:Nunito,sans-serif;
-              font-weight:800;font-size:0.82rem;transition:all 0.2s;opacity:1">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Notificar Supervisor
-            </button>
+            <!-- WA notification is now automatic on DNC check -->
           </div>
           <div class="dnc-result" id="dncResult">
             <div class="dnc-result-icon" id="dncResultIcon"></div>
@@ -4722,9 +4714,8 @@ function enableTpvField() {
     row.style.boxShadow = '0 0 0 2px rgba(244,124,32,0.15)';
   }
   if(status) { status.textContent = '✏️ Escribe el TPV...'; status.style.color = '#E65100'; }
-  // Disable submit until TPV is filled
   var submitBtn = document.getElementById('submitSaleBtn');
-  if(submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.45'; submitBtn.style.cursor = 'not-allowed'; }
+  if(submitBtn) { submitBtn.disabled=true; submitBtn.style.opacity='0.45'; submitBtn.style.cursor='not-allowed'; }
   inp.focus();
 }
 
@@ -4757,26 +4748,23 @@ function validateTpvNum() {
   var val = (inp||{}).value || '';
   var status = document.getElementById('tpvNumStatus');
   if(!status) return;
-
   var sup = db.suppliers.find(function(s){ return s.id === sel.supId; });
   var supName = sup ? (sup.name || '') : '';
   var len = getTpvNumLength();
   var isValid = false;
   var errorMsg = '';
-
   if(supName === 'INDRA') {
-    isValid = val.length === 14 && val[0] === 'W' && /^W[0-9]{13}$/.test(val);
+    isValid = /^W[0-9]{13}$/.test(val);
     if(val.length > 0 && !isValid) errorMsg = 'Debe ser W + 13 números (' + val.length + '/14)';
   } else if(supName === 'NG&E' || supName === 'Rushmore') {
-    isValid = val.length === 9 && /^[0-9]{9}$/.test(val);
+    isValid = /^[0-9]{9}$/.test(val);
     if(val.length > 0 && !isValid) errorMsg = 'Solo 9 dígitos (' + val.length + '/9)';
   } else {
     isValid = val.trim().length > 0;
   }
-
   if(val.trim().length === 0) {
     status.textContent = '✏️ Escribe el TPV...';
-    status.style.color = 'var(--text-muted)';
+    status.style.color = '#E65100';
     if(inp) inp.style.borderBottom = '2px solid #E53935';
   } else if(isValid) {
     status.textContent = '✅ ' + val.trim();
@@ -4787,14 +4775,11 @@ function validateTpvNum() {
     status.style.color = '#E65100';
     if(inp) inp.style.borderBottom = '2px solid #E65100';
   }
-
-  // Enable/disable submit button based on TPV validity
   var submitBtn = document.getElementById('submitSaleBtn');
   if(submitBtn) {
     submitBtn.disabled = !isValid;
     submitBtn.style.opacity = isValid ? '1' : '0.45';
     submitBtn.style.cursor = isValid ? 'pointer' : 'not-allowed';
-    submitBtn.title = isValid ? '' : (currentLang==='en' ? 'Enter a valid TPV # first' : 'Ingresa el TPV # primero');
   }
 }
 
@@ -4857,28 +4842,20 @@ async function submitSale() {
   if(!sale.supplier) missing.push('Supplier');
   if(!sale.rate)     missing.push(currentLang==='en'?'Rate':'Tarifa');
 
-  // TPV # is always required before submitting
   var tpvVal = (document.getElementById('tpl_tpv_num')||{}).value || '';
   if(!tpvVal.trim()) {
-    toast(currentLang==='en'
-      ? '⚠ Enter the TPV Confirmation # before submitting'
-      : '⚠ Debes ingresar el TPV Confirmation # antes de enviar', 'warn');
-    // Highlight TPV field
+    toast(currentLang==='en'?'⚠ Enter the TPV Confirmation # first':'⚠ Ingresa el TPV Confirmation # antes de enviar','warn');
     var tpvRow = document.getElementById('tpvNumRow');
     if(tpvRow) { tpvRow.style.borderColor='#E53935'; tpvRow.style.boxShadow='0 0 0 3px rgba(229,57,53,0.2)'; }
     var tpvInp = document.getElementById('tpl_tpv_num');
     if(tpvInp) tpvInp.focus();
     return;
   }
-  // Validate TPV format per supplier
   var tpvSupName = sup ? (sup.name || '') : '';
-  var tpvValid = true;
-  if(tpvSupName === 'INDRA') {
-    tpvValid = /^W[0-9]{13}$/.test(tpvVal);
-    if(!tpvValid) { toast('⚠ TPV INDRA debe ser W + 13 dígitos (ej: W1234567890123)', 'warn'); return; }
-  } else if(tpvSupName === 'NG&E' || tpvSupName === 'Rushmore') {
-    tpvValid = /^[0-9]{9}$/.test(tpvVal);
-    if(!tpvValid) { toast('⚠ TPV debe ser exactamente 9 dígitos', 'warn'); return; }
+  if(tpvSupName === 'INDRA' && !/^W[0-9]{13}$/.test(tpvVal)) {
+    toast('⚠ TPV INDRA debe ser W + 13 dígitos', 'warn'); return;
+  } else if((tpvSupName === 'NG&E' || tpvSupName === 'Rushmore') && !/^[0-9]{9}$/.test(tpvVal)) {
+    toast('⚠ TPV debe ser exactamente 9 dígitos', 'warn'); return;
   }
 
   if(missing.length > 0) {
@@ -5692,17 +5669,45 @@ async function checkDNC() {
   // Pause chat polling during DNC check to avoid competing requests
   stopChatPolling();
 
-  // ── Server check with cache — fast after first query ────
+  // ── Paso 1: Notificar supervisor vía WA (fire & forget, sin bloquear) ────
+  const dncState = db.states.find(s => s.id === sel.stateId);
+  const agentName = currentUser ? currentUser.name : 'Agente';
+  const stateStr  = dncState ? dncState.name + ' (' + dncState.code + ')' : '';
+
+  const waStatus = document.getElementById('dncWAStatus');
+  const waText   = document.getElementById('dncWAStatusText');
+  if(waStatus) waStatus.style.display = 'flex';
+  if(waText)   waText.textContent = '📱 Notificando supervisor...';
+
+  // Dispara WA sin esperar — corre en paralelo con el DNC
+  fetch(SESSIONS_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      _secret: _APP_SECRET,
+      action:  'notify_dnc',
+      phone:   clean,
+      found:   null,
+      agent:   agentName,
+      state:   stateStr
+    })
+  }).then(function() {
+    if(waText && waText.textContent.includes('Notificando')) {
+      waText.textContent = '✅ Supervisor notificado';
+    }
+  }).catch(function() {
+    if(waText) waText.textContent = '⚠️ WA no disponible';
+  });
+
+  // ── Paso 2: Consulta DNC (se ejecuta de inmediato sin esperar WA) ────
   try {
-    const dncState = db.states.find(s => s.id === sel.stateId);
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
       body: JSON.stringify({
         _secret: _APP_SECRET,
         action: 'check_dnc',
         phone:  clean,
-        agent:  currentUser ? currentUser.name : 'Agente',
-        state:  dncState ? dncState.name + ' (' + dncState.code + ')' : ''
+        agent:  agentName,
+        state:  stateStr
       }),
     });
     const result = JSON.parse(await resp.text());
@@ -5717,19 +5722,20 @@ async function checkDNC() {
       dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.remove('show');
       addLog('dnc', 'DNC: ' + clean + ' — 🚫 EN DNC');
+      if(waText) waText.textContent = '✅ Supervisor notificado — 🚫 EN DNC';
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
       dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
       addLog('dnc', 'DNC: ' + clean + ' — ✅ LIBRE');
       updateStepNav();
+      if(waText) waText.textContent = '✅ Supervisor notificado — LIBRE';
     }
   } catch(err) {
     btn.disabled = false;
     btn.textContent = t('btn_verify');
     showDNCResult('unknown','⚠️', t('dnc_error'), t('dnc_error_sub'));
   } finally {
-    // Resume chat polling after DNC check completes
     startChatPolling();
   }
 }
