@@ -1,8 +1,17 @@
 name = "energy-dashboard2"
-main = "src/worker.js"
+main = "worker.js"
 compatibility_date = "2024-01-01"
 
-[assets]
-directory = "."
-binding = "ASSETS"
-run_worker_first = true
+# KV namespace para rate limiting
+# Crea el namespace con: wrangler kv:namespace create "RATE_LIMITER"
+# Luego reemplaza el id con el que te devuelva el comando
+[[kv_namespaces]]
+binding = "RATE_LIMITER"
+id      = "REEMPLAZA_CON_TU_KV_NAMESPACE_ID"
+
+# Variables de entorno (secrets van por wrangler secret put)
+# wrangler secret put WORKER_SECRET
+# wrangler secret put APPS_SCRIPT_URL  ← opcional, ya está hardcoded como fallback
+
+[vars]
+ENVIRONMENT = "production"
