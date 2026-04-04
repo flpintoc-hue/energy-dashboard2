@@ -204,8 +204,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   color:rgba(255,255,255,0.25);
   font-weight:800; font-size:0.75rem;
   letter-spacing:0.05em; text-transform:uppercase;
-  white-space:nowrap; transition:all 0.2s;
-  opacity:0.4;
+  white-space:nowrap; transition:all 0.2s; opacity:0.4;
 }
 .step-item.active { color:#FFD54F; border-bottom-color:#FFD54F; cursor:pointer; opacity:1; }
 .step-item.done   { color:var(--green); cursor:pointer; opacity:1; }
@@ -3496,22 +3495,10 @@ const MONTHS = [
 
 function canGoToStep(n) {
   if(n <= currentStep) return true;
-  if(n >= 1 && !dncVerifiedClear) {
-    toast(currentLang==='en' ? '⚠ Verify the DNC number first' : '⚠ Debes verificar el número DNC primero', 'warn');
-    return false;
-  }
-  if(n >= 2 && !sel.stateId) {
-    toast(currentLang==='en' ? '⚠ Select a state first' : '⚠ Selecciona un estado primero', 'warn');
-    return false;
-  }
-  if(n >= 3 && (!sel.utilIds || sel.utilIds.length === 0)) {
-    toast(currentLang==='en' ? '⚠ Select a utility first' : '⚠ Selecciona una utilidad primero', 'warn');
-    return false;
-  }
-  if(n >= 4 && !sel.supId) {
-    toast(currentLang==='en' ? '⚠ Select a supplier and rate first' : '⚠ Selecciona un supplier y tarifa primero', 'warn');
-    return false;
-  }
+  if(n >= 1 && !dncVerifiedClear) { toast(currentLang==='en'?'⚠ Verify the DNC number first':'⚠ Debes verificar el número DNC primero','warn'); return false; }
+  if(n >= 2 && !sel.stateId) { toast(currentLang==='en'?'⚠ Select a state first':'⚠ Selecciona un estado primero','warn'); return false; }
+  if(n >= 3 && (!sel.utilIds||sel.utilIds.length===0)) { toast(currentLang==='en'?'⚠ Select a utility first':'⚠ Selecciona una utilidad primero','warn'); return false; }
+  if(n >= 4 && !sel.supId) { toast(currentLang==='en'?'⚠ Select a supplier and rate first':'⚠ Selecciona un supplier y tarifa primero','warn'); return false; }
   return true;
 }
 
@@ -3551,18 +3538,16 @@ function goStep(n) {
 
 function updateStepNav() {
   var maxAllowed = 0;
-  if(dncVerifiedClear)                                                    maxAllowed = 1;
-  if(dncVerifiedClear && sel.stateId)                                     maxAllowed = 2;
+  if(dncVerifiedClear) maxAllowed = 1;
+  if(dncVerifiedClear && sel.stateId) maxAllowed = 2;
   if(dncVerifiedClear && sel.stateId && sel.utilIds && sel.utilIds.length) maxAllowed = 3;
   if(dncVerifiedClear && sel.stateId && sel.utilIds && sel.utilIds.length && sel.supId) maxAllowed = 4;
   document.querySelectorAll('.step-item').forEach(function(el, i) {
-    var isActive   = i === currentStep;
-    var isDone     = i < currentStep;
-    var isUnlocked = i <= maxAllowed;
+    var isActive = i===currentStep, isDone = i<currentStep, isUnlocked = i<=maxAllowed;
     el.classList.toggle('active', isActive);
     el.classList.toggle('done', isDone && !isActive);
-    el.style.opacity = (isActive || isDone || isUnlocked) ? '1' : '0.35';
-    el.style.cursor  = (isActive || isDone || isUnlocked) ? 'pointer' : 'not-allowed';
+    el.style.opacity = (isActive||isDone||isUnlocked) ? '1' : '0.35';
+    el.style.cursor  = (isActive||isDone||isUnlocked) ? 'pointer' : 'not-allowed';
     el.style.color   = isActive ? '#FFD54F' : isDone ? 'var(--green)' : isUnlocked ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)';
   });
 }
@@ -3929,14 +3914,11 @@ function volverInicio(){
   if(tpvRow) { tpvRow.style.borderColor=''; tpvRow.style.background=''; tpvRow.style.boxShadow=''; }
   var submitBtn = document.getElementById('submitSaleBtn');
   var submitText = document.getElementById('submitSaleBtnText');
-  if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
+  if(submitBtn) { submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.cursor='pointer'; submitBtn.style.background=''; }
   if(submitText) submitText.textContent = 'Enviar venta';
-  updateStepNav();
-  // Go directly without canGoToStep check
   dncVerifiedClear = false;
   currentStep = 0;
-  document.querySelectorAll('.panel').forEach(function(p,i){ p.classList.toggle('active', i===0); });
-  document.querySelectorAll('.step-item').forEach(function(s,i){ s.classList.remove('active','done'); if(i===0) s.classList.add('active'); });
+  document.querySelectorAll('.panel').forEach(function(p,i){ p.classList.toggle('active',i===0); });
   updateStepNav();
   renderDNC();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -4683,7 +4665,7 @@ function hideSaleSuccess() {
   document.querySelectorAll('.confetti-dot').forEach(function(el){ el.remove(); });
   var submitBtn = document.getElementById('submitSaleBtn');
   var submitText = document.getElementById('submitSaleBtnText');
-  if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
+  if(submitBtn) { submitBtn.disabled=false; submitBtn.style.opacity='1'; submitBtn.style.background=''; }
   if(submitText) submitText.textContent = 'Enviar venta';
   volverInicio();
 }
@@ -4735,11 +4717,14 @@ function enableTpvField() {
   }
 
   if(row) {
-    row.style.borderColor = 'var(--accent)';
+    row.style.borderColor = 'var(--orange)';
     row.style.background = 'var(--card)';
     row.style.boxShadow = '0 0 0 2px rgba(244,124,32,0.15)';
   }
-  if(status) { status.textContent = '✏️ Listo'; status.style.color = '#27ae60'; }
+  if(status) { status.textContent = '✏️ Escribe el TPV...'; status.style.color = '#E65100'; }
+  // Disable submit until TPV is filled
+  var submitBtn = document.getElementById('submitSaleBtn');
+  if(submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.45'; submitBtn.style.cursor = 'not-allowed'; }
   inp.focus();
 }
 
@@ -4780,7 +4765,6 @@ function validateTpvNum() {
   var errorMsg = '';
 
   if(supName === 'INDRA') {
-    // Must be W + 13 digits = 14 chars
     isValid = val.length === 14 && val[0] === 'W' && /^W[0-9]{13}$/.test(val);
     if(val.length > 0 && !isValid) errorMsg = 'Debe ser W + 13 números (' + val.length + '/14)';
   } else if(supName === 'NG&E' || supName === 'Rushmore') {
@@ -4791,9 +4775,9 @@ function validateTpvNum() {
   }
 
   if(val.trim().length === 0) {
-    status.textContent = '✏️ Listo';
+    status.textContent = '✏️ Escribe el TPV...';
     status.style.color = 'var(--text-muted)';
-    if(inp) inp.style.borderBottom = '';
+    if(inp) inp.style.borderBottom = '2px solid #E53935';
   } else if(isValid) {
     status.textContent = '✅ ' + val.trim();
     status.style.color = '#27ae60';
@@ -4802,6 +4786,15 @@ function validateTpvNum() {
     status.textContent = '⚠ ' + (errorMsg || val.trim().length + '/' + len + ' caracteres');
     status.style.color = '#E65100';
     if(inp) inp.style.borderBottom = '2px solid #E65100';
+  }
+
+  // Enable/disable submit button based on TPV validity
+  var submitBtn = document.getElementById('submitSaleBtn');
+  if(submitBtn) {
+    submitBtn.disabled = !isValid;
+    submitBtn.style.opacity = isValid ? '1' : '0.45';
+    submitBtn.style.cursor = isValid ? 'pointer' : 'not-allowed';
+    submitBtn.title = isValid ? '' : (currentLang==='en' ? 'Enter a valid TPV # first' : 'Ingresa el TPV # primero');
   }
 }
 
@@ -4863,6 +4856,30 @@ async function submitSale() {
   if(!sale.phone)    missing.push(currentLang==='en'?'Phone':'Teléfono');
   if(!sale.supplier) missing.push('Supplier');
   if(!sale.rate)     missing.push(currentLang==='en'?'Rate':'Tarifa');
+
+  // TPV # is always required before submitting
+  var tpvVal = (document.getElementById('tpl_tpv_num')||{}).value || '';
+  if(!tpvVal.trim()) {
+    toast(currentLang==='en'
+      ? '⚠ Enter the TPV Confirmation # before submitting'
+      : '⚠ Debes ingresar el TPV Confirmation # antes de enviar', 'warn');
+    // Highlight TPV field
+    var tpvRow = document.getElementById('tpvNumRow');
+    if(tpvRow) { tpvRow.style.borderColor='#E53935'; tpvRow.style.boxShadow='0 0 0 3px rgba(229,57,53,0.2)'; }
+    var tpvInp = document.getElementById('tpl_tpv_num');
+    if(tpvInp) tpvInp.focus();
+    return;
+  }
+  // Validate TPV format per supplier
+  var tpvSupName = sup ? (sup.name || '') : '';
+  var tpvValid = true;
+  if(tpvSupName === 'INDRA') {
+    tpvValid = /^W[0-9]{13}$/.test(tpvVal);
+    if(!tpvValid) { toast('⚠ TPV INDRA debe ser W + 13 dígitos (ej: W1234567890123)', 'warn'); return; }
+  } else if(tpvSupName === 'NG&E' || tpvSupName === 'Rushmore') {
+    tpvValid = /^[0-9]{9}$/.test(tpvVal);
+    if(!tpvValid) { toast('⚠ TPV debe ser exactamente 9 dígitos', 'warn'); return; }
+  }
 
   if(missing.length > 0) {
     toast((currentLang==='en'?'⚠ Missing fields: ':'⚠ Campos faltantes: ') + missing.join(', '), 'warn');
