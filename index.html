@@ -2803,14 +2803,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 <script>
 // ════════════════════════════════════════════
-// BACKEND CONFIGURATION
-// SESSIONS_URL  → Cloudflare Worker proxy (keeps Apps Script URL secret)
-// _APP_SECRET   → shared secret between frontend and Worker (Worker validates it)
-// ════════════════════════════════════════════
-var SESSIONS_URL  = 'https://energy-prox.flpintoc.workers.dev/';
-var _APP_SECRET   = 'esd-secret-2024';   // debe coincidir con APP_SECRET en el Worker
-
-// ════════════════════════════════════════════
 // TRANSLATION SYSTEM
 // ════════════════════════════════════════════
 var currentLang = localStorage.getItem('esd_lang') || 'es';
