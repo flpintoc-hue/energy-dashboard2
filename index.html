@@ -2018,46 +2018,18 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       </div>
       <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
       <div class="login-field">
-        <label id="loginUserLabel">USUARIO</label>
+        <label id="loginUserLabel">USERNAME</label>
         <input type="text" id="loginUser" placeholder="Ingresa tu usuario" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
       <div class="login-field">
-        <label id="loginPassLabel">CONTRASEÑA</label>
+        <label id="loginPassLabel">PASSWORD</label>
         <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <button class="login-btn" id="loginBtn" onclick="doLogin()">Ingresar →</button>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">Login →</button>
       <span id="dncUploadLink" style="display:none"></span>
     </div>
 
-    <!-- STEP 2: LANGUAGE + AVATAR -->
-    <div id="loginStep2" style="display:none">
-      <div class="login-logo">
-        <span class="icon" style="font-size:3rem">⚡</span>
-        <h1 id="loginWelcome" style="font-size:1.1rem">¡Bienvenido!</h1>
-        <p id="loginWelcomeName" style="color:rgba(255,255,255,0.7);font-size:0.85rem;margin-top:4px;font-weight:700"></p>
-      </div>
-      <div style="margin-bottom:16px">
-        <div style="font-size:0.62rem;font-weight:800;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px" id="langLabel">Selecciona tu idioma</div>
-        <div style="display:flex;gap:10px">
-          <button id="langEs" onclick="selectLoginLang('es')"
-            style="flex:1;padding:10px;border-radius:10px;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.88rem;transition:all 0.2s">
-            🇪🇸 Español
-          </button>
-          <button id="langEn" onclick="selectLoginLang('en')"
-            style="flex:1;padding:10px;border-radius:10px;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;cursor:pointer;font-family:Nunito,sans-serif;font-weight:800;font-size:0.88rem;transition:all 0.2s">
-            🇺🇸 English
-          </button>
-        </div>
-      </div>
-
-      <button class="login-btn" id="loginEnterBtn" onclick="finishLogin()" style="background:#27ae60">
-        Continuar →
-      </button>
-    </div>
-
-  </div>
-</div>
-
+    
 <!-- ════════════════════════════════
   APP SCREEN
 ════════════════════════════════ -->
@@ -2073,7 +2045,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
 
 
-      <button class="hbtn danger" onclick="showLogoutConfirm()">Salir</button>
+      <button class="hbtn danger" onclick="showLogoutConfirm()">Logout</button>
     </div>
     <!-- Avatar Picker Dropdown -->
     <div id="avatarPickerDropdown" style="display:none;position:fixed;top:58px;right:16px;z-index:200;background:#fff;border-radius:14px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,0.2);border:1px solid var(--border);width:280px">
@@ -2083,7 +2055,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   </div>
 
   <div class="step-nav" id="stepNav">
-    <button class="top-back-btn" id="topBackBtn" onclick="goBack()" style="display:none">← Atrás</button>
+    <button class="top-back-btn" id="topBackBtn" onclick="goBack()" style="display:none">← Back</button>
     <div class="step-item active" id="nav0" onclick="goStep(0)"><span class="step-num">1</span>DNC</div>
     <span class="step-arrow">›</span>
     <div class="step-item" id="nav1" onclick="goStep(1)"><span class="step-num">2</span>Estado</div>
@@ -2108,7 +2080,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           </div>
           <div class="dnc-header-text">
             <h3>Do Not Call — Validador</h3>
-            <p>Ingresa el número del cliente para verificar si está en la lista DNC</p>
+            <p>Enter the number del cliente para verificar si está en la lista DNC</p>
           </div>
         </div>
         <div class="dnc-body">
@@ -2268,7 +2240,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
           <span class="bml-item"><span class="bml-dot" style="background:#F9A825"></span>DC</span>
         </div>
       </div>
-      <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Atrás</button></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(0)">← Back</button></div>
     </div>
 
     <!-- STEP 2: UTILIDAD -->
@@ -2292,14 +2264,14 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <button class="util-proceed-btn" id="utilProceedBtn" onclick="goStep(3)" style="margin-bottom:12px">
         🔍 Ver suppliers disponibles →
       </button>
-      <div class="nav-bar"><button class="back-btn" onclick="goStep(1)">← Atrás</button></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(1)">← Back</button></div>
     </div>
 
     <!-- STEP 3: SUPPLIER & RATES -->
     <div class="panel" id="panel3">
       <div class="section-title"><div class="dot" style="background:var(--teal)"></div><h2>Supplier & Rates</h2><span>Selecciona un supplier y tarifa</span></div>
       <div id="suppliersGrid"></div>
-      <div class="nav-bar"><button class="back-btn" onclick="goStep(2)">← Atrás</button></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(2)">← Back</button></div>
     </div>
 
     <!-- STEP 4: CHECKLIST -->
@@ -2349,12 +2321,12 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
               <span>↺</span> Reiniciar
             </button>
 
-            <!-- Enviar venta -->
+            <!-- Submit Sale -->
             <button class="action-bar-btn" id="submitSaleBtn" onclick="submitSale()" style="
               background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;
               box-shadow:0 3px 12px rgba(39,174,96,0.35)">
               <span>📤</span>
-              <span id="submitSaleBtnText">Enviar venta</span>
+              <span id="submitSaleBtnText">Submit Sale</span>
             </button>
 
             <!-- Nueva consulta DNC -->
@@ -2403,7 +2375,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         </div>
       </div>
 
-      <div class="nav-bar"><button class="back-btn" onclick="goStep(3)">← Atrás</button></div>
+      <div class="nav-bar"><button class="back-btn" onclick="goStep(3)">← Back</button></div>
     </div>
 
   </div><!-- /main -->
@@ -2783,8 +2755,8 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 <div id="logoutConfirmOverlay">
   <div class="logout-confirm-box">
     <div class="logout-confirm-icon">👋</div>
-    <div class="logout-confirm-title">¿Cerrar sesión?</div>
-    <div class="logout-confirm-sub">Tu sesión seguirá activa si eliges continuar.</div>
+    <div class="logout-confirm-title">Sign out?</div>
+    <div class="logout-confirm-sub">Your session will remain active if you continue.</div>
     <div class="logout-timer-ring">
       <svg width="72" height="72" viewBox="0 0 72 72">
         <circle class="bg" cx="36" cy="36" r="30"/>
@@ -2793,8 +2765,8 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <div class="logout-timer-num" id="logoutTimerNum">60</div>
     </div>
     <div class="logout-confirm-btns">
-      <button class="logout-btn-stay" onclick="cancelLogout()">✋ Continuar sesión</button>
-      <button class="logout-btn-exit" onclick="confirmLogout()">🚪 Cerrar sesión</button>
+      <button class="logout-btn-stay" onclick="cancelLogout()">✋ Stay logged in</button>
+      <button class="logout-btn-exit" onclick="confirmLogout()">🚪 Sign out</button>
     </div>
   </div>
 </div>
@@ -2803,17 +2775,17 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 // ════════════════════════════════════════════
 // TRANSLATION SYSTEM
 // ════════════════════════════════════════════
-var currentLang = localStorage.getItem('esd_lang') || 'es';
+var currentLang = 'en'; // English only
 
 var T = {
   es: {
     // Login
     login_title: 'ENERGY DASHBOARD',
     login_subtitle: 'SUPPLIER MANAGEMENT SYSTEM',
-    login_user: 'USUARIO',
-    login_pass: 'CONTRASEÑA',
+    login_user: 'USERNAME',
+    login_pass: 'PASSWORD',
     login_btn: 'Ingresar →',
-    login_checking: 'Verificando...',
+    login_checking: 'Verifying...',
     login_error_invalid: 'Usuario o contraseña incorrectos',
     login_error_inactive: '⛔ Tu acceso ha sido desactivado',
     login_error_blocked: '🔒 Cuenta bloqueada',
@@ -2821,43 +2793,43 @@ var T = {
     login_error_conn: '⚠ No se pudo conectar al servidor',
     login_select_lang: 'Selecciona tu idioma',
     login_select_avatar: 'Elige tu avatar',
-    login_continue: 'Continuar →',
+    login_continue: 'Continue →',
     // Nav steps
     step_dnc: 'DNC',
-    step_state: 'Estado',
-    step_util: 'Utilidad',
+    step_state: 'State',
+    step_util: 'Utility',
     step_supplier: 'Supplier & Rates',
     step_checklist: 'Checklist',
     // Buttons
-    btn_back: '← Atrás',
-    btn_continue: 'Continuar →',
-    btn_verify: 'Verificar',
-    btn_verifying: 'Verificando...',
+    btn_back: '← Back',
+    btn_continue: 'Continue →',
+    btn_verify: 'Verify',
+    btn_verifying: 'Verifying...',
     btn_proceed: '✓ Número libre — Continuar con la venta →',
     btn_suppliers: 'Ver suppliers',
     btn_checklist: 'Ir al Checklist →',
-    btn_copy: '📋 Copiar Plantilla',
-    btn_copied: '✅ ¡Copiado!',
-    btn_home: '🏠 NUEVA CONSULTA DNC',
-    btn_logout: 'Salir',
+    btn_copy: '📋 Copy Template',
+    btn_copied: '✅ Copied!',
+    btn_home: '🏠 NEW DNC QUERY',
+    btn_logout: 'Logout',
     // DNC
     dnc_title: 'Do Not Call — Validador',
-    dnc_subtitle: 'Ingresa el número del cliente para verificar si está en la lista DNC',
-    dnc_status: '🔒 Lista DNC activa — verificación segura',
+    dnc_subtitle: 'Enter the number del cliente para verificar si está en la lista DNC',
+    dnc_status: '🔒 DNC list active — secure verification',
     dnc_placeholder: '5551234567',
     dnc_clear: '✅ Número libre — Puede continuar',
     dnc_clear_sub: 'no está en la lista DNC. Puede proceder con la venta.',
     dnc_blocked: '🚫 NÚMERO EN DNC — NO LLAMAR',
     dnc_blocked_sub: 'está registrado en la lista Do Not Call. No continuar con la venta.',
     dnc_error: '⚠ Error de conexión',
-    dnc_error_sub: 'No se pudo conectar al validador DNC.',
+    dnc_error_sub: 'Could not connect to DNC validator.',
     // States
     state_title: 'Selecciona el Estado',
     state_subtitle: 'Toca un estado para continuar',
     state_utils: 'utilidad',
     state_utils_pl: 'utilidades',
     // Utilities
-    util_title: 'Utilidad',
+    util_title: 'Utility',
     util_subtitle: 'Selecciona una utilidad eléctrica y/o de gas',
     util_hint: '💡 Máximo 1 eléctrica y 1 de gas',
     util_sample: '📄 Ver factura de ejemplo',
@@ -2891,15 +2863,15 @@ var T = {
     tpl_tarifa: 'TARIFA SELECCIONADA',
     tpl_repid_hint: 'Selecciona el tuyo',
     // Summary
-    sum_state: 'Estado',
-    sum_util: 'Utilidad',
+    sum_state: 'State',
+    sum_util: 'Utility',
     sum_supplier: 'Supplier',
     sum_agent: 'Agente',
     // Progress
     progress_of: 'completados',
     // Session
     session_warn: '⏱️ Tu sesión expirará en 1 minuto por inactividad',
-    session_continue: 'Continuar sesión',
+    session_continue: 'Continue session',
     // Admin
     admin_title: 'Panel Admin',
     admin_close: '✕',
@@ -3011,7 +2983,7 @@ function t(key) {
 
 function setLang(lang) {
   currentLang = lang;
-  localStorage.setItem('esd_lang', lang);
+  // lang locked to en;
 }
 
 // ════════════════════════════════════════════
@@ -3956,14 +3928,14 @@ function volverInicio(){
   var tpvInp = document.getElementById('tpl_tpv_num');
   if(tpvInp) { tpvInp.value=''; tpvInp.disabled=true; tpvInp.style.opacity='0.4'; tpvInp.style.cursor='not-allowed'; }
   var tpvStatus = document.getElementById('tpvNumStatus');
-  if(tpvStatus) { tpvStatus.textContent='🔒 Bloqueado'; tpvStatus.style.color=''; }
+  if(tpvStatus) { tpvStatus.textContent='🔒 Locked'; tpvStatus.style.color=''; }
   var tpvRow = document.getElementById('tpvNumRow');
   if(tpvRow) { tpvRow.style.borderColor=''; tpvRow.style.background=''; tpvRow.style.boxShadow=''; }
   // Reset submit button
   var submitBtn = document.getElementById('submitSaleBtn');
   var submitText = document.getElementById('submitSaleBtnText');
   if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
-  if(submitText) submitText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
+  if(submitText) submitText.textContent = currentLang==='en' ? 'Submit Sale' : 'Submit Sale';
   // Reset saved template values
   _savedTemplateValues = {};
   goStep(0);
@@ -4179,7 +4151,7 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
         // CITY
         +'<div class="tpl-row"><label class="tpl-label">'+t('tpl_city')+' *</label>'
-        +'<input class="tpl-input" id="tpl_city" placeholder="Ciudad" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>'
+        +'<input class="tpl-input" id="tpl_city" placeholder="City" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>'
         +'<div class="tpl-row"><label class="tpl-label">ZIP Code *</label>'
         +'<input class="tpl-input" id="tpl_zip" placeholder="12345" maxlength="5" required oninput="this.value=this.value.replace(/[^0-9]/g,\'\').slice(0,5);validateTemplate()"></div>'
 
@@ -4656,7 +4628,7 @@ function showSaleSuccess(sale) {
       ['Cliente', sale.holder || '—'],
       ['Teléfono', sale.phone || '—'],
       ['Supplier', sale.supplier || '—'],
-      ['Estado', sale.state || '—'],
+      ['State', sale.state || '—'],
       ['TPV #', sale.tpvNum || '—'],
       ['Agente', sale.agent || '—'],
     ];
@@ -4684,7 +4656,7 @@ function hideSaleSuccess() {
   var submitBtn = document.getElementById('submitSaleBtn');
   var submitText = document.getElementById('submitSaleBtnText');
   if(submitBtn) { submitBtn.disabled=false; submitBtn.style.background=''; }
-  if(submitText) submitText.textContent = 'Enviar venta';
+  if(submitText) submitText.textContent = 'Submit Sale';
   volverInicio();
 }
 
@@ -4865,7 +4837,7 @@ async function submitSale() {
   if(!sale.rate)     missing.push(currentLang==='en'?'Rate':'Tarifa');
 
   if(missing.length > 0) {
-    toast((currentLang==='en'?'⚠ Missing fields: ':'⚠ Campos faltantes: ') + missing.join(', '), 'warn');
+    toast((currentLang==='en'?'⚠ Missing fields: ':'⚠ Missing fields: ') + missing.join(', '), 'warn');
     return;
   }
 
@@ -4912,7 +4884,7 @@ async function submitSale() {
     }
   } catch(err) {
     if(btn) { btn.disabled = false; btn.style.background = ''; }
-    if(btnText) btnText.textContent = currentLang==='en' ? 'Enviar venta' : 'Enviar venta';
+    if(btnText) btnText.textContent = currentLang==='en' ? 'Submit Sale' : 'Submit Sale';
     toast((currentLang==='en'?'❌ Error sending sale: ':'❌ Error enviando venta: ') + err.message, 'error');
     console.error('submitSale error:', err);
   }
@@ -4989,7 +4961,7 @@ function sendTemplateToWhatsApp() {
     + '_Energy Supplier Dashboard_';
   const url = 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
-  toast(currentLang==='en' ? '📱 Opening WhatsApp...' : '📱 Abriendo WhatsApp...', 'success');
+  toast(currentLang==='en' ? '📱 Opening WhatsApp...' : '📱 Opening WhatsApp...', 'success');
 }
 
 function saveWANumber() {
@@ -5016,13 +4988,13 @@ function onAuthChange() {
   if(val === 'Yes — Account Holder') {
     container.innerHTML =
       '<div class="tpl-row tpl-full"><label class="tpl-label">Account Holder Name *</label>'
-      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="this.value=this.value.replace(/[^a-zA-Z \u00C0-\u024F.\-]/g,\'\');validateTemplate()"></div>';
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Account holder name" required oninput="this.value=this.value.replace(/[^a-zA-Z \u00C0-\u024F.\-]/g,\'\');validateTemplate()"></div>';
   } else if(val === 'Yes — Authorized User') {
     container.innerHTML =
       '<div class="tpl-row"><label class="tpl-label">Authorized User Name *</label>'
       +'<input class="tpl-input" id="tpl_auth_name" placeholder="Nombre del autorizado" required oninput="this.value=this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\.\-]/g,\'\');validateTemplate()"></div>'
       +'<div class="tpl-row"><label class="tpl-label">Account Holder Name *</label>'
-      +'<input class="tpl-input" id="tpl_holder" placeholder="Nombre del titular" required oninput="validateTemplate()"></div>';
+      +'<input class="tpl-input" id="tpl_holder" placeholder="Account holder name" required oninput="validateTemplate()"></div>';
   } else {
     container.innerHTML = '<div style="display:none"><input id="tpl_holder"><input id="tpl_auth_name"></div>';
   }
@@ -5682,14 +5654,14 @@ async function checkDNC() {
   const waStatus = document.getElementById('dncWAStatus');
   const waText   = document.getElementById('dncWAStatusText');
   if(waStatus) waStatus.style.display = 'flex';
-  if(waText)   waText.textContent = '📱 Notificando supervisor...';
+  if(waText)   waText.textContent = '📱 Notifying supervisor...';
   fetch(SESSIONS_URL, {
     method: 'POST',
     body: JSON.stringify({ _secret: _APP_SECRET, action: 'notify_dnc', phone: clean, found: null, agent: agentName, state: stateStr })
   }).then(function() {
-    if(waText && waText.textContent.includes('Notificando')) waText.textContent = '✅ Supervisor notificado';
+    if(waText && waText.textContent.includes('Notificando')) waText.textContent = '✅ Supervisor notified';
   }).catch(function() {
-    if(waText) waText.textContent = '⚠️ WA no disponible';
+    if(waText) waText.textContent = '⚠️ WA unavailable';
   });
 
   // ── PASO 2: Consulta DNC inmediatamente (sin esperar WA) ────
@@ -5701,19 +5673,19 @@ async function checkDNC() {
     const result = JSON.parse(await resp.text());
     btn.disabled = false;
     btn.textContent = t('btn_verify');
-    if(result.error) { showDNCResult('unknown','⚠️','No se pudo verificar', 'Error: ' + result.error); return; }
+    if(result.error) { showDNCResult('unknown','⚠️','Could not verify', 'Error: ' + result.error); return; }
     if(result.found) {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
       dncVerifiedClear = false;
       document.getElementById('dncProceedBtn').classList.remove('show');
       addLog('dnc', 'DNC: ' + clean + ' — 🚫 EN DNC');
-      if(waText) waText.textContent = '✅ Supervisor notificado — 🚫 EN DNC';
+      if(waText) waText.textContent = '✅ Supervisor notified — 🚫 ON DNC';
     } else {
       showDNCResult('clear', '✅', t('dnc_clear'), clean + ' ' + t('dnc_clear_sub'));
       dncVerifiedClear = true;
       document.getElementById('dncProceedBtn').classList.add('show');
       addLog('dnc', 'DNC: ' + clean + ' — ✅ LIBRE');
-      if(waText) waText.textContent = '✅ Supervisor notificado — LIBRE';
+      if(waText) waText.textContent = '✅ Supervisor notified — CLEAR';
     }
   } catch(err) {
     btn.disabled = false;
@@ -5777,7 +5749,7 @@ async function reloadDNC() {
   dncSet     = null;
   dncLoading = false;
   renderDNC();
-  toast('↺ Recargando lista DNC...','warn');
+  toast('↺ Reloading DNC list...','warn');
 }
 
 
@@ -5941,15 +5913,8 @@ function setAvatar(key) {
 
 
 function showLoginStep2(name) {
-  document.getElementById('loginStep1').style.display = 'none';
-  document.getElementById('loginStep2').style.display = 'block';
-  document.getElementById('loginWelcomeName').textContent = name;
-
-  // Set initial lang buttons
-  selectLoginLang(currentLang);
-
-  // Update welcome text
-  updateStep2Text();
+  // Language step removed — go straight to app
+  if(pendingUser) finishLogin();
 }
 
 function updateStep2Text() {
@@ -6014,7 +5979,7 @@ function finishLogin() {
   currentUser = user;
   secStartSession(user);
   startHeartbeat(user.username, user.sessionToken);
-  addLog('login', user.name + ' (' + user.role + ') ingresó');
+  addLog('login', user.name + ' (' + user.role + ') logged in');
 
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
@@ -6504,7 +6469,7 @@ document.addEventListener('DOMContentLoaded', function() {
       initSupPanel();
       updateChatHeader();
       startChatPolling();
-      addLog('login', saved.name + ' retomó sesión tras refresco');
+      addLog('login', saved.name + ' resumed session after refresh');
     }
   } catch(e) { console.warn('Session restore error:', e); }
 });
@@ -6612,7 +6577,7 @@ function secAutoLogout() {
   doLogout();
   const err = document.getElementById('loginError');
   if(err) {
-    err.textContent = '⏱️ Sesión cerrada por inactividad. Inicia sesión nuevamente.';
+    err.textContent = '⏱️ Session expired. Please log in again.';
     err.style.cssText += ';background:rgba(230,81,0,0.15);border-color:rgba(230,81,0,0.4);color:#E65100';
     err.classList.add('show');
     setTimeout(() => err.classList.remove('show'), 5000);
