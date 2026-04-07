@@ -5913,7 +5913,7 @@ function setAvatar(key) {
 
 function showLoginStep2(name) {
   // Language step removed — go straight to app
-  if(pendingUser) finishLogin();
+  setTimeout(function(){ if(window.pendingUser) finishLogin(); }, 50);
 }
 
 function updateStep2Text() {
