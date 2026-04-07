@@ -657,6 +657,32 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .log-time { font-size:0.65rem; color:var(--text-muted); font-weight:700; flex-shrink:0; }
 
 /* TOAST */
+/* ── LOGOUT OVERLAY ── */
+#logoutConfirmOverlay {
+  display: none; position: fixed; inset: 0; z-index: 99998;
+  background: rgba(0,0,0,0.65); align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+#logoutConfirmOverlay.show { display: flex; }
+.logout-confirm-box {
+  background: #fff; border-radius: 20px; padding: 36px 32px;
+  width: min(400px, 90vw); text-align: center;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+}
+.logout-confirm-icon { font-size: 3rem; margin-bottom: 12px; }
+.logout-confirm-title { font-size: 1.3rem; font-weight: 900; color: var(--text); margin-bottom: 8px; }
+.logout-confirm-sub { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 24px; }
+.logout-timer-ring { width: 72px; height: 72px; margin: 0 auto 20px; position: relative; }
+.logout-timer-ring svg { transform: rotate(-90deg); }
+.logout-timer-ring circle { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.logout-timer-ring .bg   { stroke: #f0f0f0; }
+.logout-timer-ring .fill { stroke: #E53935; stroke-dasharray: 188; stroke-dashoffset: 0; }
+.logout-timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 900; color: #E53935; }
+.logout-confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.logout-btn-stay { background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 14px; font-family: Nunito, sans-serif; font-weight: 900; font-size: 0.92rem; cursor: pointer; }
+.logout-btn-exit { background: #fff; color: #E53935; border: 2px solid #E53935; border-radius: 12px; padding: 14px; font-family: Nunito, sans-serif; font-weight: 900; font-size: 0.92rem; cursor: pointer; }
+.logout-btn-exit:hover { background: #E53935; color: #fff; }
+
 .toast { position:fixed; bottom:20px; right:20px; background:var(--text); color:#fff; padding:10px 18px; border-radius:8px; font-size:0.78rem; font-weight:700; transform:translateY(60px); opacity:0; transition:all 0.3s; z-index:300; box-shadow:var(--shadow-lg); }
 .toast.show { transform:translateY(0); opacity:1; }
 .toast.success { background:var(--green-dark); }
@@ -2047,7 +2073,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
 
 
-      <button class="hbtn danger" onclick="doLogout()">Salir</button>
+      <button class="hbtn danger" onclick="showLogoutConfirm()">Salir</button>
     </div>
     <!-- Avatar Picker Dropdown -->
     <div id="avatarPickerDropdown" style="display:none;position:fixed;top:58px;right:16px;z-index:200;background:#fff;border-radius:14px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,0.2);border:1px solid var(--border);width:280px">
@@ -2754,6 +2780,24 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="logoutConfirmOverlay">
+  <div class="logout-confirm-box">
+    <div class="logout-confirm-icon">👋</div>
+    <div class="logout-confirm-title">¿Cerrar sesión?</div>
+    <div class="logout-confirm-sub">Tu sesión seguirá activa si eliges continuar.</div>
+    <div class="logout-timer-ring">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle class="bg" cx="36" cy="36" r="30"/>
+        <circle class="fill" cx="36" cy="36" r="30" id="logoutTimerCircle"/>
+      </svg>
+      <div class="logout-timer-num" id="logoutTimerNum">60</div>
+    </div>
+    <div class="logout-confirm-btns">
+      <button class="logout-btn-stay" onclick="cancelLogout()">✋ Continuar sesión</button>
+      <button class="logout-btn-exit" onclick="confirmLogout()">🚪 Cerrar sesión</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ════════════════════════════════════════════
@@ -3391,6 +3435,36 @@ async function doLogin() {
   showLoginStep2(user.name);
 }
 
+var _logoutTimer = null, _logoutSeconds = 60;
+function showLogoutConfirm() {
+  _logoutSeconds = 60;
+  var overlay = document.getElementById('logoutConfirmOverlay');
+  var num = document.getElementById('logoutTimerNum');
+  var circle = document.getElementById('logoutTimerCircle');
+  if(!overlay) return;
+  overlay.classList.add('show');
+  var circ = 2 * Math.PI * 30;
+  if(circle) { circle.style.strokeDasharray = circ; circle.style.strokeDashoffset = 0; }
+  if(num) num.textContent = _logoutSeconds;
+  if(_logoutTimer) clearInterval(_logoutTimer);
+  _logoutTimer = setInterval(function() {
+    _logoutSeconds--;
+    if(num) num.textContent = _logoutSeconds;
+    if(circle) circle.style.strokeDashoffset = circ * (1 - _logoutSeconds / 60);
+    if(_logoutSeconds <= 0) { clearInterval(_logoutTimer); confirmLogout(); }
+  }, 1000);
+}
+function cancelLogout() {
+  if(_logoutTimer) { clearInterval(_logoutTimer); _logoutTimer = null; }
+  var o = document.getElementById('logoutConfirmOverlay');
+  if(o) o.classList.remove('show');
+}
+function confirmLogout() {
+  if(_logoutTimer) { clearInterval(_logoutTimer); _logoutTimer = null; }
+  var o = document.getElementById('logoutConfirmOverlay');
+  if(o) o.classList.remove('show');
+  doLogout();
+}
 function doLogout() {
   if (currentUser) {
     addLog('logout', `${currentUser.name} cerró sesión`);
@@ -3483,7 +3557,16 @@ const MONTHS = [
   {abbr:'OCT',name:'Octubre'},{abbr:'NOV',name:'Noviembre'},{abbr:'DIC',name:'Diciembre'}
 ];
 
+function canGoToStep(n) {
+  if(n <= currentStep) return true;
+  if(n >= 1 && !dncVerifiedClear) { toast("⚠ Verifica el DNC primero","warn"); return false; }
+  if(n >= 2 && !sel.stateId) { toast("⚠ Selecciona un estado","warn"); return false; }
+  if(n >= 3 && (!sel.utilIds||!sel.utilIds.length)) { toast("⚠ Selecciona una utilidad","warn"); return false; }
+  if(n >= 4 && !sel.supId) { toast("⚠ Selecciona un supplier","warn"); return false; }
+  return true;
+}
 function goStep(n) {
+  if(!canGoToStep(n)) return;
   // Push browser history state
   history.pushState({ step: n }, '');
   // If going back to DNC, clear everything
@@ -4135,21 +4218,9 @@ function renderTemplateStep(stepNum, state, util, sup) {
   +'</div>';
 }
 
-function restoreTemplateValues() {
-  // Keep values across re-renders by storing in a global object
-  if(!window._tplData) return;
-  const fields = ['state','lang','phone','auth','holder','address','city','acc','util','dob','namekey','repid','tarifa'];
-  fields.forEach(f => {
-    const el = document.getElementById('tpl_'+f);
-    if(el && window._tplData[f] !== undefined) el.value = window._tplData[f];
-  });
-}
+/* restoreTemplateValues v1 removed */
 
-function saveTplField(field) {
-  if(!window._tplData) window._tplData = {};
-  const el = document.getElementById('tpl_'+field);
-  if(el) window._tplData[field] = el.value;
-}
+/* saveTplField removed */
 
 
 
