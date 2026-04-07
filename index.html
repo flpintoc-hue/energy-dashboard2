@@ -6431,10 +6431,8 @@ var SEC = {
 
 // Ensure login button works even if onclick attr fails
 document.addEventListener('DOMContentLoaded', function() {
-  const lb = document.getElementById('loginBtn');
-  if(lb) lb.addEventListener('click', doLogin);
-  const eb = document.getElementById('loginEnterBtn');
-  if(eb) eb.addEventListener('click', finishLogin);
+  // loginBtn uses onclick attr — no extra addEventListener needed
+  // loginEnterBtn removed with language step
 
   // Restore session on refresh if not expired
   try {
