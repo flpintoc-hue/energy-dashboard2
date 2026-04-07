@@ -3311,7 +3311,7 @@ let pendingUser = null; // user waiting for lang/avatar selection
 
 async function doLogin() {
   const btn = document.getElementById('loginBtn');
-  if(btn) { btn.disabled = true; btn.textContent = t('btn_verifying'); }
+  if(btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
 
   const rawU = document.getElementById('loginUser').value.trim();
   const rawP = document.getElementById('loginPass').value;
@@ -3339,7 +3339,7 @@ async function doLogin() {
   // ── Server-side authentication + session check via Apps Script ──
   let authResult;
   try {
-    if(btn) { btn.textContent = t('btn_verifying'); }
+    if(btn) { btn.textContent = 'Verifying...'; }
     const authResp = await fetch(SESSIONS_URL, {
       method: 'POST',
       body: JSON.stringify({ _secret: _APP_SECRET, action:'authenticate', username: u, password: p }),
@@ -5630,7 +5630,7 @@ async function checkDNC() {
   dncClearResult();
   const btn = document.getElementById('dncCheckBtn');
   btn.disabled = true;
-  btn.textContent = t('btn_verifying');
+  btn.textContent = 'Verifying...';
 
   // Show waiting message — agent can keep talking to client
   var dncResult = document.getElementById('dncResult');
@@ -5672,7 +5672,7 @@ async function checkDNC() {
     });
     const result = JSON.parse(await resp.text());
     btn.disabled = false;
-    btn.textContent = t('btn_verify');
+    btn.textContent = 'Verify';
     if(result.error) { showDNCResult('unknown','⚠️','Could not verify', 'Error: ' + result.error); return; }
     if(result.found) {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
@@ -5689,7 +5689,7 @@ async function checkDNC() {
     }
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = t('btn_verify');
+    btn.textContent = 'Verify';
     showDNCResult('unknown','⚠️', t('dnc_error'), t('dnc_error_sub'));
   } finally {
     startChatPolling();
