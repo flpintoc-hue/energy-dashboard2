@@ -3309,7 +3309,10 @@ let accessLog = [];
 let currentUser = null;
 let pendingUser = null; // user waiting for lang/avatar selection
 
+var _loginInProgress=false;
 async function doLogin() {
+  if(_loginInProgress){console.log("login already in progress");return;}
+  _loginInProgress=true;
   const btn = document.getElementById('loginBtn');
   if(btn) { btn.disabled = true; btn.textContent = t('btn_verifying'); }
 
@@ -3402,6 +3405,7 @@ async function doLogin() {
   }
 
   // Auth success — show step 2 (language + avatar)
+  _loginInProgress=false;
   if(btn) { btn.disabled = false; btn.textContent = t('login_btn'); }
   pendingUser = { ...user, sessionToken };
   var pu = pendingUser;
@@ -7618,5 +7622,6 @@ function renderCharts() {
 </script>
 </body>
 </html>
+.
 .
 .
