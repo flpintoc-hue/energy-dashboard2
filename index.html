@@ -3417,19 +3417,27 @@ async function doLogin() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
   document.getElementById('loginStep1').style.display = 'block';
-  applyTranslationsToDOM();
-  updateHeader();
-  updateStepAvatar();
-  renderStates();
-  setTimeout(function(){ renderDNC(); }, 100);
-  var _fab = document.getElementById('chatFab');
-  if(_fab){ _fab.style.display='flex'; _fab.style.visibility='visible'; _fab.style.opacity='1'; }
-  var _ql = document.getElementById('quickLinks');
-  if(_ql) _ql.classList.add('show');
-  showSalesCounter();
-  initSupPanel();
-  updateChatHeader();
-  startChatPolling();
+  // Wait for DB to load before rendering
+  loadFromStorage().then(function() {
+    applyTranslationsToDOM();
+    updateHeader();
+    updateStepAvatar();
+    renderStates();
+    setTimeout(function(){ renderDNC(); }, 100);
+    var _fab = document.getElementById('chatFab');
+    if(_fab){ _fab.style.display='flex'; _fab.style.visibility='visible'; _fab.style.opacity='1'; }
+    var _ql = document.getElementById('quickLinks');
+    if(_ql) _ql.classList.add('show');
+    showSalesCounter();
+    initSupPanel();
+    updateChatHeader();
+    startChatPolling();
+  }).catch(function(e) {
+    console.error('loadFromStorage error:', e);
+    applyTranslationsToDOM();
+    updateHeader();
+    updateStepAvatar();
+  });
 }
 
 function showLoginStep2(name){if(window.pendingUser)finishLogin();}
@@ -6013,24 +6021,21 @@ function finishLogin() {
   document.getElementById('loginStep1').style.display = 'block';
 
   // Apply language to entire app
-  applyTranslationsToDOM();
-  // Update header with avatar + name
-  updateHeader();
-  // Initialize floating avatar
-  updateStepAvatar();
-  renderStates();
-  // Render DNC panel immediately so objections and avatar load on first visit
-  setTimeout(function(){ renderDNC(); }, 100);
-  // Show chat bubble and start polling
-  var fab = document.getElementById('chatFab');
-  if(fab) { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }
-  var ql = document.getElementById('quickLinks');
-  if(ql) ql.classList.add('show');
-  showSalesCounter();
-  initSupPanel();
-  updateChatHeader();
-  startChatPolling();
-  // DNC checked server-side with cache
+  loadFromStorage().then(function() {
+    applyTranslationsToDOM();
+    updateHeader();
+    updateStepAvatar();
+    renderStates();
+    setTimeout(function(){ renderDNC(); }, 100);
+    var fab = document.getElementById('chatFab');
+    if(fab) { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }
+    var ql = document.getElementById('quickLinks');
+    if(ql) ql.classList.add('show');
+    showSalesCounter();
+    initSupPanel();
+    updateChatHeader();
+    startChatPolling();
+  }).catch(function(e){ console.error('DB load error:', e); updateHeader(); });
 }
 
 function updateHeader() {
@@ -7623,4 +7628,5 @@ function renderCharts() {
 .
 .
 .
+x
 x
