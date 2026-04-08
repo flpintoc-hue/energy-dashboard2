@@ -3407,6 +3407,7 @@ async function doLogin() {
   showLoginStep2(user.name);
 }
 
+function showLoginStep2(name){if(window.pendingUser)finishLogin();}
 var _logoutTimer = null, _logoutSeconds = 60;
 function showLogoutConfirm() {
   _logoutSeconds = 60;
@@ -7596,3 +7597,4 @@ function renderCharts() {
 </script>
 </body>
 </html>
+.
