@@ -3404,7 +3404,28 @@ async function doLogin() {
   // Auth success — show step 2 (language + avatar)
   if(btn) { btn.disabled = false; btn.textContent = t('login_btn'); }
   pendingUser = { ...user, sessionToken };
-  finishLogin();
+  var _loginUser = pendingUser;
+  pendingUser = null;
+  currentUser = _loginUser;
+  secStartSession(_loginUser);
+  startHeartbeat(_loginUser.username, _loginUser.sessionToken);
+  addLog('login', _loginUser.name + ' (' + _loginUser.role + ') logged in');
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('loginStep1').style.display = 'block';
+  applyTranslationsToDOM();
+  updateHeader();
+  updateStepAvatar();
+  renderStates();
+  setTimeout(function(){ renderDNC(); }, 100);
+  var fab=document.getElementById('chatFab');
+  if(fab){fab.style.display='flex';fab.style.visibility='visible';fab.style.opacity='1';}
+  var ql=document.getElementById('quickLinks');
+  if(ql) ql.classList.add('show');
+  showSalesCounter();
+  initSupPanel();
+  updateChatHeader();
+  startChatPolling();
 }
 
 var _logoutTimer = null, _logoutSeconds = 60;
@@ -7592,4 +7613,5 @@ function renderCharts() {
 </script>
 </body>
 </html>
+.
 .
