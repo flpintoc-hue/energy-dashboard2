@@ -3490,7 +3490,6 @@ function doLogout() {
   document.getElementById('loginPass').value = '';
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('loginStep1').style.display = 'block';
-  document.getElementById('loginStep2').style.display = 'none';
   pendingUser = null;
   // Reset login button
   const btn = document.getElementById('loginBtn');
@@ -6012,7 +6011,6 @@ function finishLogin() {
 
   // Reset login form for next time
   document.getElementById('loginStep1').style.display = 'block';
-  document.getElementById('loginStep2').style.display = 'none';
 
   // Apply language to entire app
   applyTranslationsToDOM();
@@ -7625,3 +7623,4 @@ function renderCharts() {
 .
 .
 .
+x
