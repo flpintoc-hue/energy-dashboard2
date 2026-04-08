@@ -3311,7 +3311,7 @@ let pendingUser = null; // user waiting for lang/avatar selection
 
 async function doLogin() {
   const btn = document.getElementById('loginBtn');
-  if(btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
+  if(btn) { btn.disabled = true; btn.textContent = t('btn_verifying'); }
 
   const rawU = document.getElementById('loginUser').value.trim();
   const rawP = document.getElementById('loginPass').value;
@@ -3339,7 +3339,7 @@ async function doLogin() {
   // ── Server-side authentication + session check via Apps Script ──
   let authResult;
   try {
-    if(btn) { btn.textContent = 'Verifying...'; }
+    if(btn) { btn.textContent = t('btn_verifying'); }
     const authResp = await fetch(SESSIONS_URL, {
       method: 'POST',
       body: JSON.stringify({ _secret: _APP_SECRET, action:'authenticate', username: u, password: p }),
@@ -3404,28 +3404,7 @@ async function doLogin() {
   // Auth success — show step 2 (language + avatar)
   if(btn) { btn.disabled = false; btn.textContent = t('login_btn'); }
   pendingUser = { ...user, sessionToken };
-  var _loginUser = pendingUser;
-  pendingUser = null;
-  currentUser = _loginUser;
-  secStartSession(_loginUser);
-  startHeartbeat(_loginUser.username, _loginUser.sessionToken);
-  addLog('login', _loginUser.name + ' (' + _loginUser.role + ') logged in');
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'block';
-  document.getElementById('loginStep1').style.display = 'block';
-  applyTranslationsToDOM();
-  updateHeader();
-  updateStepAvatar();
-  renderStates();
-  setTimeout(function(){ renderDNC(); }, 100);
-  var fab=document.getElementById('chatFab');
-  if(fab){fab.style.display='flex';fab.style.visibility='visible';fab.style.opacity='1';}
-  var ql=document.getElementById('quickLinks');
-  if(ql) ql.classList.add('show');
-  showSalesCounter();
-  initSupPanel();
-  updateChatHeader();
-  startChatPolling();
+  showLoginStep2(user.name);
 }
 
 var _logoutTimer = null, _logoutSeconds = 60;
@@ -3485,6 +3464,7 @@ function doLogout() {
   document.getElementById('loginPass').value = '';
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
   pendingUser = null;
   // Reset login button
   const btn = document.getElementById('loginBtn');
@@ -5650,7 +5630,7 @@ async function checkDNC() {
   dncClearResult();
   const btn = document.getElementById('dncCheckBtn');
   btn.disabled = true;
-  btn.textContent = 'Verifying...';
+  btn.textContent = t('btn_verifying');
 
   // Show waiting message — agent can keep talking to client
   var dncResult = document.getElementById('dncResult');
@@ -5692,7 +5672,7 @@ async function checkDNC() {
     });
     const result = JSON.parse(await resp.text());
     btn.disabled = false;
-    btn.textContent = 'Verify';
+    btn.textContent = t('btn_verify');
     if(result.error) { showDNCResult('unknown','⚠️','Could not verify', 'Error: ' + result.error); return; }
     if(result.found) {
       showDNCResult('blocked', '🚫', t('dnc_blocked'), clean + ' ' + t('dnc_blocked_sub'));
@@ -5709,7 +5689,7 @@ async function checkDNC() {
     }
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = 'Verify';
+    btn.textContent = t('btn_verify');
     showDNCResult('unknown','⚠️', t('dnc_error'), t('dnc_error_sub'));
   } finally {
     startChatPolling();
@@ -5934,7 +5914,7 @@ function setAvatar(key) {
 
 function showLoginStep2(name) {
   // Language step removed — go straight to app
-  setTimeout(function(){ if(window.pendingUser) finishLogin(); }, 50);
+  if(pendingUser) finishLogin();
 }
 
 function updateStep2Text() {
@@ -6006,6 +5986,7 @@ function finishLogin() {
 
   // Reset login form for next time
   document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
 
   // Apply language to entire app
   applyTranslationsToDOM();
@@ -6452,8 +6433,10 @@ var SEC = {
 
 // Ensure login button works even if onclick attr fails
 document.addEventListener('DOMContentLoaded', function() {
-  // loginBtn uses onclick attr — no extra addEventListener needed
-  // loginEnterBtn removed with language step
+  const lb = document.getElementById('loginBtn');
+  if(lb) lb.addEventListener('click', doLogin);
+  const eb = document.getElementById('loginEnterBtn');
+  if(eb) eb.addEventListener('click', finishLogin);
 
   // Restore session on refresh if not expired
   try {
@@ -7613,6 +7596,3 @@ function renderCharts() {
 </script>
 </body>
 </html>
-.
-.
-.

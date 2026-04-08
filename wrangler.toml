@@ -1,7 +1,4 @@
 name = "energy-dashboard2"
-
-[assets]
-directory = "."
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
