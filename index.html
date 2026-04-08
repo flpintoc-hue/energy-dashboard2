@@ -3404,7 +3404,7 @@ async function doLogin() {
   // Auth success — show step 2 (language + avatar)
   if(btn) { btn.disabled = false; btn.textContent = t('login_btn'); }
   pendingUser = { ...user, sessionToken };
-  showLoginStep2(user.name);
+  finishLogin();
 }
 
 var _logoutTimer = null, _logoutSeconds = 60;
