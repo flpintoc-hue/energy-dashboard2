@@ -35,7 +35,6 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-/* ══════════════════════════════
    LOGIN SCREEN
 ══════════════════════════════ */
 #loginScreen {
@@ -140,7 +139,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   letter-spacing:0.05em;
 }
 
-/* ══════════════════════════════
    APP (after login)
 ══════════════════════════════ */
 #appScreen { display:none; }
@@ -324,7 +322,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 .util-name { font-weight: 800; font-size: 0.95rem; color: var(--text); }
 
-/* ── SUPPLIER SIDE-BY-SIDE CARDS ── */
 .suppliers-parallel {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -392,7 +389,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .gtag.electric { background:#FFF3E0; color:var(--orange); margin-left:auto; }
 .gtag.gas { background:#E8F5E9; color:var(--green-dark); margin-left:auto; }
 
-/* ── COMPACT RATE TABLE ── */
 .rate-section-block { margin-bottom:18px; }
 .rate-section-block:last-child { margin-bottom:0; }
 
@@ -507,7 +503,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .reset-btn { background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 14px; border-radius:6px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:700; transition:all 0.2s; margin:12px 20px; display:block; }
 .reset-btn:hover { border-color:var(--red); color:var(--red); }
 
-/* ── TEMPLATE STEP ── */
 .template-step { align-items: flex-start; cursor: default; }
 .template-step:hover { background: transparent; }
 
@@ -571,7 +566,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .empty-msg { padding:32px; text-align:center; color:var(--text-muted); font-size:0.82rem; background:var(--card); border-radius:10px; border:2px dashed var(--border); }
 .empty-msg .big { font-size:2rem; margin-bottom:8px; display:block; }
 
-/* ══════════════════════════════
    ADMIN PANEL
 ══════════════════════════════ */
 #adminOverlay {
@@ -657,7 +651,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .log-time { font-size:0.65rem; color:var(--text-muted); font-weight:700; flex-shrink:0; }
 
 /* TOAST */
-/* ── LOGOUT OVERLAY ── */
 #logoutConfirmOverlay {
   display: none; position: fixed; inset: 0; z-index: 99998;
   background: rgba(0,0,0,0.65); align-items: center; justify-content: center;
@@ -693,7 +686,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   .states-grid { grid-template-columns:repeat(3,1fr); }
 }
 
-/* ── DNC VALIDATOR ── */
 .dnc-panel {
   background: var(--card);
   border-radius: 14px;
@@ -795,8 +787,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .dnc-progress-fill { height: 100%; background: var(--blue); border-radius: 100px; transition: width 0.3s; width: 0%; }
 .dnc-progress-text { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-top: 6px; text-align: center; }
 
-
-/* ── US MAP ── */
 #usMapContainer { max-width:800px; margin:0 auto 16px; }
 .us-map-wrap { position:relative; width:100%; }
 .us-map-wrap svg { width:100%; height:auto; }
@@ -822,7 +812,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .map-legend-item { display:flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:700; color:var(--text-muted); }
 .map-legend-dot { width:14px; height:14px; border-radius:3px; }
 
-/* ── MULTI-UTILITY SELECTION ── */
 .util-selected-badge {
   display:inline-flex; align-items:center; gap:6px;
   background: var(--blue); color:#fff;
@@ -856,7 +845,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .util-proceed-btn.show { display:block; }
 .util-proceed-btn:hover { background:#6D28D9; transform:translateY(-1px); box-shadow:0 5px 16px rgba(124,58,237,0.45); }
 
-/* ── REP ID SELECTOR ── */
 .rep-selector {
   display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;
 }
@@ -872,7 +860,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .rep-chip:hover { background:#388E3C; transform:translateY(-2px); box-shadow:0 5px 14px rgba(76,175,80,0.45); }
 .rep-chip.selected { background:#1B5E20; box-shadow:0 3px 10px rgba(27,94,32,0.5); transform:translateY(-1px); }
 
-/* ── HOME BUTTON (big, prominent) ── */
 .home-btn-big {
   display:flex; align-items:center; justify-content:center; gap:10px;
   width:100%; background: linear-gradient(135deg,#E53935,#C62828);
@@ -887,8 +874,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .home-btn-big:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(229,57,53,0.5); }
 .home-btn-big .btn-icon { font-size:1.4rem; }
 
-
-/* ── STATE LAYOUT with mini map ── */
 .state-layout { /* no longer used for grid */ }
 
 .mini-map-card {
@@ -920,8 +905,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   flex-wrap: wrap;
 }
 
-
-/* ── SELECTABLE RATE ROWS ── */
 .rate-tr { cursor: pointer; transition: background 0.15s; }
 .rate-tr:hover td { background: #EEF6FF !important; }
 .rate-tr.rate-selected td { background: #E3F2FD !important; }
@@ -954,8 +937,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .selected-rate-clear { background: rgba(255,255,255,0.2); border: none; color: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.72rem; font-weight: 800; transition: background 0.15s; white-space: nowrap; }
 .selected-rate-clear:hover { background: rgba(255,255,255,0.35); }
 
-
-/* ── BIG MAP ── */
 .big-map-wrap {
   background: var(--card);
   border: 1.5px solid var(--border);
@@ -987,7 +968,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   overflow: visible !important;
 }
 
-
 @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
 /* Login security indicators */
@@ -1002,7 +982,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 .attempt-dot.used { background:#E53935; }
 
-
 .top-back-btn {
   display:inline-flex; align-items:center; gap:6px;
   background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);
@@ -1011,7 +990,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   font-weight:800; font-size:0.78rem; transition:all 0.2s;
 }
 .top-back-btn:hover { background:rgba(255,255,255,0.25); }
-
 
 /* DNC pulse animation */
 .dnc-header-icon { position:relative; display:flex; align-items:center; justify-content:center; }
@@ -1026,7 +1004,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   100% { transform:scale(0.8); opacity:0; }
 }
 
-
 /* Fix rate table overflow */
 .rate-compact-table { table-layout: fixed; width: 100%; }
 .rate-td-plan  { word-break: break-word; max-width: 0; }
@@ -1040,7 +1017,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   white-space: nowrap;
   font-size: 0.65rem !important;
 }
-
 
 /* Avatar grid */
 .avatar-option {
@@ -1070,8 +1046,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   box-shadow:0 0 0 3px rgba(255,213,79,0.3) !important;
 }
 
-
-/* ── FLOATING STEP AVATAR ── */
 .step-avatar-float {
   position: fixed;
   bottom: 24px;
@@ -1099,7 +1073,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   100% { transform: scale(1) rotate(0deg); }
 }
 
-
 @keyframes avatarWiggle {
   0%   { transform: rotate(0deg) scale(1); }
   15%  { transform: rotate(-12deg) scale(1.1); }
@@ -1113,8 +1086,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   animation: avatarWiggle 0.6s cubic-bezier(0.36,0.07,0.19,0.97);
 }
 
-
-/* ── OBJECTION BUBBLES ── */
 .objections-container {
   margin-top: 20px;
   padding: 16px;
@@ -1245,8 +1216,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   width: 100%;
 }
 
-
-/* ── OBJECTIONS CLOUD ── */
 .obj-cloud-section {
   margin-top: 20px;
   padding: 16px;
@@ -1314,7 +1283,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 .obj-keyword { display: inline; }
 
-
 .rep-chip.selected {
   background: var(--orange) !important;
   color: #fff !important;
@@ -1326,8 +1294,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   box-shadow: 0 0 0 2px rgba(229,57,53,0.2) !important;
 }
 
-
-/* ── SALES CHARTS PAGE ───────────────────────── */
 #chartsOverlay {
   display: none; position: fixed; inset: 0; z-index: 9985;
   background: var(--bg); flex-direction: column;
@@ -1383,7 +1349,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .stat-row-label { font-size: 0.8rem; font-weight: 800; color: var(--text); }
 .stat-row-val   { font-size: 1.1rem; font-weight: 900; color: #27ae60; }
 
-/* ── AGENT HISTORY PANEL ────────────────────── */
 /* Block print and copy on history */
 @media print {
   #historyOverlay * { display: none !important; }
@@ -1482,7 +1447,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .hstat-num  { font-size: 1.8rem; font-weight: 900; color: var(--accent); }
 .hstat-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
 
-/* ── SALE SUCCESS OVERLAY ───────────────────── */
 #saleSuccessOverlay {
   display: none;
   position: fixed; inset: 0; z-index: 99999;
@@ -1553,7 +1517,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
 
-/* ── BOTTOM ACTION BAR BUTTONS ─────────────── */
 .action-bar-btn {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   border-radius: 12px; padding: 13px 10px;
@@ -1564,7 +1527,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .action-bar-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 .action-bar-btn:active { transform: translateY(0); filter: brightness(0.95); }
 
-/* ── SALES HEADER STRIP (right side) ────────── */
 #salesHeaderStrip {
   position: fixed; right: 0; top: 50%;
   transform: translateY(-50%);
@@ -1605,7 +1567,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .shs-sales { background: linear-gradient(135deg,#1B5E20,#2E7D32); }
 .shs-sup   { background: linear-gradient(135deg,#6A1B9A,#4A148C); }
 
-/* ── SUPERVISOR PANEL ───────────────────────── */
 #supPanelBtn {
   display: none;
   background: linear-gradient(135deg,#6A1B9A,#4A148C);
@@ -1662,7 +1623,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ── SALES COUNTER ───────────────────────────── */
 #salesCounter {
   display: none; align-items: center; gap: 6px;
   background: linear-gradient(135deg,#1B5E20,#2E7D32);
@@ -1676,7 +1636,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .sc-num   { font-size: 1.1rem; font-weight: 900; color: #fff; line-height: 1; }
 .sc-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 4px; }
 
-/* ── SALES STATS OVERLAY ─────────────────────── */
 #salesStatsOverlay {
   display: none; position: fixed; inset: 0; z-index: 9980;
   background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
@@ -1720,7 +1679,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .sagent-num.week  { color: #1565C0; }
 .sagent-num.month { color: #E65100; }
 
-/* ── QUICK LINKS SIDEBAR ─────────────────────── */
 #quickLinks {
   position: fixed; left: 0; top: 50%; transform: translateY(-50%);
   z-index: 888; display: none; flex-direction: column; gap: 6px;
@@ -1752,7 +1710,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 .qlink-xoom     { background: linear-gradient(135deg,#E65100,#BF360C); }
 .qlink-tempedge { background: linear-gradient(135deg,#00D4C8,#00B5AB); }
 
-/* ═══════════════════════════════════════════
    FLOATING CHAT BUBBLE
 ═══════════════════════════════════════════ */
 #chatFab {
@@ -1775,7 +1732,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 }
 #chatFab .chat-unread.show { display: flex; }
 
-/* ═══════════════════════════════════════════
    WHATSAPP-STYLE CHAT
 ═══════════════════════════════════════════ */
 #chatPanel {
@@ -1996,7 +1952,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
   font-size: 0.78rem; padding: 24px 16px;
 }
 
-
 </style>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd05Tpk1Jkg5ITlZFCvJrQl2ZGOdi0LiA&libraries=places&callback=initGooglePlaces" async defer></script>
@@ -2044,7 +1999,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
         <div id="userLabel" style="display:flex;align-items:center;gap:6px">—</div>
       </div>
       <button class="hbtn" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
-
 
       <button class="hbtn danger" onclick="showLogoutConfirm()">Logout</button>
     </div>
@@ -2528,8 +2482,6 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 
 </div><!-- /appScreen -->
 
-
-
 <!-- ════════════════════════════════
   ADMIN DRAWER
 ════════════════════════════════ -->
@@ -2773,9 +2725,7 @@ body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text);
 </div>
 
 <script>
-// ════════════════════════════════════════════
 // TRANSLATION SYSTEM
-// ════════════════════════════════════════════
 var currentLang = 'en'; // English only
 
 var T = {
@@ -2987,11 +2937,9 @@ function setLang(lang) {
   // lang locked to en;
 }
 
-// ════════════════════════════════════════════
 // PERSISTENT STORAGE
 // users → Google Sheets (shared across devices)
 // db + log → localStorage (per device)
-// ════════════════════════════════════════════
 // USERS_SHEET_URL removed — auth now via Apps Script (server-side)
 const KEYS = { db:'esd_db', log:'esd_log' };
 
@@ -3010,7 +2958,6 @@ async function loadFromStorage() {
 
 async function loadUsersFromSheets() {
   // Users are verified server-side via Apps Script — never downloaded to browser
-  console.log('Auth handled server-side');
 }
 
 function parseCSVLine(line) {
@@ -3035,9 +2982,7 @@ async function saveLog() {
   try { localStorage.setItem(KEYS.log, JSON.stringify(accessLog)); } catch(e) {}
 }
 
-// ════════════════════════════════════════════
 // DEFAULT DATA
-// ════════════════════════════════════════════
 // Users authenticated server-side — no passwords stored in browser
 let users = [];
 
@@ -3172,31 +3117,24 @@ let db = {
     {id:'sp_ind_coned',   name:'INDRA', utilId:'u_coned',     margin:'22%', commission:'$35/sale'},
   ],
   rates: [
-    // ── PA · ELECTRIC ─────────────────────────────────────────────────────
     {id:'r_peco',  supId:'sp_nge_peco',  utility:'PECO',      energyType:'electric', rateType:'fixed', price:'0.1299', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
     {id:'r_pple',  supId:'sp_nge_pple',  utility:'PPL',       energyType:'electric', rateType:'fixed', price:'0.1399', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
     {id:'r_pnlc',  supId:'sp_nge_pnlc',  utility:'PNLC',      energyType:'electric', rateType:'fixed', price:'0.1799', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
     {id:'r_meted', supId:'sp_nge_meted', utility:'METED',     energyType:'electric', rateType:'fixed', price:'0.1399', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
     {id:'r_duqe',  supId:'sp_nge_duqe',  utility:'DUQE',      energyType:'electric', rateType:'fixed', price:'0.1599', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
     {id:'r_alleg', supId:'sp_nge_alleg', utility:'ALLEG',     energyType:'electric', rateType:'fixed', price:'0.1399', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
-    // ── MA · ELECTRIC ─────────────────────────────────────────────────────
     {id:'r_meco',  supId:'sp_nge_meco',  utility:'MECO',      energyType:'electric', rateType:'fixed', price:'0.1899', months:'EOY26', etf:'150',   uom:'$/kWh',   notes:''},
     {id:'r_nstar', supId:'sp_nge_nstar', utility:'NSTAR',     energyType:'electric', rateType:'fixed', price:'0.1899', months:'EOY26', etf:'150',   uom:'$/kWh',   notes:''},
     {id:'r_wmeco', supId:'sp_nge_wmeco', utility:'WMECO',     energyType:'electric', rateType:'fixed', price:'0.1899', months:'EOY26', etf:'150',   uom:'$/kWh',   notes:''},
-    // ── NJ · ELECTRIC ─────────────────────────────────────────────────────
     {id:'r_jcpl',  supId:'sp_nge_jcpl',  utility:'JCP&L',    energyType:'electric', rateType:'fixed', price:'0.1999', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
     {id:'r_psege', supId:'sp_nge_psege', utility:'PSE&G',     energyType:'electric', rateType:'fixed', price:'0.2299', months:'3',     etf:'125',   uom:'$/kWh',   notes:''},
-    // ── PA · GAS ──────────────────────────────────────────────────────────
     {id:'r_pecog', supId:'sp_nge_pecog', utility:'PECO Gas',  energyType:'gas',      rateType:'fixed', price:'0.99',   months:'3',     etf:'125',   uom:'$/CCF',   notes:''},
     {id:'r_pgw',   supId:'sp_nge_pgw',   utility:'PGW',       energyType:'gas',      rateType:'fixed', price:'1.19',   months:'3',     etf:'150',   uom:'$/CCF',   notes:''},
     {id:'r_ugi',   supId:'sp_nge_ugi',   utility:'UGI',       energyType:'gas',      rateType:'fixed', price:'0.899',  months:'3',     etf:'150',   uom:'$/CCF',   notes:''},
-    // ── NJ · GAS ──────────────────────────────────────────────────────────
     {id:'r_njng',  supId:'sp_nge_njng',  utility:'NJNG',      energyType:'gas',      rateType:'fixed', price:'1.09',   months:'3',     etf:'125',   uom:'$/Therm', notes:''},
     {id:'r_psegg', supId:'sp_nge_psegg', utility:'PSE&G Gas', energyType:'gas',      rateType:'fixed', price:'1.09',   months:'3',     etf:'125',   uom:'$/Therm', notes:''},
-    // ── CA · GAS ──────────────────────────────────────────────────────────
     {id:'r_pge1',  supId:'sp_nge_pge',   utility:'PG&E',      energyType:'gas',      rateType:'fixed', price:'0.00',   months:'12',    etf:'125',   uom:'$/Day',   notes:'Tier 1'},
     {id:'r_pge2',  supId:'sp_nge_pge',   utility:'PG&E',      energyType:'gas',      rateType:'fixed', price:'0.00',   months:'12',    etf:'125',   uom:'$/Day',   notes:'Tier 2'},
-    // ══ INDRA RATES (Effective 12/22/2025) ══════════
     // NJ · Electric
     // RUSHMORE rates — Fixed 36M, $5/mo remaining ETF
     {id:'rr_de',    supId:'sp_rs_de',    energyType:'electric', price:'0.1460', uom:'$/kWh', months:'36', etf:'$5/mo remaining', notes:'Fixed'},
@@ -3304,15 +3242,12 @@ let db = {
 
 let accessLog = [];
 
-// ════════════════════════════════════════════
 // SESSION
-// ════════════════════════════════════════════
 let currentUser = null;
 let pendingUser = null; // user waiting for lang/avatar selection
 
 var _loginInProgress=false;
 async function doLogin() {
-  if(_loginInProgress){console.log("login already in progress");return;}
   _loginInProgress=true;
   const btn = document.getElementById('loginBtn');
   if(btn) { btn.disabled = true; btn.textContent = t('btn_verifying'); }
@@ -3324,7 +3259,6 @@ async function doLogin() {
 
   const err = document.getElementById('loginError');
 
-  // ── Check lockout ──
   const lockedMins = secIsLocked(u);
   if(lockedMins > 0) {
     err.textContent = `🔒 Cuenta bloqueada por ${lockedMins} min. Demasiados intentos fallidos.`;
@@ -3340,7 +3274,6 @@ async function doLogin() {
 
   if(btn) { btn.textContent = 'Verificando sesión...'; }
 
-  // ── Server-side authentication + session check via Apps Script ──
   let authResult;
   try {
     if(btn) { btn.textContent = t('btn_verifying'); }
@@ -3350,9 +3283,7 @@ async function doLogin() {
     });
     // Follow redirects — Apps Script may redirect once
     const text = await authResp.text();
-    console.log('Auth raw response:', text);
     authResult = JSON.parse(text);
-    console.log('Auth result:', JSON.stringify(authResult));
   } catch(e) {
     console.error('Auth script error:', e);
     authResult = null;
@@ -3388,7 +3319,6 @@ async function doLogin() {
     return;
   }
 
-  // ── Check single session ──
   const tokenBytes = new Uint8Array(32);
   crypto.getRandomValues(tokenBytes);
   const sessionToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2,'0')).join('');
@@ -3524,9 +3454,7 @@ function doLogout() {
   try { history.replaceState({ step: 0 }, ''); } catch(e) {}
 }
 
-// ════════════════════════════════════════════
 // ACCESS LOG
-// ════════════════════════════════════════════
 function addLog(type, text) {
   accessLog.unshift({ type, text, time: new Date().toLocaleString('es-CO', {hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) });
   if (accessLog.length > 80) accessLog = accessLog.slice(0, 80);
@@ -3546,9 +3474,7 @@ function renderLog() {
 
 function clearLog() { accessLog = []; saveLog(); renderLog(); }
 
-// ════════════════════════════════════════════
 // NAVIGATION
-// ════════════════════════════════════════════
 let sel = { stateId:null, utilIds:[], supId:null, rateIds:{}, rateInfos:{} }; // rateIds: {electric: id, gas: id}
 let rateFilter = 'all';
 let checkedItems = new Set();
@@ -3620,13 +3546,9 @@ function updateContext() {
   bar.innerHTML=html;
 }
 
-// ════════════════════════════════════════════
 // STEP RENDERS
-// ════════════════════════════════════════════
 
-// ════════════════════════════════════════════
 // US MAP — Active States Only
-// ════════════════════════════════════════════
 const ACTIVE_STATES_MAP = {
   'st1': { name:'Massachusetts', code:'MA', x:720, y:112, w:52, h:28 },
   'st2': { name:'New Jersey',    code:'NJ', x:688, y:148, w:36, h:38 },
@@ -3638,7 +3560,6 @@ const ACTIVE_STATES_MAP = {
   'st5': { name:'Indiana',       code:'IN', x:528, y:138, w:52, h:48 },
   'st6': { name:'California',    code:'CA', x:92,  y:148, w:76, h:108 },
 };
-
 
 function renderMiniMap() {
   // Update map state highlights based on selected state
@@ -3892,7 +3813,6 @@ function renderSupplierCards() {
   }).join('') + '</div>';
 }
 
-
 function selectRate(rateId, supId, energyType) {
   const r = db.rates.find(x => x.id === rateId);
   if(!r) return;
@@ -4004,8 +3924,6 @@ function injectCopyButton() {
     ; // TPV360 button is now static HTML
 }
 
-
-
 function renderCheckItems() {
   const state  = db.states.find(s=>s.id===sel.stateId);
   const util   = db.utilities.find(u=>u.id===sel.utilId);
@@ -4049,8 +3967,6 @@ function renderTemplateStep(stepNum, state, util, sup) {
   }).filter(Boolean);
   // Also passed util as fallback
   if(selUtils.length === 0 && util) selUtils = [util];
-  console.log("[renderTemplateStep] sel.utilIds:", JSON.stringify(sel.utilIds), "sel.utilId:", sel.utilId, "selUtils:", selUtils.map(function(u){return u.name;}));
-  selUtils.forEach(function(u){ console.log("[ACC INFO check] util:", u.name, "getAccInfo:", JSON.stringify(getAccInfo(u.name))); });
 
   var utilVal = selUtils.map(function(u){return u.name;}).join(' / ');
 
@@ -4228,8 +4144,6 @@ function renderTemplateStep(stepNum, state, util, sup) {
 
 /* saveTplField removed */
 
-
-
 function copyTemplate() {
   if(!validateTemplate()) return;
 
@@ -4250,9 +4164,7 @@ function copyTemplate() {
 
   // Build ACC INFO lines — read directly from each input's value and placeholder
   var accLines = [];
-  console.log('ACC inputs found:', document.querySelectorAll('.acc-info-input').length);
   document.querySelectorAll('.acc-info-input').forEach(function(inp) {
-    console.log('ACC input:', inp.id, 'value:', inp.value, 'data-util:', inp.getAttribute('data-util'));
     var val = inp.value.trim();
     if(!val) return; // skip empty
     var utilId    = inp.getAttribute('data-util') || '';
@@ -4467,7 +4379,6 @@ function copyScript() {
   });
 }
 
-
 function renderBillsAdmin() {
   const el = document.getElementById('billUrlsList');
   if(!el) return;
@@ -4579,10 +4490,7 @@ function saveScript(supplierName) {
   // Legacy - kept for compatibility
 }
 
-
-// ════════════════════════════════════════════
 // SUBMIT SALE TO GOOGLE SHEETS
-// ════════════════════════════════════════════
 function getTpvNumLength() {
   var sup = db.suppliers.find(function(s){ return s.id === sel.supId; });
   if(!sup) return null;
@@ -4924,10 +4832,7 @@ async function submitSale() {
   }
 }
 
-
-// ════════════════════════════════════════════
 // WHATSAPP INTEGRATION
-// ════════════════════════════════════════════
 function getWANumber() {
   return db.whatsappNumber || '573155062006';
 }
@@ -4940,7 +4845,6 @@ async function callMeBot(message) {
       body: JSON.stringify({ _secret: _APP_SECRET, action: 'send_whatsapp', message: message })
     });
   } catch(e) {
-    console.log('WA notification error:', e);
   }
 }
 
@@ -5010,10 +4914,7 @@ function saveWANumber() {
   toast('✓ Número guardado — ' + num, 'success');
 }
 
-
-// ════════════════════════════════════════════
 // TEMPLATE VALIDATION + AUTH DYNAMIC FIELDS
-// ════════════════════════════════════════════
 function onAuthChange() {
   var val = (document.getElementById('tpl_auth')||{}).value || '';
   var container = document.getElementById('authDynamicFields');
@@ -5114,10 +5015,7 @@ function validateTemplate() {
   return valid;
 }
 
-
-// ════════════════════════════════════════════
 // REP ID SELECTOR
-// ════════════════════════════════════════════
 function selectRepId(id) {
   var input = document.getElementById('tpl_repid');
   if(!input) return;
@@ -5177,10 +5075,7 @@ function markAllFields() {
   });
 }
 
-
-// ════════════════════════════════════════════
 // GOOGLE PLACES AUTOCOMPLETE
-// ════════════════════════════════════════════
 var _placesAutocomplete = null;
 
 function clearAddressMismatch() {
@@ -5275,9 +5170,7 @@ function setupAddressAutocomplete() {
   });
 }
 
-// ════════════════════════════════════════════
 // TEMPLATE VALUE PERSISTENCE
-// ════════════════════════════════════════════
 var _savedTemplateValues = {};
 
 function saveTemplateValues() {
@@ -5345,9 +5238,7 @@ function restoreTemplateValues() {
 function toggleCheck(id){saveTemplateValues();checkedItems.has(id)?checkedItems.delete(id):checkedItems.add(id);renderCheckItems();restoreTemplateValues();_placesAutocomplete=null;}
 function resetChecklist(){checkedItems.clear();_placesAutocomplete=null;renderCheckItems();}
 
-// ════════════════════════════════════════════
 // ADMIN PANEL
-// ════════════════════════════════════════════
 function openAdmin() {
   document.getElementById('adminOverlay').classList.add('visible');
   dTab('agents');
@@ -5561,10 +5452,7 @@ function toast(msg,type=''){
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-
-// ════════════════════════════════════════════
 // DNC — GOOGLE SHEETS REAL-TIME CHECK
-// ════════════════════════════════════════════
 // DNC list loaded into browser memory at login for instant local lookups
 let dncCount = 0;
 
@@ -5582,7 +5470,6 @@ async function loadDNCFromSheets() {
     dncSet = new Set(result.numbers || []);
     dncLoaded = true;
     dncCount  = dncSet.size;
-    console.log('DNC loaded into memory:', dncCount, 'numbers');
     // Update status bar
     const dot  = document.getElementById('dncStatusDot');
     const text = document.getElementById('dncStatusText');
@@ -5681,7 +5568,6 @@ async function checkDNC() {
   // Pause chat polling during DNC check to avoid competing requests
   stopChatPolling();
 
-  // ── PASO 1: Disparar WA al supervisor PRIMERO (fire & forget) ────
   const dncState = db.states.find(s => s.id === sel.stateId);
   const agentName = currentUser ? currentUser.name : 'Agente';
   const stateStr  = dncState ? dncState.name + ' (' + dncState.code + ')' : '';
@@ -5698,7 +5584,6 @@ async function checkDNC() {
     if(waText) waText.textContent = '⚠️ WA unavailable';
   });
 
-  // ── PASO 2: Consulta DNC inmediatamente (sin esperar WA) ────
   try {
     const resp = await fetch(SESSIONS_URL, {
       method: 'POST',
@@ -5729,8 +5614,6 @@ async function checkDNC() {
     startChatPolling();
   }
 }
-
-
 
 /* removed */
 
@@ -5786,10 +5669,7 @@ async function reloadDNC() {
   toast('↺ Reloading DNC list...','warn');
 }
 
-
-// ════════════════════════════════════════════
 // SINGLE SESSION CONTROL — Google Apps Script
-// ════════════════════════════════════════════
 const SESSIONS_URL = 'https://energy-prox.flpintoc.workers.dev';
 // Token assembled at runtime — split to avoid plain-text exposure
 const _APP_SECRET = 'EnergyDash2026!SecureProxy#LP';
@@ -5836,9 +5716,7 @@ function stopHeartbeat() {
   if(_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
 }
 
-// ════════════════════════════════════════════
 // ACC INFO MAP — per utility from Excel data
-// ════════════════════════════════════════════
 const ACC_INFO_MAP = {
   'PSE&G Gas':              { label:'POD ID',                    chars:20 },
   'PSE&G':                  { label:'POD ID',                    chars:20 },
@@ -5878,13 +5756,7 @@ function getAccInfo(utilName) {
   return key ? ACC_INFO_MAP[key] : null;
 }
 
-
-
-
-
-// ════════════════════════════════════════════
 // AVATAR SYSTEM
-// ════════════════════════════════════════════
 var currentAvatar = localStorage.getItem('esd_avatar') || 'avatar1';
 
 // iPhone-style cartoon avatars using DiceBear Adventurer
@@ -5944,7 +5816,6 @@ function setAvatar(key) {
     el.innerHTML = getAvatarHtml(currentAvatar, parseInt(el.dataset.size)||36);
   });
 }
-
 
 function showLoginStep2(name) {
   // Language step removed — go straight to app
@@ -6059,7 +5930,6 @@ function updateHeader() {
   applyTranslations();
 }
 
-
 function applyTranslationsToDOM() {
   // Headings + subtitles
   const elements = {
@@ -6134,10 +6004,7 @@ function applyTranslations() {
   if(topBack) topBack.textContent = t('btn_back');
 }
 
-
-// ════════════════════════════════════════════
 // AVATAR PICKER + FLOATING AVATAR
-// ════════════════════════════════════════════
 function toggleAvatarPicker() {
   const d = document.getElementById('avatarPickerDropdown');
   if(!d) return;
@@ -6218,9 +6085,7 @@ function bounceAvatar() {
 
 // Bounce avatar on every step navigation click
 
-// ════════════════════════════════════════════
 // OBJECTION HANDLING SYSTEM
-// ════════════════════════════════════════════
 var OBJECTIONS = [
   {
     key: 'No estoy interesado/a',
@@ -6334,10 +6199,7 @@ function closeObjection() {
   bubbles.forEach(function(b) { b.classList.remove('active'); b.style.display = ''; });
 }
 
-
-// ════════════════════════════════════════════
 // OBJECTIONS HANDLER
-// ════════════════════════════════════════════
 var OBJECTIONS = [
   { key: 'Ya tengo contrato', text: 'Entiendo perfectamente. Lo que hacemos es revisar si su tarifa actual es competitiva. Muchos clientes tienen contratos pero siguen pagando más de lo necesario. ¿Me podría decir cuánto está pagando aproximadamente por kWh?' },
   { key: 'No me interesa', text: 'Lo comprendo. La mayoría de nuestros clientes nos decían lo mismo antes de ver el ahorro. Solo le toma 2 minutos revisar si podemos reducir su factura. ¿Cuánto paga actualmente de luz al mes?' },
@@ -6384,9 +6246,7 @@ function toggleObjBubble(idx) {
   }
 }
 
-// ════════════════════════════════════════════
 // MAP ZOOM + CLICK FUNCTIONS
-// ════════════════════════════════════════════
 function zoomState(el, code, name) {
   // Reset all groups
   document.querySelectorAll('.map-state-group').forEach(g => {
@@ -6557,10 +6417,7 @@ window.addEventListener('popstate', function(e) {
   // If on login screen, let browser handle normally
 });
 
-// ════════════════════════════════════════════
 // SECURITY MODULE
-// ════════════════════════════════════════════
-
 
 let _sessionTimer = null, _warnTimer = null, _warnBanner = null;
 
@@ -6745,12 +6602,8 @@ window.addEventListener('beforeunload', () => {
   </div>
 </div>
 <script>
-// ═══════════════════════════════════════════
 // INTERNAL CHAT SYSTEM
-// ═══════════════════════════════════════════
-// ═══════════════════════════════════════════
 // WHATSAPP-STYLE CHAT SYSTEM
-// ═══════════════════════════════════════════
 
 // Chat notification sound using Web Audio API (no file needed)
 var _chatAudioCtx = null;
@@ -6782,7 +6635,6 @@ let chatUnreadCount = {};
 let chatMessages = { group: [] }; // { group: [], username: [] }
 let _chatContacts = []; // loaded from server
 
-// ── Open/close chat ──────────────────────────────────────────
 function toggleChat() {
   chatOpen = !chatOpen;
   const panel = document.getElementById('chatPanel');
@@ -6801,7 +6653,6 @@ function toggleChat() {
   }
 }
 
-// ── Open a specific conversation ─────────────────────────────
 function openChatConversation(tab) {
   chatTab = tab;
   if(!chatMessages[tab]) chatMessages[tab] = [];
@@ -6834,7 +6685,6 @@ function openChatConversation(tab) {
   scrollChatToBottom();
 }
 
-// ── Contacts list ─────────────────────────────────────────────
 function renderChatContacts() {
   var list = document.getElementById('chatContactsList');
   if(!list || !currentUser) return;
@@ -6895,7 +6745,6 @@ function filterChatContacts(query) {
   });
 }
 
-// ── Render messages ───────────────────────────────────────────
 function renderChatMessages() {
   var msgs = chatMessages[chatTab] || [];
   var container = document.getElementById('chatMessages');
@@ -6955,7 +6804,6 @@ function escHtml(str) {
   return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── Send message ──────────────────────────────────────────────
 async function sendChatMsg() {
   if(!currentUser) return;
   var input = document.getElementById('chatInput');
@@ -6995,7 +6843,6 @@ async function sendChatMsg() {
   } catch(e) {}
 }
 
-// ── Polling ───────────────────────────────────────────────────
 async function pollChat() {
   if(!currentUser) return;
   try {
@@ -7082,12 +6929,9 @@ function updateChatHeader() {
   // No-op — header updated in openChatConversation
 }
 
-// ═══════════════════════════════════════════
 // DNC approval system removed — flow simplified
 
-// ═══════════════════════════════════════════
 // AGENT HISTORY
-// ═══════════════════════════════════════════
 var _historyTab = 'all';
 var _historyData = [];
 
@@ -7281,9 +7125,7 @@ function renderHistoryBody() {
   body.innerHTML = statsHtml + cardsHtml;
 }
 
-// ═══════════════════════════════════════════
 // SALES COUNTER
-// ═══════════════════════════════════════════
 var _salesStatsTimer = null;
 
 function showSalesCounter() {
@@ -7380,9 +7222,7 @@ function renderSalesStats() {
   }
 }
 
-// ═══════════════════════════════════════════
 // SUPERVISOR PANEL
-// ═══════════════════════════════════════════
 var _supTimer = null;
 
 function initSupPanel() {
@@ -7449,9 +7289,7 @@ async function loadSupStatus() {
   }
 }
 
-// ═══════════════════════════════════════════
 // CHAT CONTACTS SIDEBAR
-// ═══════════════════════════════════════════
 var _onlineAgents = [];
 
 var _allUsers = [];
@@ -7481,9 +7319,7 @@ async function refreshOnlineAgents() {
 
 // renderChatContacts defined above
 
-// ═══════════════════════════════════════════
 // SALES CHARTS
-// ═══════════════════════════════════════════
 var _chartPeriod = 'week';
 var _chartData   = null;
 
@@ -7626,8 +7462,3 @@ function renderCharts() {
 </script>
 </body>
 </html>
-.
-.
-.
-x
-x
