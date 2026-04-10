@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "energy-dashboard2",
+  "name": "energy-dashboard-secure",
   "compatibility_date": "2025-09-27",
   "observability": {
     "enabled": true
