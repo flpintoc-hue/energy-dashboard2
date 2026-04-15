@@ -1,7 +1,7 @@
 import{useState,useEffect,useRef,Fragment}from'react';
 import{useAuthStore,useUIStore}from'../store';
 import * as API from '../services/api';
-import{STATES,UTILITIES,SUPPLIER_BRANDS,RATES,getAccInfo,WORKER_URL,GOOGLE_MAPS_KEY,DEMO_MODE,MOCK_DNC_LIST}from'../data/mockData';
+import{STATES,UTILITIES,SUPPLIER_BRANDS,RATES,getAccInfo,GOOGLE_MAPS_KEY,DEMO_MODE,MOCK_DNC_LIST}from'../data/mockData';
 
 const STEP_LABELS=['DNC','State','Utility','Supplier & Rates','Checklist'];
 
@@ -61,18 +61,30 @@ function StepDNC({onClear,user}){
       return;
     }
     
-    // PRODUCTION MODE: Call real backend
-    // STEP 1: Fire WhatsApp notification (fire & forget)
-    fetch(WORKER_URL,{method:'POST',body:JSON.stringify({action:'notify_dnc',phone:digits,found:null,agent:agentName,state:''})}).then(()=>setWaStatus('✅ Supervisor notified')).catch(()=>setWaStatus('⚠️ WA unavailable'));
-    // STEP 2: Check DNC database (2M numbers)
-    try{
-      const resp=await fetch(WORKER_URL,{method:'POST',body:JSON.stringify({action:'check_dnc',phone:digits,agent:agentName,state:''})});
-      const data=JSON.parse(await resp.text());
-      if(data.error){setResult('error');setWaStatus(w=>w+' — ⚠ Error');}
-      else if(data.found){setResult('blocked');setWaStatus('✅ Supervisor notified — 🚫 ON DNC');}
-      else{setResult('clear');setWaStatus('✅ Supervisor notified — CLEAR');}
-    }catch(e){setResult('error');}
+    // PRODUCTION MODE: Call backend with JWT
+    try {
+      setWaStatus('📱 Checking DNC database...');
+      
+      // Call API with JWT authentication
+      const data = await API.checkDNC(digits);
+      
+      if (data.error) {
+        setResult('error');
+        setWaStatus('⚠️ Error checking DNC');
+      } else if (data.found || data.blocked) {
+        setResult('blocked');
+        setWaStatus('🚫 ON DNC LIST');
+      } else {
+        setResult('clear');
+        setWaStatus('✅ CLEAR - Safe to call');
+      }
+    } catch (error) {
+      console.error('DNC check error:', error);
+      setResult('error');
+      setWaStatus('⚠️ Connection error');
+    }
     setBusy(false);
+
   };
   return(<div className="fade-up" style={{maxWidth:640,margin:'0 auto'}}>
     <div style={{background:'#fff',borderRadius:18,overflow:'hidden',boxShadow:'var(--sh-lg)'}}>
