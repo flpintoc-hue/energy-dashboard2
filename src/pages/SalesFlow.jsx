@@ -1,6 +1,7 @@
 import{useState,useEffect,useRef,Fragment}from'react';
 import{useAuthStore,useUIStore}from'../store';
 import * as API from '../services/api';
+import { sanitizePhone, sanitizeText } from '../utils/sanitize';
 import{STATES,UTILITIES,SUPPLIER_BRANDS,RATES,getAccInfo,GOOGLE_MAPS_KEY,DEMO_MODE,MOCK_DNC_LIST}from'../data/mockData';
 
 const STEP_LABELS=['DNC','State','Utility','Supplier & Rates','Checklist'];
