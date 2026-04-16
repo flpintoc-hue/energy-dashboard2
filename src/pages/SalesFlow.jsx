@@ -69,15 +69,20 @@ function StepDNC({onClear,user}){
       // Call API with JWT authentication
       const data = await API.checkDNC(digits);
       
+      // Send WhatsApp notification to supervisor
+      const dncStatus = data.found || data.blocked ? 'BLOCKED' : 'CLEAR';
+      const message = `🔍 DNC CHECK\nAgent: ${agentName}\nPhone: ${digits}\nStatus: ${dncStatus}`;
+      API.sendWhatsApp(digits, message).catch(err => console.log('WhatsApp notify failed:', err));
+      
       if (data.error) {
         setResult('error');
         setWaStatus('⚠️ Error checking DNC');
       } else if (data.found || data.blocked) {
         setResult('blocked');
-        setWaStatus('🚫 ON DNC LIST');
+        setWaStatus('✅ Supervisor notified — 🚫 ON DNC');
       } else {
         setResult('clear');
-        setWaStatus('✅ CLEAR - Safe to call');
+        setWaStatus('✅ Supervisor notified — CLEAR');
       }
     } catch (error) {
       console.error('DNC check error:', error);
@@ -353,7 +358,7 @@ function StepChecklist({sel,user,onHome}){
 
   const iStyle={width:'100%',border:'1.5px solid var(--border)',borderRadius:9,padding:'10px 13px',fontSize:'.84rem',fontWeight:600,outline:'none',background:'#fafbfc',boxSizing:'border-box'};
   
-  const copy=()=>{
+  const copy=async()=>{
     const holderLine=tpl.auth==='Yes — Account Holder'?'ACC HOLDER: '+tpl.holder:tpl.auth==='Yes — Authorized User'?'AUTHORIZED USER: '+tpl.authName+'\nACC HOLDER: '+tpl.holder:'';
     
     // Build ACC INFO lines dynamically
@@ -364,7 +369,19 @@ function StepChecklist({sel,user,onHome}){
     }).filter(Boolean).join('\n');
     
     const lines=['LANGUAGE: '+tpl.lang,'AUTHORIZED: '+tpl.auth,holderLine,'STATE: '+(sel.state?.name||''),'PHONE: '+tpl.phone,'ADDRESS: '+tpl.address+(tpl.apt?', '+tpl.apt:''),'CITY: '+tpl.city,'ZIP: '+tpl.zip,accInfoLines,'UTILITY: '+(sel.utils||[]).map(u=>u.name).join(', '),'REP ID: '+tpl.repId,'RATE: '+tpl.tarifa].filter(Boolean).join('\n');
+    
+    // Copy to clipboard
     navigator.clipboard?.writeText(lines).then(()=>{setCopied(true);showToast('✓ Template copied!','success');setTimeout(()=>setCopied(false),3000);});
+    
+    // Send WhatsApp notification to supervisor
+    const whatsappMessage = `📋 SALE SUBMITTED\nAgent: ${user?.name}\nSupplier: ${sel.supplier?.name}\nUtility: ${(sel.utils||[]).map(u=>u.name).join(', ')}\nPhone: ${tpl.phone}\nAddress: ${tpl.address}, ${tpl.city}`;
+    try {
+      await API.sendWhatsApp(tpl.phone, whatsappMessage);
+      showToast('✅ Supervisor notified', 'success');
+    } catch (error) {
+      console.log('WhatsApp notification failed:', error);
+      // Don't show error to user - not critical
+    }
   };
 
   return(<div className="fade-up">
