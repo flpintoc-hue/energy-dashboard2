@@ -11,6 +11,9 @@ const WORKER_URL = 'https://energy-dashboard-proxy.flpintoc.workers.dev';
 const TOKEN_KEY = 'energy_dash_token';
 const USER_KEY = 'energy_dash_user';
 
+// ⚠️ CONFIGURACIÓN: Número del supervisor para notificaciones DNC
+const SUPERVISOR_PHONE = '+1234567890'; // ← CAMBIA ESTO por el número real del supervisor
+
 // ── Token Management ──
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -114,7 +117,7 @@ export function logout() {
 }
 
 // ── DNC ──
-export async function checkDNC(phone) {
+export async function checkDNC(phone, agentName = 'Agent') {
   return authenticatedFetch('/api/data/check_dnc', { 
     action: 'check_dnc',
     phone 
@@ -125,6 +128,25 @@ export async function getDNCList() {
   return authenticatedFetch('/api/data/get_dnc_list', {
     action: 'get_dnc_list'
   });
+}
+
+// ── WhatsApp notifications ──
+export async function sendWhatsApp(customerPhone, message) {
+  return authenticatedFetch('/api/notifications/whatsapp', {
+    to: SUPERVISOR_PHONE,
+    customer_phone: customerPhone,
+    message,
+  });
+}
+
+export async function notifyDNCSupervisor(customerPhone, agentName, dncStatus) {
+  const message = `🚨 DNC Check Alert\n\n` +
+    `Agent: ${agentName}\n` +
+    `Customer Phone: ${customerPhone}\n` +
+    `Status: ${dncStatus === 'blocked' ? '🚫 ON DNC LIST' : '✅ CLEAR'}\n\n` +
+    `Time: ${new Date().toLocaleString()}`;
+
+  return sendWhatsApp(customerPhone, message);
 }
 
 // ── Data (States, Utilities, Suppliers, Rates) ──
@@ -201,14 +223,6 @@ export async function getSupervisorStatus() {
   });
 }
 
-// ── WhatsApp notification (now from server) ──
-export async function sendWhatsApp(phone, message) {
-  return authenticatedFetch('/api/notifications/whatsapp', { 
-    to: phone,
-    message 
-  });
-}
-
 // ── Session Management ──
 export async function checkSession(username, token) {
   // Not needed with JWT - token validation is automatic
@@ -238,4 +252,4 @@ export function releaseSessionBeacon(username, token) {
 }
 
 // Export utilities for components
-export { getToken, saveToken, getUser, saveUser, clearSession, isTokenExpired };
+export { getToken, saveToken, getUser, saveUser, clearSession, isTokenExpired, SUPERVISOR_PHONE };
